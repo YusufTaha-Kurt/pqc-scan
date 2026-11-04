@@ -103,7 +103,7 @@ An algorithm exactly as a scanner observed it. Canonicalisation is
 | Field      | Type        | Notes                                                       |
 | ---------- | ----------- | ----------------------------------------------------------- |
 | `id`       | `str`       | Stable URI-like id, used for de-duplication and CBOM `bom-ref`: `tls://host:443`, `ssh://host:22`, `file:///abs/path`, `code:///abs/path` |
-| `kind`     | `AssetKind` | `tls_endpoint`, `ssh_endpoint`, `certificate`, `private_key`, `public_key`, `source_file` |
+| `kind`     | `AssetKind` | `tls_endpoint`, `ssh_endpoint`, `certificate`, `certificate_request`, `private_key`, `public_key`, `source_file` |
 | `location` | `str`       | Human readable (host:port or relative path)                 |
 
 ### 3.5 `Observation` (scanner output) **[D-1]**
@@ -194,7 +194,25 @@ Walk a directory and parse:
   with `key_size=None` and a note.
 
 Output usages: `file.certificate.public_key`, `file.certificate.signature`,
-`file.private_key`, `file.public_key`, `file.ssh_public_key`.
+`file.certificate.signature_hash`, `file.csr.public_key`, `file.csr.signature`,
+`file.csr.signature_hash`, `file.private_key`, `file.public_key`,
+`file.ssh_public_key`.
+
+Details:
+
+- Detection is by content (`-----BEGIN `) first, then by file name/extension.
+- The signer's key size is only reported for certificates that verifiably sign
+  themselves (and for CSRs); for CA-issued certificates it is unknown.
+- Keys that the installed `cryptography` cannot load are named from their
+  public-key OID (ML-DSA, ML-KEM, SLH-DSA OIDs are known) with
+  `confidence: medium`; unknown OIDs are reported verbatim and classify as
+  `UNKNOWN`.
+- Encrypted PKCS#8 keys are reported as `encrypted private key` (`UNKNOWN`);
+  legacy encrypted PEM keys take their type from the PEM label.
+- A file with several items gets one asset per item: `file:///path#block-<n>`
+  (PEM) or `file:///path#line-<n>` (SSH key lists).
+- Unreadable, oversized, non-regular and malformed files are skipped silently;
+  only a missing or unusable root path is a `ScanError`.
 
 ### 5.2 `tls`
 

@@ -74,6 +74,7 @@ class AssetKind(StrEnum):
     TLS_ENDPOINT = "tls_endpoint"
     SSH_ENDPOINT = "ssh_endpoint"
     CERTIFICATE = "certificate"
+    CERTIFICATE_REQUEST = "certificate_request"
     PRIVATE_KEY = "private_key"
     PUBLIC_KEY = "public_key"
     SOURCE_FILE = "source_file"
