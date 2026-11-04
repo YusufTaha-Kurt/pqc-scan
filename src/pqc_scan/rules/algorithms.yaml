@@ -1,0 +1,529 @@
+# Risk classification rules for pqc-scan.
+#
+# This file is the single source of truth for "how risky is algorithm X".
+# Scanners report raw names; classify.py looks them up here.
+#
+# Matching: names are case-folded and stripped of every non-alphanumeric
+# character before lookup, so "SHA-256", "sha_256" and "SHA256" are the same.
+# An alias may belong to only one entry.
+#
+# Evaluation: if one or more `rules` match, the worst matching rule wins;
+# otherwise `default` applies. Supported `when` conditions (all must hold):
+#   key_size_lt: <bits>      key size known and smaller than <bits>
+#   key_size_unknown: true   scanner could not determine the key size
+#   primitive: [<p>, ...]    observed primitive is one of these
+#
+# Entries marked "# TODO: doğrula" are judgement calls that still need review.
+
+schema_version: 1
+
+algorithms:
+
+  # ------------------------------------------------------------------
+  # Classical public-key algorithms (broken by Shor's algorithm)
+  # ------------------------------------------------------------------
+
+  - id: rsa
+    name: RSA
+    aliases: [RSA, rsaEncryption, rsa-sha2-256, rsa-sha2-512, RSASSA-PSS, RSA-PSS, RSAES-OAEP, RSA-OAEP]
+    primitives: [signature, public_key_encryption, key_exchange]
+    default: VULNERABLE
+    reason: RSA is broken by Shor's algorithm at every key size
+    recommendation: Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).
+    rules:
+      - when: { key_size_lt: 2048 }
+        risk: BROKEN
+        reason: RSA key shorter than 2048 bits is weak even without a quantum computer
+
+  - id: ssh-rsa
+    name: ssh-rsa (RSA with SHA-1)
+    aliases: [ssh-rsa]
+    primitives: [signature]
+    default: BROKEN
+    reason: ssh-rsa signatures use SHA-1 and are disabled by default since OpenSSH 8.8
+    recommendation: Use ssh-ed25519 or rsa-sha2-512 now; plan migration to post-quantum signatures.
+
+  - id: dsa
+    name: DSA
+    aliases: [DSA]
+    primitives: [signature]
+    default: VULNERABLE
+    reason: DSA is broken by Shor's algorithm
+    recommendation: Migrate to ML-DSA (FIPS 204). DSA is no longer approved for new signatures (FIPS 186-5).
+    rules:
+      - when: { key_size_lt: 2048 }
+        risk: BROKEN
+        reason: DSA key shorter than 2048 bits is weak even without a quantum computer
+
+  - id: ssh-dss
+    name: ssh-dss (DSA-1024 with SHA-1)
+    aliases: [ssh-dss]
+    primitives: [signature]
+    default: BROKEN
+    reason: ssh-dss is fixed to 1024-bit DSA with SHA-1
+    recommendation: Remove ssh-dss host keys; use ssh-ed25519 now and plan post-quantum migration.
+
+  - id: dh
+    name: Diffie-Hellman (finite field)
+    aliases: [DH, DHE, FFDHE, Diffie-Hellman, ffdhe2048, ffdhe3072, ffdhe4096, ffdhe6144, ffdhe8192]
+    primitives: [key_exchange]
+    default: VULNERABLE
+    reason: Finite-field Diffie-Hellman is broken by Shor's algorithm
+    recommendation: Use hybrid X25519MLKEM768 (TLS 1.3) or mlkem768x25519-sha256 (SSH).
+    rules:
+      - when: { key_size_lt: 2048 }
+        risk: BROKEN
+        reason: Diffie-Hellman group smaller than 2048 bits is weak even without a quantum computer
+
+  - id: diffie-hellman-group1-sha1
+    name: diffie-hellman-group1-sha1
+    aliases: [diffie-hellman-group1-sha1]
+    primitives: [key_exchange]
+    default: BROKEN
+    reason: Uses a 1024-bit group and SHA-1
+    recommendation: Disable it; use mlkem768x25519-sha256 or sntrup761x25519-sha512.
+
+  - id: diffie-hellman-group14-sha1
+    name: diffie-hellman-group14-sha1
+    aliases: [diffie-hellman-group14-sha1, diffie-hellman-group-exchange-sha1]
+    primitives: [key_exchange]
+    default: VULNERABLE  # TODO: doğrula — SHA-1 in the KEX hash; BROKEN?
+    reason: Diffie-Hellman key exchange (with SHA-1 exchange hash) is broken by Shor's algorithm
+    recommendation: Use mlkem768x25519-sha256 or sntrup761x25519-sha512.
+
+  - id: diffie-hellman-ssh
+    name: Diffie-Hellman (SSH, SHA-2)
+    aliases:
+      - diffie-hellman-group14-sha256
+      - diffie-hellman-group16-sha512
+      - diffie-hellman-group18-sha512
+      - diffie-hellman-group-exchange-sha256
+    primitives: [key_exchange]
+    default: VULNERABLE
+    reason: Diffie-Hellman key exchange is broken by Shor's algorithm
+    recommendation: Use mlkem768x25519-sha256 or sntrup761x25519-sha512.
+
+  - id: ec
+    name: Elliptic-curve key (unspecified use)
+    aliases: [EC, id-ecPublicKey, ecPublicKey]
+    primitives: [signature, key_exchange]
+    default: VULNERABLE
+    reason: Elliptic-curve cryptography is broken by Shor's algorithm
+    recommendation: Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition).
+    rules:
+      - when: { key_size_lt: 224 }
+        risk: BROKEN
+        reason: Elliptic curve smaller than 224 bits is weak even without a quantum computer
+
+  - id: ecdsa
+    name: ECDSA
+    aliases: [ECDSA, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521]
+    primitives: [signature]
+    default: VULNERABLE
+    reason: ECDSA is broken by Shor's algorithm
+    recommendation: Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).
+    rules:
+      - when: { key_size_lt: 224 }
+        risk: BROKEN
+        reason: Elliptic curve smaller than 224 bits is weak even without a quantum computer
+
+  - id: ecdh
+    name: ECDH
+    aliases:
+      - ECDH
+      - ECDHE
+      - ecdh-sha2-nistp256
+      - ecdh-sha2-nistp384
+      - ecdh-sha2-nistp521
+      - secp192r1
+      - prime192v1
+      - P-192
+      - secp224r1
+      - P-224
+      - secp256r1
+      - prime256v1
+      - P-256
+      - secp384r1
+      - P-384
+      - secp521r1
+      - P-521
+    primitives: [key_exchange]
+    default: VULNERABLE
+    reason: Elliptic-curve Diffie-Hellman is broken by Shor's algorithm
+    recommendation: Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3).
+    rules:
+      - when: { key_size_lt: 224 }
+        risk: BROKEN
+        reason: Elliptic curve smaller than 224 bits is weak even without a quantum computer
+
+  - id: x25519
+    name: X25519
+    aliases: [X25519, curve25519, curve25519-sha256, curve25519-sha256@libssh.org]
+    primitives: [key_exchange]
+    default: VULNERABLE
+    reason: X25519 on its own is broken by Shor's algorithm
+    recommendation: Use hybrid X25519MLKEM768 (TLS) or mlkem768x25519-sha256 (SSH).
+
+  - id: x448
+    name: X448
+    aliases: [X448, curve448, curve448-sha512]
+    primitives: [key_exchange]
+    default: VULNERABLE
+    reason: X448 on its own is broken by Shor's algorithm
+    recommendation: Use a hybrid ML-KEM key exchange.
+
+  - id: ed25519
+    name: Ed25519
+    aliases: [Ed25519, ssh-ed25519]
+    primitives: [signature]
+    default: VULNERABLE
+    reason: Ed25519 is broken by Shor's algorithm
+    recommendation: Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).
+
+  - id: ed448
+    name: Ed448
+    aliases: [Ed448, ssh-ed448]
+    primitives: [signature]
+    default: VULNERABLE
+    reason: Ed448 is broken by Shor's algorithm
+    recommendation: Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).
+
+  # ------------------------------------------------------------------
+  # Hybrid (classical + post-quantum)
+  # ------------------------------------------------------------------
+
+  - id: x25519-mlkem768
+    name: X25519MLKEM768
+    aliases: [X25519MLKEM768, mlkem768x25519-sha256]
+    primitives: [key_exchange, kem]
+    default: HYBRID
+    reason: Hybrid of X25519 and ML-KEM-768; secure while either component holds
+
+  - id: secp256r1-mlkem768
+    name: SecP256r1MLKEM768
+    aliases: [SecP256r1MLKEM768, mlkem768nistp256-sha256]
+    primitives: [key_exchange, kem]
+    default: HYBRID
+    reason: Hybrid of P-256 ECDH and ML-KEM-768
+
+  - id: secp384r1-mlkem1024
+    name: SecP384r1MLKEM1024
+    aliases: [SecP384r1MLKEM1024, mlkem1024nistp384-sha384]
+    primitives: [key_exchange, kem]
+    default: HYBRID
+    reason: Hybrid of P-384 ECDH and ML-KEM-1024
+
+  - id: x25519-kyber768-draft00
+    name: X25519Kyber768Draft00
+    aliases: [X25519Kyber768Draft00, X25519Kyber768]
+    primitives: [key_exchange, kem]
+    default: HYBRID  # TODO: doğrula — pre-standard Kyber draft, being withdrawn by browsers
+    reason: Hybrid using a pre-standard Kyber draft
+    recommendation: Move to the standardised X25519MLKEM768.
+
+  - id: sntrup761x25519
+    name: sntrup761x25519-sha512
+    aliases: [sntrup761x25519-sha512, sntrup761x25519-sha512@openssh.com]
+    primitives: [key_exchange, kem]
+    default: HYBRID
+    reason: Hybrid of X25519 and Streamlined NTRU Prime
+    recommendation: Prefer mlkem768x25519-sha256 (NIST-standardised ML-KEM) where available.
+
+  # ------------------------------------------------------------------
+  # Post-quantum algorithms
+  # ------------------------------------------------------------------
+
+  - id: ml-kem
+    name: ML-KEM (FIPS 203)
+    aliases: [ML-KEM, ML-KEM-512, ML-KEM-768, ML-KEM-1024, Kyber, Kyber512, Kyber768, Kyber1024]
+    primitives: [kem, key_exchange]
+    default: PQ_SAFE
+    reason: ML-KEM is a NIST post-quantum KEM standard (FIPS 203)
+
+  - id: ml-dsa
+    name: ML-DSA (FIPS 204)
+    aliases: [ML-DSA, ML-DSA-44, ML-DSA-65, ML-DSA-87, Dilithium, Dilithium2, Dilithium3, Dilithium5]
+    primitives: [signature]
+    default: PQ_SAFE
+    reason: ML-DSA is a NIST post-quantum signature standard (FIPS 204)
+
+  - id: slh-dsa
+    name: SLH-DSA (FIPS 205)
+    aliases: [SLH-DSA, SPHINCS+, SPHINCSPLUS]
+    primitives: [signature]
+    default: PQ_SAFE
+    reason: SLH-DSA is a NIST hash-based post-quantum signature standard (FIPS 205)
+
+  - id: fn-dsa
+    name: FN-DSA (Falcon)
+    aliases: [FN-DSA, Falcon, Falcon-512, Falcon-1024]
+    primitives: [signature]
+    default: PQ_SAFE  # TODO: doğrula — FIPS 206 not yet final
+    reason: FN-DSA (Falcon) is selected by NIST for standardisation as FIPS 206
+
+  - id: lms-xmss
+    name: LMS / XMSS (stateful hash-based)
+    aliases: [LMS, HSS, XMSS, XMSS^MT]
+    primitives: [signature]
+    default: PQ_SAFE
+    reason: Stateful hash-based signatures approved in NIST SP 800-208
+
+  # ------------------------------------------------------------------
+  # Symmetric ciphers (Grover halves the effective key length)
+  # ------------------------------------------------------------------
+
+  - id: aes-128
+    name: AES-128
+    aliases:
+      - AES128
+      - AES_128_GCM
+      - AES_128_CBC
+      - AES_128_CCM
+      - AES_128_CCM_8
+      - aes128-ctr
+      - aes128-cbc
+      - aes128-gcm@openssh.com
+    primitives: [block_cipher, aead]
+    default: WEAKENED
+    reason: Grover's algorithm reduces AES-128 to about 64-bit security
+    recommendation: Use AES-256.
+
+  - id: aes-192
+    name: AES-192
+    aliases: [AES192, AES_192_GCM, AES_192_CBC, aes192-ctr, aes192-cbc]
+    primitives: [block_cipher, aead]
+    default: WEAKENED  # TODO: doğrula — ~96-bit security under Grover
+    reason: Grover's algorithm reduces AES-192 to about 96-bit security
+    recommendation: Use AES-256.
+
+  - id: aes-256
+    name: AES-256
+    aliases:
+      - AES256
+      - AES_256_GCM
+      - AES_256_CBC
+      - AES_256_CCM
+      - aes256-ctr
+      - aes256-cbc
+      - aes256-gcm@openssh.com
+    primitives: [block_cipher, aead]
+    default: PQ_SAFE
+    reason: AES-256 keeps about 128-bit security under Grover's algorithm
+
+  - id: aes
+    name: AES (key size from context)
+    aliases: [AES, Rijndael]
+    primitives: [block_cipher, aead]
+    default: PQ_SAFE
+    reason: AES-256 keeps about 128-bit security under Grover's algorithm
+    recommendation: Use AES-256.
+    rules:
+      - when: { key_size_unknown: true }
+        risk: UNKNOWN
+        reason: AES key size could not be determined
+      - when: { key_size_lt: 256 }
+        risk: WEAKENED
+        reason: AES with a key shorter than 256 bits loses half its security to Grover's algorithm
+
+  - id: chacha20
+    name: ChaCha20(-Poly1305)
+    aliases: [ChaCha20, ChaCha20-Poly1305, CHACHA20_POLY1305, chacha20-poly1305@openssh.com]
+    primitives: [stream_cipher, aead]
+    default: PQ_SAFE
+    reason: ChaCha20 uses a 256-bit key, about 128-bit security under Grover's algorithm
+
+  - id: ecb
+    name: ECB mode
+    aliases: [ECB]
+    primitives: [block_cipher]
+    default: BROKEN
+    reason: ECB mode leaks patterns in the plaintext
+    recommendation: Use an AEAD mode such as AES-256-GCM.
+
+  - id: 3des
+    name: Triple DES
+    aliases: [3DES, TripleDES, DESede, DES-EDE3, DES-EDE3-CBC, 3DES_EDE_CBC, 3des-cbc, TDEA]
+    primitives: [block_cipher]
+    default: BROKEN
+    reason: 64-bit block size (Sweet32); disallowed by NIST since 2024
+    recommendation: Use AES-256-GCM.
+
+  - id: des
+    name: DES
+    aliases: [DES, DES_CBC, DES-CBC]
+    primitives: [block_cipher]
+    default: BROKEN
+    reason: 56-bit key is brute-forceable today
+    recommendation: Use AES-256-GCM.
+
+  - id: rc4
+    name: RC4
+    aliases: [RC4, RC4_128, ARCFOUR, arcfour128, arcfour256]
+    primitives: [stream_cipher]
+    default: BROKEN
+    reason: RC4 has practical biases and is prohibited in TLS (RFC 7465)
+    recommendation: Use AES-256-GCM or ChaCha20-Poly1305.
+
+  - id: rc2
+    name: RC2
+    aliases: [RC2]
+    primitives: [block_cipher]
+    default: BROKEN
+    reason: RC2 is obsolete and weak
+    recommendation: Use AES-256-GCM.
+
+  - id: blowfish
+    name: Blowfish
+    aliases: [Blowfish, BF, blowfish-cbc]
+    primitives: [block_cipher]
+    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32)
+    reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
+    recommendation: Use AES-256-GCM.
+
+  - id: null-cipher
+    name: No encryption
+    aliases: ["NULL", none]
+    primitives: [block_cipher, stream_cipher, aead, mac]
+    default: BROKEN
+    reason: No cryptographic protection at all
+
+  # ------------------------------------------------------------------
+  # Hash functions and MACs
+  # ------------------------------------------------------------------
+
+  - id: md5
+    name: MD5
+    aliases: [MD5, hmac-md5, hmac-md5-96, HMAC-MD5]
+    primitives: [hash, mac]
+    default: BROKEN
+    reason: MD5 collisions are practical
+    recommendation: Use SHA-384, SHA-512 or SHA3.
+
+  - id: md4
+    name: MD4 / MD2
+    aliases: [MD4, MD2]
+    primitives: [hash]
+    default: BROKEN
+    reason: Obsolete hash with practical attacks
+    recommendation: Use SHA-384, SHA-512 or SHA3.
+
+  - id: sha1
+    name: SHA-1
+    aliases: [SHA1, SHA, hmac-sha1, hmac-sha1-96, HMAC-SHA1, hmac-sha1-etm@openssh.com]
+    primitives: [hash, mac]
+    default: BROKEN
+    reason: SHA-1 collisions are practical (SHAttered, 2017)
+    recommendation: Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).
+    rules:
+      - when: { primitive: [mac] }
+        risk: WEAKENED  # TODO: doğrula — HMAC-SHA1 is not broken by collisions
+        reason: HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin
+
+  - id: sha224
+    name: SHA-224
+    aliases: [SHA224, SHA512/224, SHA-512/224]
+    primitives: [hash, mac]
+    default: WEAKENED
+    reason: 224-bit output leaves a thin margin against quantum search
+    recommendation: Use SHA-384 or SHA-512.
+
+  - id: sha3-224
+    name: SHA3-224
+    aliases: [SHA3-224]
+    primitives: [hash]
+    default: WEAKENED  # TODO: doğrula
+    reason: 224-bit output leaves a thin margin against quantum search
+    recommendation: Use SHA3-384 or SHA3-512.
+
+  - id: sha256
+    name: SHA-256
+    aliases:
+      - SHA256
+      - SHA2-256
+      - SHA512/256
+      - SHA-512/256
+      - hmac-sha2-256
+      - hmac-sha2-256-etm@openssh.com
+      - HMAC-SHA256
+    primitives: [hash, mac]
+    default: PQ_SAFE  # TODO: doğrula (decision D-9)
+    reason: SHA-256 keeps about 128-bit preimage security under Grover's algorithm
+
+  - id: sha384
+    name: SHA-384
+    aliases: [SHA384, SHA2-384, HMAC-SHA384]
+    primitives: [hash, mac]
+    default: PQ_SAFE
+    reason: SHA-384 keeps a large margin under quantum attacks
+
+  - id: sha512
+    name: SHA-512
+    aliases: [SHA512, SHA2-512, hmac-sha2-512, hmac-sha2-512-etm@openssh.com, HMAC-SHA512]
+    primitives: [hash, mac]
+    default: PQ_SAFE
+    reason: SHA-512 keeps a large margin under quantum attacks
+
+  - id: sha3
+    name: SHA3 (256 bit and above)
+    aliases: [SHA3, SHA3-256, SHA3-384, SHA3-512, SHAKE256]
+    primitives: [hash, mac]
+    default: PQ_SAFE
+    reason: SHA3 with 256-bit or longer output keeps a large margin under quantum attacks
+
+  - id: blake2
+    name: BLAKE2
+    aliases: [BLAKE2, BLAKE2b, BLAKE2b-512, BLAKE2s, BLAKE2s-256]
+    primitives: [hash, mac]
+    default: PQ_SAFE
+    reason: BLAKE2 with 256-bit or longer output keeps a large margin under quantum attacks
+
+  # ------------------------------------------------------------------
+  # Protocol versions
+  # ------------------------------------------------------------------
+
+  - id: sslv2
+    name: SSL 2.0
+    aliases: [SSLv2, SSL2, SSL 2.0]
+    primitives: [protocol]
+    default: BROKEN
+    reason: SSL 2.0 is insecure and prohibited (RFC 6176)
+    recommendation: Disable it; use TLS 1.3.
+
+  - id: sslv3
+    name: SSL 3.0
+    aliases: [SSLv3, SSL3, SSL 3.0]
+    primitives: [protocol]
+    default: BROKEN
+    reason: SSL 3.0 is insecure (POODLE) and prohibited (RFC 7568)
+    recommendation: Disable it; use TLS 1.3.
+
+  - id: tls1.0
+    name: TLS 1.0
+    aliases: [TLSv1, TLSv1.0, TLS 1.0]
+    primitives: [protocol]
+    default: BROKEN
+    reason: TLS 1.0 is deprecated (RFC 8996)
+    recommendation: Disable it; use TLS 1.3.
+
+  - id: tls1.1
+    name: TLS 1.1
+    aliases: [TLSv1.1, TLS 1.1]
+    primitives: [protocol]
+    default: BROKEN
+    reason: TLS 1.1 is deprecated (RFC 8996)
+    recommendation: Disable it; use TLS 1.3.
+
+  - id: tls1.2
+    name: TLS 1.2
+    aliases: [TLSv1.2, TLS 1.2]
+    primitives: [protocol]
+    default: VULNERABLE  # TODO: doğrula — protocol itself is sound, but cannot negotiate standardised PQ key exchange
+    reason: TLS 1.2 cannot negotiate the standardised hybrid post-quantum key exchange
+    recommendation: Enable TLS 1.3 with X25519MLKEM768.
+
+  - id: tls1.3
+    name: TLS 1.3
+    aliases: [TLSv1.3, TLS 1.3]
+    primitives: [protocol]
+    default: PQ_SAFE  # TODO: doğrula — safety depends on the negotiated group, reported separately
+    reason: TLS 1.3 supports post-quantum key exchange; groups and certificates are classified separately

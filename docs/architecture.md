@@ -88,10 +88,12 @@ SHA-1 inside HMAC is not.
 
 ### 3.3 `Algorithm`
 
+An algorithm exactly as a scanner observed it. Canonicalisation is
+`classify`'s job, so this model carries no canonical name.
+
 | Field        | Type          | Notes                                                    |
 | ------------ | ------------- | -------------------------------------------------------- |
-| `name`       | `str`         | Canonical id from `algorithms.yaml` (e.g. `rsa`, `x25519mlkem768`) or the raw name when unknown |
-| `raw_name`   | `str`         | Exactly as observed (e.g. `rsa-sha2-512`, `TLS_AES_128_GCM_SHA256`) |
+| `raw_name`   | `str`         | Exactly as observed (e.g. `rsa-sha2-512`, `AES_128_GCM`) |
 | `primitive`  | `Primitive`   |                                                          |
 | `key_size`   | `int \| None` | Bits, when meaningful                                    |
 | `curve`      | `str \| None` | e.g. `secp256r1`, `Curve25519`                           |
@@ -111,7 +113,7 @@ What a scanner saw, before classification.
 | Field        | Type                   | Notes                                                 |
 | ------------ | ---------------------- | ----------------------------------------------------- |
 | `asset`      | `Asset`                |                                                       |
-| `algorithm`  | `Algorithm`            | `name` may still be the raw name; `classify` canonicalises it |
+| `algorithm`  | `Algorithm`            | Raw observation; one component per observation (composite names such as cipher suites are split by the scanner) |
 | `usage`      | `str`                  | Dotted context, e.g. `tls.certificate.signature`, `tls.key_exchange`, `ssh.host_key`, `code.api_call` |
 | `evidence`   | `Evidence`             | `line: int \| None`, `detail: str` — never secret material |
 | `scanner`    | `str`                  | `tls`, `ssh`, `code`, `files`                         |
@@ -126,6 +128,7 @@ What a scanner saw, before classification.
 | *(all `Observation` fields)* |          |                                                |
 | `id`             | `str`                | Deterministic hash of asset id + usage + algorithm + evidence, so diffs between runs are stable |
 | `risk`           | `RiskClass`          |                                                |
+| `algorithm_id`   | `str \| None`        | Canonical id from `algorithms.yaml`; `None` when unknown |
 | `reason`         | `str`                | Which rule matched (e.g. `rsa: key_size < 2048`) |
 | `recommendation` | `str \| None`        | From `algorithms.yaml` (e.g. "migrate to ML-DSA-65") |
 | `mosca`          | `MoscaScore \| None` | Filled only when Mosca inputs are given        |
@@ -240,9 +243,11 @@ on servers that only offer algorithms it does not support (e.g.
 schema_version: 1
 algorithms:
   - id: rsa
-    aliases: [RSA, rsaEncryption, ssh-rsa, rsa-sha2-256, rsa-sha2-512]
+    name: RSA
+    aliases: [RSA, rsaEncryption, rsa-sha2-256, rsa-sha2-512]
     primitives: [signature, public_key_encryption]
     default: VULNERABLE
+    reason: "RSA is broken by Shor's algorithm at every key size"
     recommendation: "Migrate signatures to ML-DSA; key transport to ML-KEM."
     rules:
       - when: { key_size_lt: 2048 }
@@ -250,12 +255,15 @@ algorithms:
         reason: "RSA key shorter than 2048 bits"
 
   - id: sha1
-    aliases: [SHA1, SHA-1, sha1WithRSAEncryption, hmac-sha1]
+    name: SHA-1
+    aliases: [SHA1, hmac-sha1]
     primitives: [hash, mac]
     default: BROKEN
+    reason: "SHA-1 collisions are practical"
     rules:
-      - when: { primitive: mac }
+      - when: { primitive: [mac] }
         risk: WEAKENED   # TODO: doğrula
+        reason: "HMAC-SHA1 is not affected by SHA-1 collisions"
 ```
 
 ### 6.2 Algorithm
@@ -264,9 +272,14 @@ algorithms:
    alias index; composite names (`ecdhe-rsa-aes128-gcm-sha256`,
    `sha256WithRSAEncryption`) are split into components by protocol-specific
    decoders inside the scanner, not inside `classify`.
-2. Start from `default`, evaluate every `rules` entry whose `when` matches,
-   take the **worst** risk.
-3. No match → `UNKNOWN` with reason `"not in rule set"`.
+2. Evaluate every `rules` entry whose `when` conditions all hold. If at least
+   one matches, the **worst** matching rule wins; otherwise `default` applies.
+   (Rules override the default, so a rule may also *lower* the risk, e.g.
+   SHA-1 → `BROKEN` by default, HMAC-SHA1 → `WEAKENED`.)
+3. Name not in the rule set → `UNKNOWN`.
+
+Supported conditions: `key_size_lt`, `key_size_unknown`, `primitive`. A rule
+with an empty `when` is rejected.
 4. The YAML is validated at load time with a pydantic model; an invalid rule
    file is a startup error, and a unit test loads the shipped file.
 

@@ -79,7 +79,7 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 - [x] **T-001** Sistem tanımı taslağı (`docs/architecture.md`)
 - [x] **T-002** Açık kararları (D-1 … D-10) netleştir, CLAUDE.md'yi güncelle
 - [~] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — süreç boyunca büyür
-- [ ] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
+- [~] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
   primitive ve sınıf (TLS cipher suite'leri, TLS grupları, SSH KEX/host key,
   X.509 imza OID'leri, kod API'leri) — tablo olarak çıkar
 
@@ -87,30 +87,30 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.1 Repo iskeleti (`chore/scaffold`)
 
-- [ ] **T-101** `pyproject.toml` (hatchling, `src/` düzeni, `pqc-scan` entry
+- [x] **T-101** `pyproject.toml` (hatchling, `src/` düzeni, `pqc-scan` entry
   point, Python ≥ 3.11, extras: `dev`, `tls`, `code`, `all`)
-- [ ] **T-102** `src/pqc_scan/__init__.py` (`__version__`), boş `cli.py`
+- [x] **T-102** `src/pqc_scan/__init__.py` (`__version__`), boş `cli.py`
   (`pqc-scan --version` çalışsın)
-- [ ] **T-103** `ruff`, `mypy --strict`, `pytest` + `pytest-cov` yapılandırması
-- [ ] **T-104** `.pre-commit-config.yaml`
-- [ ] **T-105** `.github/workflows/ci.yml` — Python 3.11/3.12/3.13 matrisi:
+- [x] **T-103** `ruff`, `mypy --strict`, `pytest` + `pytest-cov` yapılandırması
+- [x] **T-104** `.pre-commit-config.yaml`
+- [x] **T-105** `.github/workflows/ci.yml` — Python 3.11/3.12/3.13 matrisi:
   ruff check, ruff format --check, mypy, pytest (kapsama ≥ %80)
-- [ ] **T-106** `LICENSE` (Apache-2.0), `SECURITY.md`, `CONTRIBUTING.md`,
+- [x] **T-106** `LICENSE` (Apache-2.0), `SECURITY.md`, `CONTRIBUTING.md`,
   `.gitignore`, iskelet `README.md` (etik uyarı dahil)
 
 **Kabul:** `pip install -e ".[dev]"` → `pqc-scan --version` çalışır; CI yeşil.
 
 ### 1.2 Çekirdek modeller ve sınıflandırma (`feat/core-models`)
 
-- [ ] **T-111** `models.py`: `RiskClass`, `Primitive`, `Algorithm`, `Asset`,
+- [x] **T-111** `models.py`: `RiskClass`, `Primitive`, `Algorithm`, `Asset`,
   `Observation`, `Finding`, `ScanError`, `ScanResult`, `ScanConfig`
-- [ ] **T-112** `algorithms.yaml` şeması (pydantic) + yükleyici
+- [x] **T-112** `algorithms.yaml` şeması (pydantic) + yükleyici
   (`importlib.resources`)
-- [ ] **T-113** `algorithms.yaml` ilk içerik (T-003 tablosundan); belirsizler
+- [x] **T-113** `algorithms.yaml` ilk içerik (T-003 tablosundan); belirsizler
   `# TODO: doğrula`
-- [ ] **T-114** `classify.py`: ad normalizasyonu, alias indeksi, kural
+- [x] **T-114** `classify.py`: ad normalizasyonu, alias indeksi, kural
   değerlendirme (en kötü kazanır), `UNKNOWN` yedeği
-- [ ] **T-115** `tests/test_models.py`, `tests/test_classify.py` (her risk
+- [x] **T-115** `tests/test_models.py`, `tests/test_classify.py` (her risk
   sınıfı, anahtar boyutu sınırları, primitive bağlamı, bilinmeyen ad,
   bozuk YAML)
 

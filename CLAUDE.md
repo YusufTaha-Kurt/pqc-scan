@@ -45,7 +45,7 @@ Her bulgu şu sınıflardan birine düşer:
 Sınıflandırma kuralları tek bir yerde, veri olarak tutulur (`src/pqc_scan/rules/algorithms.yaml`); kod içine dağıtılmaz.
 
 Sınıflandırma ilkeleri (karar: D-3, D-9):
-- **Önem sırası:** `BROKEN` > `VULNERABLE` > `WEAKENED` > `UNKNOWN` > `HYBRID` > `PQ_SAFE`. Bir algoritmaya birden çok kural uyarsa **en kötü olan** kazanır (ör. RSA-1024 → `BROKEN`).
+- **Önem sırası:** `BROKEN` > `VULNERABLE` > `WEAKENED` > `UNKNOWN` > `HYBRID` > `PQ_SAFE`. Kurallar varsayılan sınıfı geçersiz kılar; bir algoritmaya birden çok kural uyarsa **en kötü olan** kazanır (ör. RSA-1024 → `BROKEN`). Tanınmayan ad → `UNKNOWN`.
 - **Bağlam önemlidir:** Sınıf, algoritma adı + kullanım amacı (primitive: imza, hash, MAC, …) ile belirlenir. Ör. SHA-1 imzada `BROKEN`, HMAC içinde daha hafif sınıflandırılır.
 - 3DES → `BROKEN`, AES-128 → `WEAKENED`, SHA-256 → `PQ_SAFE` kararları alındı; YAML'da `# TODO: doğrula` notu korunur.
 
