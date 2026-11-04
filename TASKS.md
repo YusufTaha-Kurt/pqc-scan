@@ -12,7 +12,7 @@ içinde). Görev tamamlandığında burada ve `CLAUDE.md` §10'da işaretlenir.
 
 ## Analiz özeti (2026-11-04)
 
-**Mevcut durum:** Repoda yalnızca `CLAUDE.md` var. Kod, paket yapısı, test, CI
+**Analiz anındaki durum:** Repoda yalnızca `CLAUDE.md` vardı. Kod, paket yapısı, test, CI
 ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 **CLAUDE.md'de tespit edilen tutarsızlık ve boşluklar:**
@@ -54,29 +54,31 @@ ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 ---
 
-## Açık kararlar
+## Kararlar
 
-Bu kararlar verildikçe `docs/architecture.md` ve `CLAUDE.md` güncellenecek.
+Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
+`docs/architecture.md`'ye işlendi.
 
-| #    | Karar | Öneri |
-| ---- | ----- | ----- |
-| D-1  | Tarayıcı çıktı tipi | Tarayıcılar `Observation` döndürür, motor `classify` ile `Finding`'e çevirir. (CLAUDE.md §6 güncellenmeli) |
-| D-2  | TLS PQ grup tespiti | sslyze + kendi minimal TLS 1.3 ClientHello probumuz |
-| D-3  | Bilinmeyen algoritma | `UNKNOWN` risk sınıfı, raporlarda "manuel inceleme" |
-| D-4  | Eşzamanlılık modeli | `ThreadPoolExecutor` (sslyze ve soket kodu senkron) |
-| D-5  | SSH uygulaması | paramiko yerine ham soket + KEXINIT ayrıştırıcı (bağımlılık azalır) |
-| D-6  | Ağır bağımlılıklar | `[tls]`, `[code]` opsiyonel extra; Python için AST yedeği |
+| #    | Konu | Karar |
+| ---- | ---- | ----- |
+| D-1  | Tarayıcı çıktı tipi | Tarayıcılar `Observation` döndürür, `engine.py` `classify` ile `Finding`'e çevirir |
+| D-2  | TLS PQ grup tespiti | sslyze + kendi minimal TLS 1.3 ClientHello sorgumuz |
+| D-3  | Bilinmeyen algoritma | `UNKNOWN` risk sınıfı; çakışmada en kötü sınıf kazanır; sınıf bağlama (primitive) göre belirlenir |
+| D-4  | Eşzamanlılık modeli | `ThreadPoolExecutor` |
+| D-5  | SSH uygulaması | paramiko yok; ham soket + KEXINIT ayrıştırıcı |
+| D-6  | Ağır bağımlılıklar | `[tls]`, `[code]`, `[report]` opsiyonel extra; Python için AST yedeği |
 | D-7  | Mosca z | Varsayılan yok; x, y, z üçü de verilmezse skor hesaplanmaz |
-| D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH` |
-| D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE; hepsi `# TODO: doğrula` |
-| D-10 | Varsayılan branch | `master` → `main` olarak yeniden adlandır **veya** CLAUDE.md'yi `master` yap |
+| D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH`; çıkış kodları 0/1/2/3 |
+| D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE (YAML'da `# TODO: doğrula`) |
+| D-10 | Varsayılan branch | `master` kalır |
 
 ---
 
 ## Faz 0 — Sistem tanımı
 
-- [~] **T-001** Sistem tanımı taslağı (`docs/architecture.md`)
-- [ ] **T-002** Açık kararları (D-1 … D-10) netleştir, CLAUDE.md'yi güncelle
+- [x] **T-001** Sistem tanımı taslağı (`docs/architecture.md`)
+- [x] **T-002** Açık kararları (D-1 … D-10) netleştir, CLAUDE.md'yi güncelle
+- [~] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — süreç boyunca büyür
 - [ ] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
   primitive ve sınıf (TLS cipher suite'leri, TLS grupları, SSH KEX/host key,
   X.509 imza OID'leri, kod API'leri) — tablo olarak çıkar

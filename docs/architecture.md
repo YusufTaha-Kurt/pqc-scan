@@ -1,7 +1,7 @@
 # pqc-scan — System Definition (v0.1 draft)
 
-> Status: **draft**. Items marked **[D-n]** depend on an open decision listed in
-> [`TASKS.md`](../TASKS.md#açık-kararlar). Once a decision is made, update this
+> Status: **accepted for v0.1**. Items marked **[D-n]** refer to the decision
+> log in [`TASKS.md`](../TASKS.md#kararlar). When a decision changes, update this
 > document and `CLAUDE.md` together.
 
 ## 1. Purpose
@@ -343,5 +343,5 @@ own or have written permission to test.
   `pqc-scan = "pqc_scan.cli:app"`.
 - `rules/**/*.yaml` and `templates/*.j2` shipped as package data and loaded via
   `importlib.resources`.
-- Optional extras: `[tls]` (sslyze), `[code]` (semgrep), `[dev]`, `[all]`
-  **[D-6]**.
+- Optional extras: `[tls]` (sslyze), `[code]` (semgrep), `[report]` (jinja2,
+  cyclonedx-python-lib), `[dev]`, `[all]` **[D-6]**.
