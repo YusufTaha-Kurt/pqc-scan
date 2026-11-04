@@ -1,5 +1,7 @@
 # CLAUDE.md — PQC Readiness Scanner
 
+> **Yeni oturum mu?** Önce [§12 Yeni oturumda devam etme](#12-yeni-oturumda-devam-etme) bölümünü oku; güncel durum ve sıradaki görev `TASKS.md` → "Şu anki durum" bölümündedir.
+
 Bu dosya, Claude Code'un bu repoda her oturumda okuduğu proje bağlamıdır. Projenin amacı, kapsamı, mimarisi ve çalışma kuralları burada tanımlıdır. Kararlar değiştikçe bu dosyayı güncel tut.
 
 ---
@@ -160,8 +162,9 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 ## 10. Yol haritası
 
 **v0.1 — MVP**
-- [ ] Repo iskeleti, `pyproject.toml`, CI (ruff + mypy + pytest)
-- [ ] `models.py` ve `classify.py` + `algorithms.yaml` (testleriyle)
+- [x] Repo iskeleti, `pyproject.toml`, CI (ruff + mypy + pytest)
+- [x] `models.py` ve `classify.py` + `algorithms.yaml` (testleriyle)
+- [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
 - [ ] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
 - [ ] `tls` tarayıcısı
 - [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
@@ -189,3 +192,32 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - Belirsiz bir algoritma sınıflandırması gördüğünde tahmin etme; `algorithms.yaml` içine `# TODO: doğrula` notuyla ekle ve özette belirt.
 - Yeni bir kuantum/kriptografi kavramı projeye girdiğinde `docs/kuantum-rehberi.md` belgesine sade, öğretici bir açıklama ekle.
 - Görev durumlarını `TASKS.md` içinde güncel tut.
+
+## 12. Yeni oturumda devam etme
+
+Kullanıcı "projeye devam et" (veya benzeri) dediğinde ek soru sormadan şu adımları izle:
+
+1. **Durumu oku:** `TASKS.md` → "Şu anki durum" bölümü sıradaki görevi ve onun ayrıntılı planını içerir. Gerekirse `docs/architecture.md`'ye bak.
+2. **Ortamı kur:**
+   ```bash
+   python3.11 -m venv .venv          # yoksa python3 (≥ 3.11)
+   .venv/bin/pip install -e ".[dev]"
+   .venv/bin/ruff check . && .venv/bin/mypy src && .venv/bin/pytest -q --cov=pqc_scan
+   ```
+   Başlamadan önce tüm kontrollerin yeşil olduğunu doğrula.
+3. **Git kimliğini ayarla** (her yeni klonda gerekir, commit'ler kullanıcının adıyla görünmeli):
+   ```bash
+   git config user.name "Yusuf Taha"
+   git config user.email "ytkurt06@gmail.com"
+   ```
+   Commit mesajlarına `Co-Authored-By`, `Claude-Session` veya benzeri Claude/asistan imza satırları **ekleme** (kullanıcının açık talebi). Commit mesajları İngilizce ve Conventional Commits biçiminde.
+4. **Branch:** Oturum bir branch belirttiyse onu kullan; belirtmediyse güncel `master`'dan `feat/<görev>` aç. `.venv/` asla commit'lenmez (`.gitignore`'da).
+5. **Uygula:** Sıradaki görevi kısa bir planla başlat, kod + testleri yaz. Mantıklı bir bütün (ör. bir tarayıcı) bittiğinde dur ve push'la; birden fazla bağımsız özelliği tek commit'e koyma.
+6. **Bitirirken (her görevde):**
+   - ruff, ruff format, mypy, pytest (kapsama ≥ %80) geçmeli.
+   - `TASKS.md`: görev kutularını işaretle, "Şu anki durum" bölümünü ve "Oturum günlüğü"nü güncelle, sıradaki görevin planını yaz.
+   - `CLAUDE.md` §10 yol haritasında tamamlanan maddeyi işaretle.
+   - Yeni bir kavram girdiyse `docs/kuantum-rehberi.md`'ye ekle.
+   - Belirsiz sınıflandırmaları (`# TODO: doğrula`) özette listele.
+7. **Kullanıcıyla iletişim:** Kullanıcı kriptografi/kuantum konusunda uzman değil. Türkçe, sade yaz; teknik terim kullanırsan bir cümleyle açıkla ve gerekirse rehberdeki bölüme yönlendir. Karar gerektiren konularda seçenekleri ve önerini açık, jargon olmadan sun.
+

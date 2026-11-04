@@ -7,6 +7,86 @@ Durum işaretleri: `[ ]` yapılacak · `[~]` devam ediyor · `[x]` tamamlandı
 
 Her görev ayrı bir branch/PR olarak düşünülmüştür (önerilen branch adı parantez
 içinde). Görev tamamlandığında burada ve `CLAUDE.md` §10'da işaretlenir.
+Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
+
+---
+
+## Şu anki durum
+
+> Her oturumun sonunda bu bölümü güncelle.
+
+**Son güncelleme:** 2026-11-04
+
+**Biten:** Faz 0 (sistem tanımı, kararlar), 1.1 repo iskeleti, 1.2 modeller +
+sınıflandırma, 1.3 tarama motoru. 86 test, kapsama %99. Henüz kullanıcıya
+dönük bir tarama komutu yok (`pqc-scan --version` çalışıyor).
+
+**Sıradaki görev: 1.4 `files` tarayıcısı (T-131 … T-135).**
+Bundan sonra 1.5 raporlayıcılar ve 1.6 CLI gelir; üçü bitince
+`pqc-scan scan files ./repo` uçtan uca çalışır (ilk kullanılabilir sürüm).
+
+### `files` tarayıcısı için plan
+
+- **Dosya:** `src/pqc_scan/scanners/files.py` → `class FilesScanner(Scanner)`,
+  `name = "files"`. Hedef bir klasör (veya tek dosya) yoludur; yol yoksa
+  `ScanTargetError(ErrorKind.INVALID_TARGET, ...)`.
+- **Gezinti:** `os.walk(followlinks=config.follow_symlinks)`; `config.exclude`
+  içindeki klasörleri buda; `config.max_file_size`'dan büyük dosyaları atla.
+  Tek bir dosyanın okunamaması veya ayrıştırılamaması hedefin tamamını
+  düşürmez — sessizce atlanır (kripto dosyası olmayan dosyalar zaten çoğunluk).
+- **Algılama (içeriğe göre, uzantıya güvenme):**
+  - `-----BEGIN ` içeren dosyalar → her PEM bloğunu ayrı işle
+    (CERTIFICATE, PUBLIC KEY, RSA/EC/DSA PRIVATE KEY, PRIVATE KEY,
+    ENCRYPTED PRIVATE KEY, OPENSSH PRIVATE KEY, CERTIFICATE REQUEST).
+  - `.der`, `.cer`, `.crt` → DER sertifika olarak dene.
+  - `*.pub`, `authorized_keys`, `known_hosts` → OpenSSH açık anahtar satırları
+    (`cryptography.hazmat.primitives.serialization.load_ssh_public_key`).
+  - `OPENSSH PRIVATE KEY` → **şifre çözmeden** `openssh-key-v1` başlığındaki
+    şifresiz açık anahtar bloğundan tip ve boyutu oku.
+  - Şifreli PKCS#8 özel anahtar → tip bilinemez; `raw_name="encrypted private key"`
+    (sınıflandırıcı `UNKNOWN` verir) — kabul edilebilir.
+- **Gözlemler (`usage` değerleri):**
+  - Sertifika: `file.certificate.public_key` (RSA/EC/Ed25519/… + `key_size`,
+    `curve`), `file.certificate.signature` (imzalayan anahtarın algoritması,
+    `signature_algorithm_oid`'den), `file.certificate.signature_hash`
+    (`signature_hash_algorithm.name`, ör. `sha256`; Ed25519'da yok).
+  - `file.private_key`, `file.public_key`, `file.ssh_public_key`.
+  - `cryptography` nesne → ad eşlemesi: RSA → `RSA`, EC → `EC` (+ `curve.name`,
+    `key_size`), Ed25519 → `Ed25519`, Ed448, DSA, X25519, X448.
+    `cryptography` sürümünün ML-DSA/ML-KEM anahtarlarını destekleyip
+    desteklemediğini kontrol et; destekliyorsa onları da eşle.
+- **Asset:** `id = file://<mutlak yol>`; bir dosyada birden çok PEM bloğu
+  varsa `#block-<n>` eki. `kind`: `certificate` / `private_key` / `public_key`.
+  `location` = hedef köke göre göreli yol.
+- **Güvenlik:** `Evidence.detail` yalnızca "PEM block 2" / "line 5" gibi
+  konum bilgisi içerir; anahtar içeriği hiçbir yerde (rapor, hata, log) yer
+  almaz.
+- **Testler:** `tests/conftest.py` içinde session-scope fixture'larla
+  `cryptography` kullanarak RSA-1024/2048, EC P-256/P-384, Ed25519, DSA
+  anahtarları, kendinden imzalı sertifikalar, OpenSSH açık/özel anahtarları
+  (şifreli ve şifresiz) ve çok bloklu bir PEM dosyası **test sırasında** üret
+  (`tmp_path_factory`). `tests/test_scanner_files.py`: her tür doğru tip/boyutu
+  verir; exclude ve boyut sınırı çalışır; symlink takip edilmez; bozuk PEM
+  atlanır; **özel anahtarın base64 gövdesi `ScanResult` JSON'unda geçmez**
+  (T-135).
+
+### Bilinen notlar
+
+- Geliştirme Python 3.11 venv ile yapıldı; testler 3.13'te de geçiyor.
+- CI (`.github/workflows/ci.yml`) yalnızca `master`'a push ve PR'larda çalışır;
+  GitHub'da henüz hiç çalıştırılmadı.
+- `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
+  cevap bekleniyor: TLS 1.2 → VULNERABLE, TLS 1.3 → PQ_SAFE, SHA-256 → PQ_SAFE,
+  AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish → BROKEN,
+  diffie-hellman-group14-sha1 → VULNERABLE, FN-DSA → PQ_SAFE,
+  X25519Kyber768Draft00 → HYBRID.
+
+### Oturum günlüğü
+
+- **2026-11-04** — Proje analizi; görev listesi ve sistem tanımı; D-1…D-10
+  kararları; `docs/kuantum-rehberi.md`; repo iskeleti + CI; modeller,
+  `classify.py` + `algorithms.yaml` (53 algoritma); `engine.py`, `mosca.py`,
+  `scanners/base.py`. Branch: `claude/nice-carson-avv8te`.
 
 ---
 
