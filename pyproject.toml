@@ -1,0 +1,122 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pqc-scan"
+dynamic = ["version"]
+description = "Find quantum-vulnerable cryptography in endpoints and code, and plan your post-quantum migration."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Yusuf Taha Kurt" }]
+keywords = ["post-quantum", "pqc", "cryptography", "cbom", "tls", "ssh", "security"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security :: Cryptography",
+    "Typing :: Typed",
+]
+dependencies = [
+    "cryptography>=42",
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "rich>=13.7",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+tls = ["sslyze>=6.0"]
+code = ["semgrep>=1.80"]
+report = ["jinja2>=3.1", "cyclonedx-python-lib>=8.0"]
+all = ["pqc-scan[tls,code,report]"]
+dev = [
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "types-PyYAML>=6.0",
+]
+
+[project.scripts]
+pqc-scan = "pqc_scan.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/YusufTaha-Kurt/pqc-scan"
+Issues = "https://github.com/YusufTaha-Kurt/pqc-scan/issues"
+
+[tool.hatch.version]
+path = "src/pqc_scan/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pqc_scan"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/pqc_scan", "tests", "LICENSE", "README.md"]
+
+# --- ruff ---------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "B",    # bugbear
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "RUF",  # ruff-specific
+    "S",    # bandit (security)
+    "SIM",  # simplify
+    "UP",   # pyupgrade
+    "W",    # pycodestyle warnings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # assert is fine in tests
+
+# --- mypy ---------------------------------------------------------------
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+files = ["src"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# --- pytest / coverage --------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["pqc_scan"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+]
