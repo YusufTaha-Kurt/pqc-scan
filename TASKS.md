@@ -118,11 +118,11 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.3 Tarama motoru (`feat/engine`)
 
-- [ ] **T-121** `scanners/base.py`: `Scanner` ABC, `ScanTargetError`
-- [ ] **T-122** `engine.py`: hedef dağıtımı, eşzamanlılık sınırı, zaman aşımı,
+- [x] **T-121** `scanners/base.py`: `Scanner` ABC, `ScanTargetError`
+- [x] **T-122** `engine.py`: hedef dağıtımı, eşzamanlılık sınırı, zaman aşımı,
   hata → `ScanError`, sınıflandırma, asset tekilleştirme, sıralama,
   deterministik `Finding.id`
-- [ ] **T-123** Testler: sahte tarayıcıyla hata izolasyonu, eşzamanlılık sınırı,
+- [x] **T-123** Testler: sahte tarayıcıyla hata izolasyonu, eşzamanlılık sınırı,
   sıralama
 
 ### 1.4 `files` tarayıcısı (`feat/files-scanner`)
@@ -188,7 +188,8 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 - [ ] **T-202** HTML raporu (`templates/report.html.j2`, tek dosya, harici
   kaynak yok)
 - [ ] **T-203** CycloneDX 1.6 CBOM çıktısı (önce kütüphane desteğini doğrula)
-- [ ] **T-204** `mosca.py` + `--mosca-x/-y/-z`; varlık bazlı eşleme dosyası
+- [~] **T-204** `mosca.py` + `--mosca-x/-y/-z`; varlık bazlı eşleme dosyası
+  (`mosca.py` ve motordaki hesaplama hazır; CLI bayrakları ve eşleme dosyası kaldı)
 - [ ] **T-205** JavaScript/TypeScript Semgrep kuralları (Node `crypto`,
   WebCrypto, `node-forge`, `jsonwebtoken`)
 - [ ] **T-206** Go Semgrep kuralları (`crypto/rsa`, `crypto/ecdsa`,
