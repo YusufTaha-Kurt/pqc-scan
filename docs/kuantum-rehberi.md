@@ -270,7 +270,24 @@ parola **hiç** gönderilmez.
 - **PEM:** `-----BEGIN CERTIFICATE-----` gibi satırlarla başlayan, metin
   biçimindeki sertifika/anahtar dosyası.
 - **DER:** Aynı içeriğin ikili (binary) biçimi.
-- **`.pub` dosyası:** SSH açık anahtarı.
+- **`.pub` dosyası:** SSH açık anahtarı. `authorized_keys` (bir sunucuya
+  kimlerin girebileceği) ve `known_hosts` (bilgisayarının daha önce gördüğü
+  sunucuların anahtarları) da aynı türden satırlar içerir.
+- **CSR (sertifika imzalama isteği):** Bir sertifika otoritesine "bu açık
+  anahtar için bana sertifika ver" diye gönderilen, sahibinin kendi anahtarıyla
+  imzaladığı başvuru dosyası.
+- **Kendinden imzalı (self-signed) sertifika:** Bir otorite yerine kendi
+  anahtarıyla imzalanmış sertifika. Test ortamlarında yaygındır; burada imzayı
+  atan anahtar sertifikanın kendi anahtarı olduğu için araç imzanın boyutunu
+  da bilir.
+- **OID:** Algoritmaların noktalı sayılardan oluşan resmi kimlik numarası
+  (ör. `1.2.840.113549.1.1.11` = "SHA-256 ile RSA imzası"). Sertifikaların
+  içinde algoritma adı değil OID yazar; araç OID'yi ada çevirir. Tanımadığı
+  bir OID'yi olduğu gibi raporlar (`UNKNOWN`).
+- **Parolalı (şifreli) özel anahtar:** Özel anahtar dosyası bir parolayla
+  kilitlenmiş olabilir. Araç **asla parola denemez ve kilidi açmaz**. OpenSSH
+  biçiminde açık anahtar kısmı kilitsiz durduğu için tip ve boyut yine
+  okunabilir; PKCS#8 biçiminde ise tip görünmez, bulgu `UNKNOWN` olur.
 - **Kod taraması:** Kaynak kodda `RSA.generate(2048)` gibi kripto
   kullanımlarını bulmak. Bunun için **Semgrep** (kod içinde desen arayan araç)
   ve Python için **AST** (kodu ağaç yapısına çevirip inceleme) kullanılır.
@@ -335,6 +352,7 @@ yazılı izin aldığın** sistemleri tara.
 | Cipher suite | Bir TLS bağlantısındaki algoritma paketi | 6.1 |
 | ClientHello / ServerHello | TLS el sıkışmasının ilk iki mesajı | 6.1 |
 | CRQC | Kriptografiyi kırabilecek güçte kuantum bilgisayar | 2.1 |
+| CSR | Sertifika imzalama isteği | 6.3 |
 | DH / ECDH | Klasik anahtar değişim yöntemleri | 1.3 |
 | ECDSA / Ed25519 | Eliptik eğri tabanlı imzalar | 1.3 |
 | Grover | Kaba kuvveti hızlandıran kuantum algoritması | 3.2 |
@@ -346,9 +364,12 @@ yazılı izin aldığın** sistemleri tara.
 | KEM | Anahtar kapsülleme mekanizması | 4 |
 | KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2 |
 | Kafes (lattice) | ML-KEM ve ML-DSA'nın dayandığı zor problem | 4 |
+| Kendinden imzalı sertifika | Kendi anahtarıyla imzalanmış sertifika | 6.3 |
 | Kübit | Kuantum bilgisayarın temel birimi | 2 |
 | ML-KEM / ML-DSA / SLH-DSA | NIST'in PQC standartları | 4 |
 | Mosca teoremi | Aciliyet formülü: x + y > z | 5 |
+| OID | Algoritmanın resmi sayısal kimliği | 6.3 |
+| Parolalı özel anahtar | Parolayla kilitlenmiş anahtar dosyası; araç kilidi açmaz | 6.3 |
 | PEM / DER | Sertifika/anahtar dosya biçimleri | 6.3 |
 | PQC | Post-kuantum kriptografi | 4 |
 | Prob (sorgu) | Sunucuya destek sorusu sorup cevabı okumak | 6.1 |

@@ -165,7 +165,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] Repo iskeleti, `pyproject.toml`, CI (ruff + mypy + pytest)
 - [x] `models.py` ve `classify.py` + `algorithms.yaml` (testleriyle)
 - [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
-- [ ] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
+- [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
 - [ ] `tls` tarayıcısı
 - [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
 - [ ] Konsol ve JSON raporlayıcı

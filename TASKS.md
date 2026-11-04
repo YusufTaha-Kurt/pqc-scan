@@ -18,63 +18,55 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 **Son güncelleme:** 2026-11-04
 
 **Biten:** Faz 0 (sistem tanımı, kararlar), 1.1 repo iskeleti, 1.2 modeller +
-sınıflandırma, 1.3 tarama motoru. 86 test, kapsama %99. Henüz kullanıcıya
-dönük bir tarama komutu yok (`pqc-scan --version` çalışıyor).
+sınıflandırma, 1.3 tarama motoru, 1.4 `files` tarayıcısı. 148 test, kapsama
+%97. Tarayıcı Python API'si üzerinden çalışıyor; henüz CLI komutu ve
+raporlayıcı yok (`pqc-scan --version` çalışıyor).
 
-**Sıradaki görev: 1.4 `files` tarayıcısı (T-131 … T-135).**
-Bundan sonra 1.5 raporlayıcılar ve 1.6 CLI gelir; üçü bitince
-`pqc-scan scan files ./repo` uçtan uca çalışır (ilk kullanılabilir sürüm).
+**Sıradaki görev: 1.5 Konsol ve JSON raporlayıcı (T-141 … T-143).**
+Ardından 1.6 CLI gelir; ikisi bitince `pqc-scan scan files ./repo` uçtan uca
+çalışır (ilk kullanılabilir sürüm).
 
-### `files` tarayıcısı için plan
+### Raporlayıcılar için plan
 
-- **Dosya:** `src/pqc_scan/scanners/files.py` → `class FilesScanner(Scanner)`,
-  `name = "files"`. Hedef bir klasör (veya tek dosya) yoludur; yol yoksa
-  `ScanTargetError(ErrorKind.INVALID_TARGET, ...)`.
-- **Gezinti:** `os.walk(followlinks=config.follow_symlinks)`; `config.exclude`
-  içindeki klasörleri buda; `config.max_file_size`'dan büyük dosyaları atla.
-  Tek bir dosyanın okunamaması veya ayrıştırılamaması hedefin tamamını
-  düşürmez — sessizce atlanır (kripto dosyası olmayan dosyalar zaten çoğunluk).
-- **Algılama (içeriğe göre, uzantıya güvenme):**
-  - `-----BEGIN ` içeren dosyalar → her PEM bloğunu ayrı işle
-    (CERTIFICATE, PUBLIC KEY, RSA/EC/DSA PRIVATE KEY, PRIVATE KEY,
-    ENCRYPTED PRIVATE KEY, OPENSSH PRIVATE KEY, CERTIFICATE REQUEST).
-  - `.der`, `.cer`, `.crt` → DER sertifika olarak dene.
-  - `*.pub`, `authorized_keys`, `known_hosts` → OpenSSH açık anahtar satırları
-    (`cryptography.hazmat.primitives.serialization.load_ssh_public_key`).
-  - `OPENSSH PRIVATE KEY` → **şifre çözmeden** `openssh-key-v1` başlığındaki
-    şifresiz açık anahtar bloğundan tip ve boyutu oku.
-  - Şifreli PKCS#8 özel anahtar → tip bilinemez; `raw_name="encrypted private key"`
-    (sınıflandırıcı `UNKNOWN` verir) — kabul edilebilir.
-- **Gözlemler (`usage` değerleri):**
-  - Sertifika: `file.certificate.public_key` (RSA/EC/Ed25519/… + `key_size`,
-    `curve`), `file.certificate.signature` (imzalayan anahtarın algoritması,
-    `signature_algorithm_oid`'den), `file.certificate.signature_hash`
-    (`signature_hash_algorithm.name`, ör. `sha256`; Ed25519'da yok).
-  - `file.private_key`, `file.public_key`, `file.ssh_public_key`.
-  - `cryptography` nesne → ad eşlemesi: RSA → `RSA`, EC → `EC` (+ `curve.name`,
-    `key_size`), Ed25519 → `Ed25519`, Ed448, DSA, X25519, X448.
-    `cryptography` sürümünün ML-DSA/ML-KEM anahtarlarını destekleyip
-    desteklemediğini kontrol et; destekliyorsa onları da eşle.
-- **Asset:** `id = file://<mutlak yol>`; bir dosyada birden çok PEM bloğu
-  varsa `#block-<n>` eki. `kind`: `certificate` / `private_key` / `public_key`.
-  `location` = hedef köke göre göreli yol.
-- **Güvenlik:** `Evidence.detail` yalnızca "PEM block 2" / "line 5" gibi
-  konum bilgisi içerir; anahtar içeriği hiçbir yerde (rapor, hata, log) yer
-  almaz.
-- **Testler:** `tests/conftest.py` içinde session-scope fixture'larla
-  `cryptography` kullanarak RSA-1024/2048, EC P-256/P-384, Ed25519, DSA
-  anahtarları, kendinden imzalı sertifikalar, OpenSSH açık/özel anahtarları
-  (şifreli ve şifresiz) ve çok bloklu bir PEM dosyası **test sırasında** üret
-  (`tmp_path_factory`). `tests/test_scanner_files.py`: her tür doğru tip/boyutu
-  verir; exclude ve boyut sınırı çalışır; symlink takip edilmez; bozuk PEM
-  atlanır; **özel anahtarın base64 gövdesi `ScanResult` JSON'unda geçmez**
-  (T-135).
+- **Arayüz:** `src/pqc_scan/reporters/__init__.py` → `render(result, fmt) -> str`
+  ve biçim adı → fonksiyon eşlemesi (`console`, `json`). `html` ve `cbom` henüz
+  yok; bunlar için açık bir "henüz desteklenmiyor" hatası (CLI bunu kullanım
+  hatası, çıkış kodu 2 olarak gösterecek). Raporlayıcılar yalnızca
+  `ScanResult` okur; dosya okumaz, ağ kullanmaz.
+- **JSON (`reporters/json_report.py`):** `result.model_dump_json(indent=2)`;
+  çıktı deterministik (motor zaten sıralıyor). `json_schema()` →
+  `ScanResult.model_json_schema()`; şema `docs/schema/scan-result.schema.json`
+  olarak commit'lenir ve bir test, commit'lenen şemanın üretilenle aynı
+  olduğunu doğrular (şema değişince test hatırlatır).
+- **Konsol (`reporters/console.py`):** `rich` ile
+  1. başlık: araç sürümü, tarayıcılar, süre;
+  2. özet tablosu: risk sınıfı başına bulgu sayısı (BROKEN kalın kırmızı,
+     VULNERABLE kırmızı, WEAKENED sarı, UNKNOWN mor, HYBRID camgöbeği,
+     PQ_SAFE yeşil);
+  3. bulgu tablosu: konum (+ satır), kullanım, algoritma (ad + boyut/eğri),
+     risk, kısa gerekçe — en kötüden iyiye (sıralama motorda hazır);
+  4. hatalar tablosu (varsa); bulgu yoksa "bulgu yok" mesajı.
+  Terminal değilse renk yok (`rich` bunu kendisi yapar; `NO_COLOR` desteklenir).
+  Fonksiyon `Console` nesnesi alır ki testte genişlik/renk sabitlenebilsin.
+- **Testler (T-143):** sabit saatli (`clock=`) küçük bir `ScanResult`;
+  `Console(record=True, width=120, color_system=None)` çıktısı
+  `tests/snapshots/console.txt` ile karşılaştırılır; `PQC_UPDATE_SNAPSHOTS=1`
+  ile güncellenir. JSON için: geri okunabilirlik
+  (`ScanResult.model_validate_json`) ve şema senkron testi. Özel anahtar
+  içeriği testi (T-135) raporlayıcı çıktısında da tekrarlanır.
 
 ### Bilinen notlar
 
 - Geliştirme Python 3.11 venv ile yapıldı; testler 3.13'te de geçiyor.
 - CI (`.github/workflows/ci.yml`) yalnızca `master`'a push ve PR'larda çalışır;
   GitHub'da henüz hiç çalıştırılmadı.
+- `cryptography` 50: DH/DSA sınıflarına erişim kullanımdan kaldırma uyarısı
+  veriyor; `files.py` anahtar tiplerini içe aktarma anında uyarıyı bastırarak
+  ve `getattr` ile yüklüyor (ileride kaldırılırlarsa da çalışır). OpenSSL artık
+  SHA-1 imza üretmiyor; SHA-1 sertifika testi OID'si değiştirilmiş bir
+  sertifikayla yapılıyor. Şifreli OpenSSH anahtarı üretmek `bcrypt` istediği
+  için test anahtarı elle kuruluyor (`conftest.encrypted_openssh_private`).
+- `files` tarayıcısı `AssetKind.CERTIFICATE_REQUEST` ekledi (CSR'lar için).
 - `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
   cevap bekleniyor: TLS 1.2 → VULNERABLE, TLS 1.3 → PQ_SAFE, SHA-256 → PQ_SAFE,
   AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish → BROKEN,
@@ -87,6 +79,11 @@ Bundan sonra 1.5 raporlayıcılar ve 1.6 CLI gelir; üçü bitince
   kararları; `docs/kuantum-rehberi.md`; repo iskeleti + CI; modeller,
   `classify.py` + `algorithms.yaml` (53 algoritma); `engine.py`, `mosca.py`,
   `scanners/base.py`. Branch: `claude/nice-carson-avv8te`.
+- **2026-11-04 (2)** — 1.4 `files` tarayıcısı: PEM (çok bloklu), DER, CSR,
+  açık/özel anahtarlar, OpenSSH açık/özel anahtarlar (şifre çözmeden),
+  ML-DSA/ML-KEM anahtarları; test anahtarları `tests/conftest.py`'de test
+  sırasında üretiliyor; özel anahtar sızıntı testi (T-135). Branch:
+  `claude/nice-gates-b8wil6`.
 
 ---
 
@@ -207,14 +204,14 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.4 `files` tarayıcısı (`feat/files-scanner`)
 
-- [ ] **T-131** Dizin gezintisi (exclude listesi, boyut sınırı, symlink takip
+- [x] **T-131** Dizin gezintisi (exclude listesi, boyut sınırı, symlink takip
   etmeme)
-- [ ] **T-132** PEM (çoklu blok), DER sertifika, açık/özel anahtar ayrıştırma
-- [ ] **T-133** OpenSSH açık anahtarları (`*.pub`, `authorized_keys`,
+- [x] **T-132** PEM (çoklu blok), DER sertifika, açık/özel anahtar ayrıştırma
+- [x] **T-133** OpenSSH açık anahtarları (`*.pub`, `authorized_keys`,
   `known_hosts`) ve OpenSSH özel anahtar başlığı (yalnızca tip/boyut)
-- [ ] **T-134** `tests/conftest.py`: RSA-1024/2048/4096, EC P-256/P-384,
+- [x] **T-134** `tests/conftest.py`: RSA-1024/2048/4096, EC P-256/P-384,
   Ed25519, DSA anahtar ve sertifikalarını test sırasında üret
-- [ ] **T-135** Test: özel anahtar içeriğinin hiçbir çıktıda (rapor, hata
+- [x] **T-135** Test: özel anahtar içeriğinin hiçbir çıktıda (rapor, hata
   mesajı, log) geçmediğini doğrulayan test
 
 ### 1.5 Konsol ve JSON raporlayıcı (`feat/reporters-basic`)
