@@ -218,18 +218,22 @@ Details:
 
 Per `host:port`:
 
-- Supported protocol versions (SSLv2 … TLS 1.3).
+- Supported protocol versions (SSL 3.0 … TLS 1.3).
 - Accepted cipher suites per version.
 - Supported key-exchange groups, **including hybrid PQ groups**
   (`X25519MLKEM768`, `SecP256r1MLKEM768`, …).
 - Leaf and chain certificates: public key type/size, signature algorithm.
 
-Implementation note **[D-2]**: `sslyze` covers versions, cipher suites and
-certificates, but its bundled OpenSSL (via `nassl`) is not expected to offer
-ML-KEM hybrid groups. Detecting PQ groups therefore needs a small, dedicated
-probe that sends a hand-built TLS 1.3 ClientHello advertising one group at a
-time and reads the `ServerHello` / `HelloRetryRequest`. This probe never
-completes the handshake.
+Implementation note **[D-2, D-11]**: no third-party TLS library. `sslyze`
+was evaluated and rejected: its bundled OpenSSL (via `nassl`) cannot offer
+ML-KEM hybrid groups, it pins `cryptography<47` and ships native binaries.
+Instead a small pure-Python probe (`scanners/tls_probe.py`) sends hand-built
+ClientHello messages and reads the server's plaintext answer
+(`ServerHello`, `HelloRetryRequest`, and for TLS ≤ 1.2 `Certificate` and
+`ServerKeyExchange`), then closes the connection without completing the
+handshake. The certificate of a TLS 1.3-only server, which is encrypted, is
+fetched with one ordinary handshake through the standard `ssl` module (no
+application data is sent). SSL 2.0 is not probed.
 
 ### 5.3 `ssh`
 
@@ -390,5 +394,5 @@ the diff.
   `pqc-scan = "pqc_scan.cli:app"`.
 - `rules/**/*.yaml` and `templates/*.j2` shipped as package data and loaded via
   `importlib.resources`.
-- Optional extras: `[tls]` (sslyze), `[code]` (semgrep), `[report]` (jinja2,
+- Optional extras: `[code]` (semgrep), `[report]` (jinja2,
   cyclonedx-python-lib), `[dev]`, `[all]` **[D-6]**.

@@ -181,22 +181,22 @@ ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 ## Kararlar
 
-D-1 … D-10 2026-11-04'te onaylandı ve `CLAUDE.md` ile
+D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 `docs/architecture.md`'ye işlendi.
 
 | #    | Konu | Karar |
 | ---- | ---- | ----- |
 | D-1  | Tarayıcı çıktı tipi | Tarayıcılar `Observation` döndürür, `engine.py` `classify` ile `Finding`'e çevirir |
-| D-2  | TLS PQ grup tespiti | sslyze + kendi minimal TLS 1.3 ClientHello sorgumuz |
+| D-2  | TLS PQ grup tespiti | Kendi minimal TLS 1.3 ClientHello sorgumuz (D-11 ile tüm TLS taraması buna genişledi) |
 | D-3  | Bilinmeyen algoritma | `UNKNOWN` risk sınıfı; çakışmada en kötü sınıf kazanır; sınıf bağlama (primitive) göre belirlenir |
 | D-4  | Eşzamanlılık modeli | `ThreadPoolExecutor` |
 | D-5  | SSH uygulaması | paramiko yok; ham soket + KEXINIT ayrıştırıcı |
-| D-6  | Ağır bağımlılıklar | `[tls]`, `[code]`, `[report]` opsiyonel extra; Python için AST yedeği |
+| D-6  | Ağır bağımlılıklar | `[code]`, `[report]` opsiyonel extra; Python için AST yedeği (`[tls]` D-11 ile kalktı) |
 | D-7  | Mosca z | Varsayılan yok; x, y, z üçü de verilmezse skor hesaplanmaz |
 | D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH`; çıkış kodları 0/1/2/3 |
 | D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE (YAML'da `# TODO: doğrula`) |
 | D-10 | Varsayılan branch | `master` kalır |
-| D-11 | TLS için sslyze | **Açık** — bkz. "Şu anki durum"; öneri: sslyze'ı bırak, kendi prob modülümüz |
+| D-11 | TLS için sslyze | sslyze kullanılmaz; sürüm, cipher suite, grup ve sertifika kendi saf Python probumuzla (+ TLS 1.3 sertifikası için `ssl`). `[tls]` extra'sı kaldırıldı (2026-11-05, seçenek B) |
 
 ---
 

@@ -57,14 +57,13 @@ Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gi
 
 - Python 3.11+
 - CLI: `typer` · terminal çıktısı: `rich` · veri modelleri: `pydantic` v2
-- TLS: `sslyze` · sertifika/anahtar ayrıştırma: `cryptography`
-- TLS PQ grupları: kendi minimal TLS 1.3 ClientHello sorgumuz (sslyze hibrit grupları göremez; karar: D-2)
+- TLS: ek bağımlılık yok — kendi saf Python ClientHello sorgumuz (sürümler, şifre takımları, hibrit PQ grupları dahil anahtar değişim grupları) + sertifika için standart `ssl` modülü; sertifika/anahtar ayrıştırma: `cryptography` (karar: D-2, D-11 — sslyze kullanılmaz)
 - SSH: ek bağımlılık yok — ham soketle sunucunun KEXINIT mesajı okunur, oturum açılmaz (karar: D-5, paramiko kullanılmaz)
 - Kod tarama: Semgrep kuralları (`rules/semgrep/`) + basit dosyalar için Python AST
 - Rapor: JSON, HTML (`jinja2`), CycloneDX CBOM (`cyclonedx-python-lib`)
 - Geliştirme: `pytest`, `ruff` (lint + format), `mypy` (strict), `pre-commit`
 - Paketleme: `pyproject.toml` (hatchling), `src/` düzeni
-- Ağır bağımlılıklar opsiyonel extra'dır: `[tls]` (sslyze), `[code]` (semgrep), `[report]` (jinja2, cyclonedx), `[dev]`, `[all]`. Semgrep yoksa Python dosyaları için AST yedeği çalışır. (karar: D-6)
+- Ağır bağımlılıklar opsiyonel extra'dır: `[code]` (semgrep), `[report]` (jinja2, cyclonedx), `[dev]`, `[all]`. Semgrep yoksa Python dosyaları için AST yedeği çalışır. (karar: D-6)
 - Eşzamanlılık: `concurrent.futures.ThreadPoolExecutor` (karar: D-4)
 
 Yeni bir bağımlılık eklemeden önce gerekçesini PR açıklamasında belirt.

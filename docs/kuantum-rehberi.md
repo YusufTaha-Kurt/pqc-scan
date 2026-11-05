@@ -247,10 +247,12 @@ hazırlanmış bir **ClientHello** gönderip cevabına bakmaktır. Kapıyı çal
 "içeride X var mı?" diye sormak gibi; içeri girilmez. Araç cevabı okuduktan
 sonra bağlantıyı **kapatır**, el sıkışmayı tamamlamaz, oturum açmaz.
 
-Neden kendi sorgumuzu yazıyoruz? TLS taraması için kullandığımız hazır
-kütüphane (`sslyze`) eski bir altyapı kullandığı için hibrit PQ gruplarını
-soramıyor. Bu yüzden sadece "X25519MLKEM768 destekleniyor mu?" sorusunu soran
-küçük bir parça kendimiz yazacağız.
+Neden kendi sorgumuzu yazıyoruz? Hazır TLS tarama kütüphanesi (`sslyze`)
+eski bir altyapı kullandığı için hibrit PQ gruplarını soramıyor, üstelik
+kurulumu ağır. Bu yüzden (karar D-11) sürümleri, şifre takımlarını ve
+grupları soran sorgu kodunu tamamen kendimiz yazdık. Aynı soruyu, her
+seferinde cevap olarak gelen seçeneği listeden çıkararak tekrar sorarız;
+böylece sunucunun desteklediği her şeyi ve **tercih sırasını** öğreniriz.
 
 ### 6.2 SSH — sunuculara uzaktan bağlanma
 
