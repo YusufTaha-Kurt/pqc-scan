@@ -348,12 +348,17 @@ own or have written permission to test.
 
 | Reporter       | Output                                                     |
 | -------------- | ---------------------------------------------------------- |
-| `console`      | `rich` table grouped by asset, coloured by risk, summary counts, errors section |
-| `json_report`  | `ScanResult.model_dump_json(indent=2)`; JSON Schema exported to `schemas/scan-result.schema.json` |
+| `console`      | `rich` output: header, summary counts per risk class, findings table sorted worst first (location:line, usage, algorithm, optional Mosca column, reason), errors table, worst-risk verdict. Colours only on a terminal; scanned data is never interpreted as markup |
+| `json_report`  | `ScanResult.model_dump_json(indent=2)`; JSON Schema committed as `docs/schema/scan-result.schema.json` (a test keeps it in sync) |
 | `html_report`  | Single self-contained file rendered from `templates/report.html.j2` (no external assets) |
 | `cbom`         | CycloneDX **1.6** BOM: each distinct algorithm → `cryptographic-asset` component (`assetType: algorithm`, `algorithmProperties`), each certificate → `assetType: certificate`; assets link to algorithms through `dependencies` |
 
-`html_report` and `cbom` are v0.2 items.
+`html_report` and `cbom` are v0.2 items; until then `reporters.render()` raises
+`UnsupportedFormatError` for them (the CLI maps it to exit code 2).
+
+Console and JSON output are covered by snapshot tests (`tests/snapshots/`);
+run `PQC_UPDATE_SNAPSHOTS=1 pytest` after an intentional change and review
+the diff.
 
 ## 10. Testing strategy
 

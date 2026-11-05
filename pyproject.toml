@@ -40,6 +40,7 @@ code = ["semgrep>=1.80"]
 report = ["jinja2>=3.1", "cyclonedx-python-lib>=8.0"]
 all = ["pqc-scan[tls,code,report]"]
 dev = [
+    "jsonschema>=4.18",
     "mypy>=1.10",
     "pre-commit>=3.7",
     "pytest>=8.0",
