@@ -23,14 +23,8 @@ from pqc_scan.models import (
     ScanConfig,
 )
 from pqc_scan.scanners.base import ScanTargetError
-from pqc_scan.scanners.files import (
-    FilesScanner,
-    _public_key_observation,
-    _signature_observations,
-    _signer_name,
-    iter_files,
-    ssh_key_algorithm,
-)
+from pqc_scan.scanners.certs import public_key_observation, signature_observations, signer_name
+from pqc_scan.scanners.files import FilesScanner, iter_files, ssh_key_algorithm
 
 CONFIG = ScanConfig()
 
@@ -388,11 +382,11 @@ def test_private_key_material_never_appears_in_output(
     ],
 )
 def test_signature_oids(oid: str, name: str | None) -> None:
-    assert _signer_name(oid) == name
+    assert signer_name(oid) == name
 
 
 def test_unknown_signature_oid_is_reported_raw() -> None:
-    (obs,) = _signature_observations("file.certificate", "1.2.3.4", None, None)
+    (obs,) = signature_observations("file.certificate", "1.2.3.4", None, None)
     assert obs[0] == "file.certificate.signature"
     assert obs[1].raw_name == "1.2.3.4"
     assert obs[2] == Confidence.MEDIUM
@@ -403,17 +397,17 @@ def test_unloadable_public_key_falls_back_to_oid() -> None:
         raise UnsupportedAlgorithm("not in this version")
 
     usage = "file.certificate.public_key"
-    known = _public_key_observation(unsupported, "2.16.840.1.101.3.4.4.2", usage)
+    known = public_key_observation(unsupported, "2.16.840.1.101.3.4.4.2", usage)
     assert known is not None
     assert (known[1].raw_name, known[1].primitive, known[2]) == (
         "ML-KEM-768",
         Primitive.KEM,
         Confidence.MEDIUM,
     )
-    unknown = _public_key_observation(unsupported, "1.2.3.4", usage)
+    unknown = public_key_observation(unsupported, "1.2.3.4", usage)
     assert unknown is not None
     assert unknown[1].raw_name == "1.2.3.4"
-    assert _public_key_observation(unsupported, None, usage) is None
+    assert public_key_observation(unsupported, None, usage) is None
 
 
 def test_ml_dsa_certificate(tmp_path: Path) -> None:
