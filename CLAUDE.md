@@ -168,7 +168,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
 - [ ] `tls` tarayıcısı
 - [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
-- [ ] Konsol ve JSON raporlayıcı
+- [x] Konsol ve JSON raporlayıcı
 - [ ] README: kurulum, kullanım, demo GIF, etik uyarı
 
 **v0.2**

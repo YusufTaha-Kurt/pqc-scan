@@ -15,45 +15,82 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-04
+**Son güncelleme:** 2026-11-05
 
-**Biten:** Faz 0 (sistem tanımı, kararlar), 1.1 repo iskeleti, 1.2 modeller +
-sınıflandırma, 1.3 tarama motoru, 1.4 `files` tarayıcısı. 148 test, kapsama
-%97. Tarayıcı Python API'si üzerinden çalışıyor; henüz CLI komutu ve
-raporlayıcı yok (`pqc-scan --version` çalışıyor).
+**Biten:** Faz 0, 1.1 iskelet, 1.2 modeller + sınıflandırma, 1.3 motor,
+1.4 `files` tarayıcısı, 1.5 konsol + JSON raporlayıcı, 1.6 CLI (`scan files`,
+`report`). 197 test, kapsama %98. **İlk kullanılabilir sürüm hazır:**
+`pqc-scan scan files ./repo` uçtan uca çalışıyor (`--format json`,
+`--fail-on`, Mosca skoru dahil).
 
-**Sıradaki görev: 1.5 Konsol ve JSON raporlayıcı (T-141 … T-143).**
-Ardından 1.6 CLI gelir; ikisi bitince `pqc-scan scan files ./repo` uçtan uca
-çalışır (ilk kullanılabilir sürüm).
+**Sıradaki görev: 1.7 `tls` tarayıcısı (T-161 … T-164).** Önce **D-11**
+kararı (aşağıda) kullanıcıya soruldu; cevap gelene kadar iki seçenekte de
+gereken kısım (T-163 PQ grup probu ve T-162 cipher suite ayrıştırıcı) ile
+başlanabilir.
 
-### Raporlayıcılar için plan
+### Açık karar D-11 — `sslyze` kalsın mı?
 
-- **Arayüz:** `src/pqc_scan/reporters/__init__.py` → `render(result, fmt) -> str`
-  ve biçim adı → fonksiyon eşlemesi (`console`, `json`). `html` ve `cbom` henüz
-  yok; bunlar için açık bir "henüz desteklenmiyor" hatası (CLI bunu kullanım
-  hatası, çıkış kodu 2 olarak gösterecek). Raporlayıcılar yalnızca
-  `ScanResult` okur; dosya okumaz, ağ kullanmaz.
-- **JSON (`reporters/json_report.py`):** `result.model_dump_json(indent=2)`;
-  çıktı deterministik (motor zaten sıralıyor). `json_schema()` →
-  `ScanResult.model_json_schema()`; şema `docs/schema/scan-result.schema.json`
-  olarak commit'lenir ve bir test, commit'lenen şemanın üretilenle aynı
-  olduğunu doğrular (şema değişince test hatırlatır).
-- **Konsol (`reporters/console.py`):** `rich` ile
-  1. başlık: araç sürümü, tarayıcılar, süre;
-  2. özet tablosu: risk sınıfı başına bulgu sayısı (BROKEN kalın kırmızı,
-     VULNERABLE kırmızı, WEAKENED sarı, UNKNOWN mor, HYBRID camgöbeği,
-     PQ_SAFE yeşil);
-  3. bulgu tablosu: konum (+ satır), kullanım, algoritma (ad + boyut/eğri),
-     risk, kısa gerekçe — en kötüden iyiye (sıralama motorda hazır);
-  4. hatalar tablosu (varsa); bulgu yoksa "bulgu yok" mesajı.
-  Terminal değilse renk yok (`rich` bunu kendisi yapar; `NO_COLOR` desteklenir).
-  Fonksiyon `Console` nesnesi alır ki testte genişlik/renk sabitlenebilsin.
-- **Testler (T-143):** sabit saatli (`clock=`) küçük bir `ScanResult`;
-  `Console(record=True, width=120, color_system=None)` çıktısı
-  `tests/snapshots/console.txt` ile karşılaştırılır; `PQC_UPDATE_SNAPSHOTS=1`
-  ile güncellenir. JSON için: geri okunabilirlik
-  (`ScanResult.model_validate_json`) ve şema senkron testi. Özel anahtar
-  içeriği testi (T-135) raporlayıcı çıktısında da tekrarlanır.
+2026-11-05'te doğrulandı:
+- `sslyze` 6.3.1, `cryptography<47` istiyor; kurulunca `cryptography` 50 → 46'ya
+  düşüyor. `cryptography` 46'da ML-DSA/ML-KEM sınıfları yok (`files`
+  tarayıcısı bu durumda OID yedeğiyle yine doğru adı veriyor; testler 46 ile
+  de geçiyor).
+- `sslyze`'ın `elliptic_curves` eklentisi hibrit PQ gruplarını (X25519MLKEM768
+  vb.) bilmiyor → D-2'deki "kendi ClientHello probumuz gerekli" tespiti doğru.
+- `nassl` yerel (native) ikili paket; her platformda tekerlek (wheel) yok.
+
+Seçenekler:
+- **A — D-2 olduğu gibi:** sslyze (sürümler, cipher suite'ler, sertifika
+  zinciri) + kendi ClientHello probumuz (PQ grupları). Olgun ve kapsamlı;
+  ama ağır, `cryptography` sürümünü düşürüyor.
+- **B — Tamamen kendi probumuz (öneri):** Zaten yazılması gereken ClientHello
+  probu genişletilir: sürüm başına tek tek cipher suite / grup teklif edip
+  ServerHello okunur (el sıkışma tamamlanmaz). Sertifika zinciri: TLS 1.2
+  ClientHello'ya sunucunun gönderdiği `Certificate` mesajından (şifresiz)
+  ya da Python `ssl` modülüyle tam el sıkışmayla. Ek bağımlılık yok, `[tls]`
+  extra'sı kalkar. Dezavantaj: daha çok kendi kodumuz ve test yükü; SSLv2
+  probu kapsam dışı kalabilir (SSLv3/TLS 1.0 ClientHello ile tespit edilir).
+
+### `tls` tarayıcısı için plan (iki seçenekte ortak kısım önce)
+
+- **T-162 `scanners/tls_names.py`:** IANA cipher suite adı/kodu →
+  bileşenler (kex, auth, cipher, mac). Ör.
+  `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` → kex `ECDHE`, auth `RSA`,
+  cipher `AES_128_GCM`, mac/prf `SHA256`. TLS 1.3 suite'leri
+  (`TLS_AES_256_GCM_SHA384`) yalnızca cipher + hash içerir. Grup kodları
+  (0x001d X25519, 0x0017 secp256r1, 0x11ec X25519MLKEM768, 0x11eb
+  SecP256r1MLKEM768, 0x11ed SecP384r1MLKEM1024, 0x6399 X25519Kyber768Draft00)
+  tablo olarak; sınıflandırma yine `algorithms.yaml`'da kalır, burada yalnızca
+  ad eşlemesi var.
+- **T-163 `scanners/tls_probe.py`:** saf Python TLS kayıt/handshake
+  kodlayıcı-çözücü. `probe_groups(host, port, groups, timeout)`: TLS 1.3
+  ClientHello (supported_versions, supported_groups, key_share,
+  signature_algorithms, SNI); yanıt ServerHello ise seçilen grup
+  `key_share`'den, HelloRetryRequest ise istenen gruptan okunur; alert →
+  desteklenmiyor. Her deneme yeni bağlantı; desteklenen grup listeden
+  çıkarılarak tekrar sorulur (sunucu tercih sırası da böylece çıkar).
+  key_share için gerçek anahtar gerekmez ama X25519 için geçerli uzunlukta
+  rastgele bayt, ML-KEM hibritleri için doğru uzunlukta (1216 bayt vb.)
+  dolgu gönderilir. Bağlantı ServerHello'dan sonra kapatılır (pasif).
+- **T-161 (seçeneğe göre):** A → sslyze ile sürümler/suite'ler/sertifika;
+  B → aynı prob modülüyle sürüm + suite taraması, sertifika için `ssl`.
+- **Gözlemler:** `tls.protocol` (`TLSv1.2`…; primitive `protocol`),
+  `tls.cipher_suite.key_exchange|authentication|cipher|mac`,
+  `tls.key_exchange_group`, `tls.certificate.public_key|signature|
+  signature_hash` (sertifika ayrıştırma `files.py`'deki
+  `_certificate_item` mantığı ortak bir modüle taşınarak yeniden kullanılır).
+  Asset: `tls://host:port`, kind `tls_endpoint`; sertifikalar ayrıca
+  `certificate` asset'i (`tls://host:port#cert-<n>`).
+- **Hedef ayrıştırma:** `host`, `host:port`, `[v6]:port`; port yoksa 443.
+  Hatalar: DNS → `ErrorKind.DNS`, bağlantı reddi, zaman aşımı (motor zaten
+  eşliyor). Her soket işlemi `config.timeout`'a uyar.
+- **Testler (T-164):** gerçek internet yok. (1) kaydedilmiş/elle üretilmiş
+  ServerHello ve HRR baytlarıyla çözücü testleri; (2) 127.0.0.1'de
+  ClientHello'yu okuyup önceden belirlenmiş ServerHello/HRR/alert dönen
+  sahte bir sunucu (thread); (3) Python `ssl` ile yerel gerçek TLS sunucusu
+  (conftest'te üretilen sertifikayla) — sürüm, suite ve sertifika uçtan uca.
+- **CLI:** `scan tls TARGET... [--targets] [--timeout]`; mimari §8'deki
+  ortak seçenekler.
 
 ### Bilinen notlar
 
@@ -67,6 +104,13 @@ Ardından 1.6 CLI gelir; ikisi bitince `pqc-scan scan files ./repo` uçtan uca
   sertifikayla yapılıyor. Şifreli OpenSSH anahtarı üretmek `bcrypt` istediği
   için test anahtarı elle kuruluyor (`conftest.encrypted_openssh_private`).
 - `files` tarayıcısı `AssetKind.CERTIFICATE_REQUEST` ekledi (CSR'lar için).
+- `typer` 0.27 artık `click`'e bağımlı değil (içine gömülü); CLI'de yalnızca
+  `typer.BadParameter` / `typer.Exit` kullanılır, `import click` yapılmaz.
+- Raporlayıcı snapshot'ları `tests/snapshots/`; bilerek değişiklik yapınca
+  `PQC_UPDATE_SNAPSHOTS=1 pytest` ile güncelle ve farkı gözden geçir. JSON
+  şeması `docs/schema/scan-result.schema.json` da aynı yolla güncellenir.
+- Düzeltilen hata: Mosca skorlu JSON raporu geri okunamıyordu
+  (`margin`/`at_risk` hesaplanan alanları reddediliyordu).
 - `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
   cevap bekleniyor: TLS 1.2 → VULNERABLE, TLS 1.3 → PQ_SAFE, SHA-256 → PQ_SAFE,
   AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish → BROKEN,
@@ -84,6 +128,10 @@ Ardından 1.6 CLI gelir; ikisi bitince `pqc-scan scan files ./repo` uçtan uca
   ML-DSA/ML-KEM anahtarları; test anahtarları `tests/conftest.py`'de test
   sırasında üretiliyor; özel anahtar sızıntı testi (T-135). Branch:
   `claude/nice-gates-b8wil6`.
+- **2026-11-05** — 1.5 konsol + JSON raporlayıcı (JSON şeması, snapshot
+  testleri), 1.6 CLI (`scan files`, `report`, `--fail-on`, çıkış kodları,
+  Mosca bayrakları); Mosca JSON geri okuma hatası düzeltildi; sslyze
+  incelendi → D-11 açık kararı. Branch: `claude/nice-gates-b8wil6`.
 
 ---
 
@@ -133,7 +181,7 @@ ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 ## Kararlar
 
-Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
+D-1 … D-10 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 `docs/architecture.md`'ye işlendi.
 
 | #    | Konu | Karar |
@@ -148,6 +196,7 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 | D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH`; çıkış kodları 0/1/2/3 |
 | D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE (YAML'da `# TODO: doğrula`) |
 | D-10 | Varsayılan branch | `master` kalır |
+| D-11 | TLS için sslyze | **Açık** — bkz. "Şu anki durum"; öneri: sslyze'ı bırak, kendi prob modülümüz |
 
 ---
 
@@ -216,17 +265,18 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.5 Konsol ve JSON raporlayıcı (`feat/reporters-basic`)
 
-- [ ] **T-141** `reporters/console.py` (rich tablo, risk renkleri, özet, hatalar)
-- [ ] **T-142** `reporters/json_report.py` + JSON Schema dışa aktarımı
-- [ ] **T-143** Snapshot testleri
+- [x] **T-141** `reporters/console.py` (rich tablo, risk renkleri, özet, hatalar)
+- [x] **T-142** `reporters/json_report.py` + JSON Schema dışa aktarımı
+- [x] **T-143** Snapshot testleri
 
 ### 1.6 CLI (`feat/cli`)
 
-- [ ] **T-151** `scan files`, `scan code`, `scan tls`, `scan all`, `report`
+- [~] **T-151** `scan files`, `scan code`, `scan tls`, `scan all`, `report`
   komutları; `--targets` dosyası; ortak seçenekler (D-8)
-- [ ] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
-- [ ] **T-153** `--help` içinde yetkilendirme uyarısı
-- [ ] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
+  (`scan files` ve `report` hazır; `tls`/`code`/`all` kendi tarayıcılarıyla gelir)
+- [x] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
+- [x] **T-153** `--help` içinde yetkilendirme uyarısı
+- [x] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
 
 **Not:** 1.4 + 1.5 + 1.6 bittiğinde `pqc-scan scan files ./repo` uçtan uca
 çalışır — ilk kullanılabilir sürüm.

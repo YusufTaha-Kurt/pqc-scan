@@ -338,6 +338,22 @@ Sadece sunucunun herkese açık olarak söylediklerini dinlemek. Saldırı yok,
 parola denemesi yok, oturum açma yok. Yine de **yalnızca sahibi olduğun veya
 yazılı izin aldığın** sistemleri tara.
 
+### 7.5 Raporlar, CI kapısı ve çıkış kodları
+
+- **Konsol raporu:** Terminalde renkli tablo. En kötü bulgu en üstte.
+- **JSON raporu:** Aynı bilgilerin programların okuyabileceği hâli.
+  `pqc-scan report rapor.json` ile sonradan tekrar tabloya çevrilebilir.
+  Biçimi bir **JSON şeması** ile tanımlıdır (şema: "bu dosyada hangi alanlar
+  olur, hangi tipte olur" diyen kural dosyası).
+- **CI (sürekli entegrasyon):** Kod her değiştiğinde testleri otomatik
+  çalıştıran sistem (ör. GitHub Actions). `--fail-on VULNERABLE` dersen,
+  araç `VULNERABLE` veya daha kötü bir bulgu gördüğünde **çıkış kodu 1** ile
+  biter ve CI işi "kırmızı" olur — yani yeni bir zayıf anahtar fark
+  edilmeden içeri giremez.
+- **Çıkış kodu:** Bir programın bittiğinde işletim sistemine bıraktığı sayı.
+  `0` her şey yolunda · `1` `--fail-on` eşiği aşıldı · `2` komut yanlış
+  kullanıldı · `3` hiçbir hedef taranamadı.
+
 ---
 
 ## Sözlük
@@ -349,6 +365,7 @@ yazılı izin aldığın** sistemleri tara.
 | AST | Kodu ağaç yapısında inceleme yöntemi | 6.3 |
 | Açık / özel anahtar | Paylaşılabilen / gizli tutulan anahtar çifti | 1.3 |
 | CBOM | Kriptografik malzeme listesi | 7.3 |
+| CI / çıkış kodu | Otomatik test sistemi / programın bitiş sayısı | 7.5 |
 | Cipher suite | Bir TLS bağlantısındaki algoritma paketi | 6.1 |
 | ClientHello / ServerHello | TLS el sıkışmasının ilk iki mesajı | 6.1 |
 | CRQC | Kriptografiyi kırabilecek güçte kuantum bilgisayar | 2.1 |
@@ -361,6 +378,7 @@ yazılı izin aldığın** sistemleri tara.
 | Hibrit | Klasik + PQ algoritmanın birlikte kullanımı | 4.1 |
 | HMAC | Anahtarlı hash; mesaj doğrulama | 1.5 |
 | HNDL | "Şimdi topla, sonra çöz" saldırısı | 3.3 |
+| JSON şeması | JSON dosyasının biçim kuralları | 7.5 |
 | KEM | Anahtar kapsülleme mekanizması | 4 |
 | KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2 |
 | Kafes (lattice) | ML-KEM ve ML-DSA'nın dayandığı zor problem | 4 |
