@@ -4,8 +4,8 @@
 your post-quantum migration.**
 
 > ⚠️ **Status: pre-alpha.** The project is being built in the open. The
-> `files` scanner and the `console`/`json` reports work today; the other
-> scanners are in progress. See [`TASKS.md`](TASKS.md) for progress.
+> `files` and `tls` scanners and the `console`/`json` reports work today; the
+> other scanners are in progress. See [`TASKS.md`](TASKS.md) for progress.
 
 > ⚠️ **Authorised use only.** Only scan systems you own or have written
 > permission to test. `pqc-scan` performs passive discovery: it reads handshake
@@ -63,8 +63,14 @@ pqc-scan scan files ./my-repo                          # table in the terminal
 pqc-scan scan files ./my-repo -f json -o report.json   # machine-readable report
 pqc-scan scan files ./my-repo --fail-on VULNERABLE     # CI gate: exit 1 if found
 pqc-scan scan files --targets paths.txt --exclude "*.test.pem"
+pqc-scan scan tls example.com mail.example.com:465     # TLS endpoints you are allowed to scan
 pqc-scan report report.json                            # re-render a saved report
 ```
+
+The TLS scanner needs no extra dependency: a small pure-Python probe asks the
+server which versions, cipher suites and key-exchange groups it accepts —
+including hybrid post-quantum groups such as `X25519MLKEM768` — and closes
+the connection without completing the handshake.
 
 Optional migration-urgency score ([Mosca's inequality](docs/architecture.md#7-mosca-priority-moscapy)).
 You supply all three values; the tool never assumes a quantum timeline:
@@ -76,7 +82,6 @@ pqc-scan scan files ./my-repo --mosca-x 10 --mosca-y 5 --mosca-z 12
 Planned for v0.1:
 
 ```bash
-pqc-scan scan tls example.com:443 --format json --out report.json
 pqc-scan scan code ./my-repo --fail-on VULNERABLE
 ```
 

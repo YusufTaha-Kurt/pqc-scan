@@ -239,6 +239,23 @@ Kavramlar:
   imzalanmış belge. İçinde sitenin **açık anahtarı** (ör. RSA-2048) ve
   **imza algoritması** (ör. `sha256WithRSAEncryption`) bulunur. İkisi de
   kuantuma karşı savunmasız olabilir.
+- **HelloRetryRequest (HRR):** TLS 1.3'te sunucunun "gönderdiğin anahtar
+  parçası işime yaramadı, şu grupla tekrar dene" cevabı. Araç bunu bilerek
+  tetikler: ClientHello'da hiç anahtar parçası göndermez, sunucu da HRR ile
+  hangi grubu istediğini söylemek zorunda kalır. Böylece araç ML-KEM
+  hesaplaması yapmadan sunucunun hibrit grubu destekleyip desteklemediğini
+  öğrenir.
+- **DHE parametre boyutu:** Eski tip Diffie-Hellman (DHE) anahtar değişiminde
+  sunucunun kullandığı sayının bit uzunluğu. 2048 bitten kısası (ör. 1024)
+  bugün bile zayıf sayılır (`BROKEN`).
+- **Export ve anon şifre takımları:** 1990'larda ABD ihracat kuralları
+  yüzünden bilerek 40 bite zayıflatılmış "export" şifreler ve sunucunun
+  kimliğini hiç doğrulamayan "anon" (anonim) takımlar. İkisi de bugün kırık
+  kabul edilir (`BROKEN`).
+- **Camellia, ARIA, SEED, IDEA:** AES'e alternatif, daha az yaygın blok
+  şifreler. 128 bit anahtarlılar AES-128 gibi Grover'la zayıflar
+  (`WEAKENED`), 256 bit olanlar AES-256 gibi güvenli kalır. IDEA eski ve
+  64 bitlik blok yapısı yüzünden zayıf sayılır.
 
 #### "Prob" (sorgu) ne demek?
 
@@ -373,13 +390,16 @@ yazılı izin aldığın** sistemleri tara.
 | CRQC | Kriptografiyi kırabilecek güçte kuantum bilgisayar | 2.1 |
 | CSR | Sertifika imzalama isteği | 6.3 |
 | DH / ECDH | Klasik anahtar değişim yöntemleri | 1.3 |
+| DHE parametre boyutu | Eski tip DH anahtar değişimindeki sayının bit uzunluğu | 6.1 |
 | ECDSA / Ed25519 | Eliptik eğri tabanlı imzalar | 1.3 |
+| Export / anon şifre takımı | Bilerek zayıflatılmış / kimlik doğrulamasız TLS takımları | 6.1 |
 | Grover | Kaba kuvveti hızlandıran kuantum algoritması | 3.2 |
 | Grup (TLS) | Anahtar değişiminde kullanılan yapı | 6.1 |
 | Hash | Verinin geri döndürülemez parmak izi | 1.4 |
 | Hibrit | Klasik + PQ algoritmanın birlikte kullanımı | 4.1 |
 | HMAC | Anahtarlı hash; mesaj doğrulama | 1.5 |
 | HNDL | "Şimdi topla, sonra çöz" saldırısı | 3.3 |
+| HRR (HelloRetryRequest) | TLS 1.3'te sunucunun "başka grupla dene" cevabı | 6.1 |
 | JSON şeması | JSON dosyasının biçim kuralları | 7.5 |
 | KEM | Anahtar kapsülleme mekanizması | 4 |
 | KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2 |

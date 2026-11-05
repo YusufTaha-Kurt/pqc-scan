@@ -235,6 +235,36 @@ handshake. The certificate of a TLS 1.3-only server, which is encrypted, is
 fetched with one ordinary handshake through the standard `ssl` module (no
 application data is sent). SSL 2.0 is not probed.
 
+Probe details:
+
+- **Versions:** one ClientHello per version; supported only if the server
+  answers with exactly that version.
+- **Cipher suites / groups:** offer a list, record the server's choice,
+  remove it and repeat until the server refuses. The resulting order is the
+  order of selection.
+- **TLS 1.3 groups:** the ClientHello carries an empty `key_share`, which
+  obliges the server to name its group in a HelloRetryRequest. No key shares
+  (and no ML-KEM implementation) are needed on the client side.
+- **TLS ≤ 1.2 groups and DHE size:** read from `ServerKeyExchange`
+  (named curve, or the length of the DH prime), at the highest legacy
+  version only. Certificates are read from the plaintext `Certificate`
+  message at the same version.
+- Budget: at most 200 connections per endpoint (typically 20–40); each socket
+  operation honours `--timeout`. Only the first connection's failure is a
+  target error (refused, DNS, timeout); later failures count as "not
+  supported". No TLS answer at all → `ScanError(kind=parse)`.
+
+Output usages: `tls.protocol`, `tls.cipher_suite.key_exchange`,
+`tls.cipher_suite.authentication`, `tls.cipher_suite.cipher`,
+`tls.cipher_suite.mac` (CBC/stream suites only), `tls.key_exchange_group`,
+`tls.dh_parameters`, `tls.certificate.public_key`,
+`tls.certificate.signature`, `tls.certificate.signature_hash`.
+Cipher suite components are reported once per version and component; the
+evidence lists the suites that use them (e.g.
+`TLSv1.2: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, …`). Assets:
+`tls://host:port` (`tls_endpoint`) and `tls://host:port#cert-<n>`
+(`certificate`, leaf = 0). PSK and SRP suites are not probed.
+
 ### 5.3 `ssh`
 
 Per `host:port`: connect, exchange identification strings, read the server's
@@ -347,9 +377,9 @@ Common options for `scan`:
 arguments and through `--targets` are merged and de-duplicated. A missing
 Mosca value (only some of `--mosca-x/-y/-z`) is a usage error.
 
-Implementation status: `scan files` and `report` exist. `scan tls`,
-`scan ssh`, `scan code` and `scan all` are added together with their
-scanners; `--timeout` arrives with the first network scanner. Unimplemented
+Implementation status: `scan files`, `scan tls` (with `--timeout`) and
+`report` exist. `scan ssh`, `scan code` and `scan all` are added together
+with their scanners. Unimplemented
 formats (`html`, `cbom`) are rejected before scanning with exit code 2.
 
 Exit codes: `0` success · `1` `--fail-on` threshold reached · `2` usage error

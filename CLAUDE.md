@@ -152,7 +152,7 @@ mypy src
 pytest -q --cov=pqc_scan
 
 # Kullanım örnekleri
-pqc-scan scan tls example.com:443 --format json --out report.json
+pqc-scan scan tls example.com:443 --format json --out report.json --timeout 5
 pqc-scan scan code ./my-repo --format html --out report.html
 pqc-scan scan all --targets targets.txt --path ./my-repo --format cbom --out cbom.json
 pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılırsa çıkış kodu 1
@@ -165,7 +165,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] `models.py` ve `classify.py` + `algorithms.yaml` (testleriyle)
 - [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
 - [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
-- [ ] `tls` tarayıcısı
+- [x] `tls` tarayıcısı
 - [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
 - [x] Konsol ve JSON raporlayıcı
 - [ ] README: kurulum, kullanım, demo GIF, etik uyarı

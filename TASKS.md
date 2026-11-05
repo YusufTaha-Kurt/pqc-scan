@@ -18,79 +18,57 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 **Son güncelleme:** 2026-11-05
 
 **Biten:** Faz 0, 1.1 iskelet, 1.2 modeller + sınıflandırma, 1.3 motor,
-1.4 `files` tarayıcısı, 1.5 konsol + JSON raporlayıcı, 1.6 CLI (`scan files`,
-`report`). 197 test, kapsama %98. **İlk kullanılabilir sürüm hazır:**
-`pqc-scan scan files ./repo` uçtan uca çalışıyor (`--format json`,
-`--fail-on`, Mosca skoru dahil).
+1.4 `files`, 1.5 konsol + JSON raporlayıcı, 1.6 CLI, **1.7 `tls` tarayıcısı**
+(D-11: sslyze yok, saf Python prob). 242 test (Python 3.11 ve 3.13), kapsama
+%96. Çalışan komutlar: `pqc-scan scan files`, `pqc-scan scan tls`,
+`pqc-scan report`.
 
-**Sıradaki görev: 1.7 `tls` tarayıcısı (T-161 … T-164).** Önce **D-11**
-kararı (aşağıda) kullanıcıya soruldu; cevap gelene kadar iki seçenekte de
-gereken kısım (T-163 PQ grup probu ve T-162 cipher suite ayrıştırıcı) ile
-başlanabilir.
+**Sıradaki görev: 1.8 `code` tarayıcısı (T-171 … T-174).**
 
-### Açık karar D-11 — `sslyze` kalsın mı?
+### `code` tarayıcısı için plan
 
-2026-11-05'te doğrulandı:
-- `sslyze` 6.3.1, `cryptography<47` istiyor; kurulunca `cryptography` 50 → 46'ya
-  düşüyor. `cryptography` 46'da ML-DSA/ML-KEM sınıfları yok (`files`
-  tarayıcısı bu durumda OID yedeğiyle yine doğru adı veriyor; testler 46 ile
-  de geçiyor).
-- `sslyze`'ın `elliptic_curves` eklentisi hibrit PQ gruplarını (X25519MLKEM768
-  vb.) bilmiyor → D-2'deki "kendi ClientHello probumuz gerekli" tespiti doğru.
-- `nassl` yerel (native) ikili paket; her platformda tekerlek (wheel) yok.
-
-Seçenekler:
-- **A — D-2 olduğu gibi:** sslyze (sürümler, cipher suite'ler, sertifika
-  zinciri) + kendi ClientHello probumuz (PQ grupları). Olgun ve kapsamlı;
-  ama ağır, `cryptography` sürümünü düşürüyor.
-- **B — Tamamen kendi probumuz (öneri):** Zaten yazılması gereken ClientHello
-  probu genişletilir: sürüm başına tek tek cipher suite / grup teklif edip
-  ServerHello okunur (el sıkışma tamamlanmaz). Sertifika zinciri: TLS 1.2
-  ClientHello'ya sunucunun gönderdiği `Certificate` mesajından (şifresiz)
-  ya da Python `ssl` modülüyle tam el sıkışmayla. Ek bağımlılık yok, `[tls]`
-  extra'sı kalkar. Dezavantaj: daha çok kendi kodumuz ve test yükü; SSLv2
-  probu kapsam dışı kalabilir (SSLv3/TLS 1.0 ClientHello ile tespit edilir).
-
-### `tls` tarayıcısı için plan (iki seçenekte ortak kısım önce)
-
-- **T-162 `scanners/tls_names.py`:** IANA cipher suite adı/kodu →
-  bileşenler (kex, auth, cipher, mac). Ör.
-  `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256` → kex `ECDHE`, auth `RSA`,
-  cipher `AES_128_GCM`, mac/prf `SHA256`. TLS 1.3 suite'leri
-  (`TLS_AES_256_GCM_SHA384`) yalnızca cipher + hash içerir. Grup kodları
-  (0x001d X25519, 0x0017 secp256r1, 0x11ec X25519MLKEM768, 0x11eb
-  SecP256r1MLKEM768, 0x11ed SecP384r1MLKEM1024, 0x6399 X25519Kyber768Draft00)
-  tablo olarak; sınıflandırma yine `algorithms.yaml`'da kalır, burada yalnızca
-  ad eşlemesi var.
-- **T-163 `scanners/tls_probe.py`:** saf Python TLS kayıt/handshake
-  kodlayıcı-çözücü. `probe_groups(host, port, groups, timeout)`: TLS 1.3
-  ClientHello (supported_versions, supported_groups, key_share,
-  signature_algorithms, SNI); yanıt ServerHello ise seçilen grup
-  `key_share`'den, HelloRetryRequest ise istenen gruptan okunur; alert →
-  desteklenmiyor. Her deneme yeni bağlantı; desteklenen grup listeden
-  çıkarılarak tekrar sorulur (sunucu tercih sırası da böylece çıkar).
-  key_share için gerçek anahtar gerekmez ama X25519 için geçerli uzunlukta
-  rastgele bayt, ML-KEM hibritleri için doğru uzunlukta (1216 bayt vb.)
-  dolgu gönderilir. Bağlantı ServerHello'dan sonra kapatılır (pasif).
-- **T-161 (seçeneğe göre):** A → sslyze ile sürümler/suite'ler/sertifika;
-  B → aynı prob modülüyle sürüm + suite taraması, sertifika için `ssl`.
-- **Gözlemler:** `tls.protocol` (`TLSv1.2`…; primitive `protocol`),
-  `tls.cipher_suite.key_exchange|authentication|cipher|mac`,
-  `tls.key_exchange_group`, `tls.certificate.public_key|signature|
-  signature_hash` (sertifika ayrıştırma `files.py`'deki
-  `_certificate_item` mantığı ortak bir modüle taşınarak yeniden kullanılır).
-  Asset: `tls://host:port`, kind `tls_endpoint`; sertifikalar ayrıca
-  `certificate` asset'i (`tls://host:port#cert-<n>`).
-- **Hedef ayrıştırma:** `host`, `host:port`, `[v6]:port`; port yoksa 443.
-  Hatalar: DNS → `ErrorKind.DNS`, bağlantı reddi, zaman aşımı (motor zaten
-  eşliyor). Her soket işlemi `config.timeout`'a uyar.
-- **Testler (T-164):** gerçek internet yok. (1) kaydedilmiş/elle üretilmiş
-  ServerHello ve HRR baytlarıyla çözücü testleri; (2) 127.0.0.1'de
-  ClientHello'yu okuyup önceden belirlenmiş ServerHello/HRR/alert dönen
-  sahte bir sunucu (thread); (3) Python `ssl` ile yerel gerçek TLS sunucusu
-  (conftest'te üretilen sertifikayla) — sürüm, suite ve sertifika uçtan uca.
-- **CLI:** `scan tls TARGET... [--targets] [--timeout]`; mimari §8'deki
-  ortak seçenekler.
+- **Dosya:** `src/pqc_scan/scanners/code.py` → `class CodeScanner(Scanner)`,
+  `name = "code"`. Hedef bir klasör/dosya; gezinti `files.iter_files` ile
+  (aynı exclude / boyut / symlink kuralları). Dil uzantıdan: `.py`, `.java`
+  (JS/TS ve Go v0.2'de).
+- **API → algoritma eşlemesi veri olarak:** `rules/code/python.yaml` ve
+  `rules/code/java.yaml`. Her kayıt: tam nitelikli çağrı adı
+  (`cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key`),
+  algoritma adı, primitive, anahtar boyutu argümanı (ad + konum) veya
+  algoritmayı veren string argüman (Java `getInstance("SHA1withRSA")`).
+  Sınıflandırma yine yalnızca `algorithms.yaml`'da.
+- **Python — AST (her zaman çalışır, Semgrep gerekmez):** `import` ve
+  `from … import … as …` takma adlarını çözen küçük bir ad tablosu;
+  `ast.Call` düğümlerinde tam adı bulup eşlemeye bak. Sabit argümanlar
+  (ör. `key_size=1024`, `ec.SECP256R1()`, `hashlib.new("md5")`) değere
+  çevrilir; sabit değilse `key_size=None`, `confidence=medium`. Kapsam:
+  `cryptography` (rsa/ec/dsa/dh/ed25519/x25519 üretimi, `hashes.MD5/SHA1`,
+  `Cipher(algorithms.TripleDES…)`, `modes.ECB`), `hashlib`, `pycryptodome`
+  (`RSA.generate`, `DES/DES3/ARC4.new`, `AES.MODE_ECB`), `ssl`
+  (`PROTOCOL_TLSv1`, `TLSVersion.TLSv1`), `paramiko` (`RSAKey.generate`).
+- **Java — Semgrep (opsiyonel `[code]` extra):** `rules/semgrep/java.yaml`
+  (JCA: `KeyPairGenerator.getInstance(...)` + `initialize(N)`,
+  `Signature`, `Cipher`, `MessageDigest`, `KeyAgreement`). Kural
+  `metadata`'sı algoritma/primitive taşır; `semgrep --json --config … PATH`
+  alt süreç olarak, zaman aşımıyla çalışır; çıktı → `Observation`.
+  Semgrep kurulu değilse: Python için AST çalışır, Java dosyaları atlanır ve
+  CLI stderr'e bir kez "semgrep not installed; Java files skipped" yazar
+  (hata değil, çıkış kodu değişmez). Semgrep varsa Python için de Semgrep
+  kuralları **değil** AST kullanılır (tek doğruluk kaynağı, çift bulgu yok).
+- **Gözlemler:** `code.key_generation`, `code.signature`, `code.cipher`,
+  `code.hash`, `code.tls_config`, `code.key_exchange`. Asset:
+  `file:///abs/path`, kind `source_file`, location göreli yol.
+  `Evidence.line` = satır, `detail` = API adı (ör.
+  `cryptography…rsa.generate_private_key`). **Satırın kendisi asla yazılmaz**
+  (CLAUDE.md §7).
+- **Testler (T-174):** `tests/fixtures/code/python/*.py` ve
+  `tests/fixtures/code/java/*.java` (yalnızca örnek kod, gizli bilgi yok):
+  takma adlı importlar, sabit/sabit olmayan argümanlar, aynı satırda iki
+  çağrı, sözdizimi hatalı dosya (atlanır). Semgrep testleri
+  `pytest.importorskip`/`shutil.which("semgrep")` ile atlanabilir; CI'da
+  Semgrep kurulu bir iş daha eklenebilir.
+- **CLI:** `scan code PATH… [--exclude] [--max-file-size]`; ardından
+  `scan all --targets FILE --path PATH` (tls + files + code tek raporda).
 
 ### Bilinen notlar
 
@@ -109,6 +87,16 @@ Seçenekler:
 - Raporlayıcı snapshot'ları `tests/snapshots/`; bilerek değişiklik yapınca
   `PQC_UPDATE_SNAPSHOTS=1 pytest` ile güncelle ve farkı gözden geçir. JSON
   şeması `docs/schema/scan-result.schema.json` da aynı yolla güncellenir.
+- TLS testleri iki tür yerel sunucu kullanır (`tests/conftest.py`:
+  `LocalServer`, `local_server` fixture'ı): Python `ssl` ile gerçek OpenSSL
+  sunucusu ve `test_scanner_tls.py` içindeki betikli sahte sunucu. Bu
+  ortamdaki OpenSSL 3.0 ML-KEM bilmediği için hibrit grup yolu sahte
+  sunucuyla test edilir; OpenSSL ≥ 3.5 olan bir makinede gerçek sunucuyla
+  da denenebilir.
+- `algorithms.yaml`'a TLS için eklenen ve doğrulanması gerekenler:
+  IDEA → BROKEN, SEED → WEAKENED, Camellia-128 / ARIA-128 → WEAKENED,
+  Camellia-256 / ARIA-256 → PQ_SAFE (hepsi `# TODO: doğrula`). Kesin
+  olanlar: export şifreleri ve `anon` kimlik doğrulama → BROKEN.
 - Düzeltilen hata: Mosca skorlu JSON raporu geri okunamıyordu
   (`margin`/`at_risk` hesaplanan alanları reddediliyordu).
 - `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
@@ -132,6 +120,11 @@ Seçenekler:
   testleri), 1.6 CLI (`scan files`, `report`, `--fail-on`, çıkış kodları,
   Mosca bayrakları); Mosca JSON geri okuma hatası düzeltildi; sslyze
   incelendi → D-11 açık kararı. Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-05 (2)** — D-11 = B (sslyze yok). Sertifika ayrıştırma
+  `scanners/certs.py`'ye taşındı; `tls_names.py` (IANA tabloları),
+  `tls_probe.py` (saf Python ClientHello probu, boş key_share ile HRR
+  tekniği), `tls.py` + `scan tls`; sahte ve gerçek yerel sunucularla testler.
+  Branch: `claude/nice-gates-b8wil6`.
 
 ---
 
@@ -273,7 +266,7 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 
 - [~] **T-151** `scan files`, `scan code`, `scan tls`, `scan all`, `report`
   komutları; `--targets` dosyası; ortak seçenekler (D-8)
-  (`scan files` ve `report` hazır; `tls`/`code`/`all` kendi tarayıcılarıyla gelir)
+  (`scan files`, `scan tls` ve `report` hazır; `code`/`all` kendi tarayıcılarıyla gelir)
 - [x] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
 - [x] **T-153** `--help` içinde yetkilendirme uyarısı
 - [x] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
@@ -283,13 +276,13 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.7 `tls` tarayıcısı (`feat/tls-scanner`)
 
-- [ ] **T-161** sslyze entegrasyonu: protokol sürümleri, cipher suite'ler,
-  sertifika zinciri
-- [ ] **T-162** Cipher suite ayrıştırıcı (`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
+- [x] **T-161** Sürüm, cipher suite ve sertifika zinciri taraması — D-11 ile
+  sslyze yerine kendi probumuz + TLS 1.3 sertifikası için `ssl`
+- [x] **T-162** Cipher suite ayrıştırıcı (`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
   → kex/auth/cipher/mac bileşenleri)
-- [ ] **T-163** PQ grup probu: TLS 1.3 ClientHello (supported_groups +
+- [x] **T-163** PQ grup probu: TLS 1.3 ClientHello (supported_groups +
   key_share), ServerHello/HRR okuma, el sıkışmayı tamamlamadan kapatma (D-2)
-- [ ] **T-164** Testler: yerel `ssl` sunucusu (127.0.0.1), kaydedilmiş
+- [x] **T-164** Testler: yerel `ssl` sunucusu (127.0.0.1), kaydedilmiş
   ServerHello baytlarıyla prob testleri
 
 ### 1.8 `code` tarayıcısı (`feat/code-scanner`)
