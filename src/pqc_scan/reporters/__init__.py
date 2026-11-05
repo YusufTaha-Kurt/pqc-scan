@@ -15,6 +15,9 @@ class ReportFormat(StrEnum):
     CBOM = "cbom"
 
 
+IMPLEMENTED_FORMATS: frozenset[ReportFormat] = frozenset({ReportFormat.CONSOLE, ReportFormat.JSON})
+
+
 class UnsupportedFormatError(ValueError):
     """The format exists in the CLI but is not implemented yet."""
 
@@ -28,4 +31,4 @@ def render(result: ScanResult, fmt: ReportFormat) -> str:
     raise UnsupportedFormatError(f"the '{fmt.value}' format is not implemented yet")
 
 
-__all__ = ["ReportFormat", "UnsupportedFormatError", "render"]
+__all__ = ["IMPLEMENTED_FORMATS", "ReportFormat", "UnsupportedFormatError", "render"]

@@ -338,8 +338,19 @@ Common options for `scan`:
 | `--mosca-x/-y/-z YEARS`    | none      | All three needed to compute scores        |
 | `--exclude GLOB`           | —         | Repeatable, for `code`/`files`            |
 
+`scan files` also takes `--max-file-size BYTES` and `--follow-symlinks`.
+`--exclude` patterns are added to the default exclude list. Targets given as
+arguments and through `--targets` are merged and de-duplicated. A missing
+Mosca value (only some of `--mosca-x/-y/-z`) is a usage error.
+
+Implementation status: `scan files` and `report` exist. `scan tls`,
+`scan ssh`, `scan code` and `scan all` are added together with their
+scanners; `--timeout` arrives with the first network scanner. Unimplemented
+formats (`html`, `cbom`) are rejected before scanning with exit code 2.
+
 Exit codes: `0` success · `1` `--fail-on` threshold reached · `2` usage error
-· `3` every target failed.
+· `3` every target failed. Precedence: if every target failed, the result is
+`3` (there are no findings to compare with `--fail-on`).
 
 `--help` and the README carry the authorisation warning: scan only systems you
 own or have written permission to test.

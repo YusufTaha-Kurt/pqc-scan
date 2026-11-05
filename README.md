@@ -3,9 +3,9 @@
 **Find quantum-vulnerable cryptography in your endpoints and code, and plan
 your post-quantum migration.**
 
-> ⚠️ **Status: pre-alpha.** The project is being built in the open; commands
-> below describe the planned v0.1 interface. See [`TASKS.md`](TASKS.md) for
-> progress.
+> ⚠️ **Status: pre-alpha.** The project is being built in the open. The
+> `files` scanner and the `console`/`json` reports work today; the other
+> scanners are in progress. See [`TASKS.md`](TASKS.md) for progress.
 
 > ⚠️ **Authorised use only.** Only scan systems you own or have written
 > permission to test. `pqc-scan` performs passive discovery: it reads handshake
@@ -54,13 +54,33 @@ pip install -e ".[dev]"      # development install (PyPI release planned for v0.
 Optional extras: `[tls]` (sslyze), `[code]` (Semgrep), `[report]` (HTML and
 CycloneDX CBOM), `[all]`.
 
-## Usage (planned v0.1)
+## Usage
+
+Available now:
 
 ```bash
-pqc-scan scan files ./my-repo
+pqc-scan scan files ./my-repo                          # table in the terminal
+pqc-scan scan files ./my-repo -f json -o report.json   # machine-readable report
+pqc-scan scan files ./my-repo --fail-on VULNERABLE     # CI gate: exit 1 if found
+pqc-scan scan files --targets paths.txt --exclude "*.test.pem"
+pqc-scan report report.json                            # re-render a saved report
+```
+
+Optional migration-urgency score ([Mosca's inequality](docs/architecture.md#7-mosca-priority-moscapy)).
+You supply all three values; the tool never assumes a quantum timeline:
+
+```bash
+pqc-scan scan files ./my-repo --mosca-x 10 --mosca-y 5 --mosca-z 12
+```
+
+Planned for v0.1:
+
+```bash
 pqc-scan scan tls example.com:443 --format json --out report.json
 pqc-scan scan code ./my-repo --fail-on VULNERABLE
 ```
+
+The JSON report follows [`docs/schema/scan-result.schema.json`](docs/schema/scan-result.schema.json).
 
 Exit codes: `0` success · `1` `--fail-on` threshold reached · `2` usage error ·
 `3` every target failed.
