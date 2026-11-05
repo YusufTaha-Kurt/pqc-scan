@@ -49,7 +49,7 @@ def test_version() -> None:
     assert __version__ in result.output
 
 
-@pytest.mark.parametrize("command", [[], ["scan"], ["scan", "files"]])
+@pytest.mark.parametrize("command", [[], ["scan"], ["scan", "files"], ["scan", "tls"]])
 def test_help_contains_authorization_warning(command: list[str]) -> None:
     result = invoke(*command, "--help")
     assert result.exit_code == 0
@@ -236,3 +236,32 @@ def test_report_missing_file() -> None:
     result = invoke("report", "/nonexistent/report.json")
     assert result.exit_code == ExitCode.USAGE
     assert "cannot read" in flat(result.output)
+
+
+# --- scan tls -------------------------------------------------------------------
+
+
+def test_scan_tls_json(local_server: Any, tmp_path: Path, keys: dict[str, Any]) -> None:
+    import ssl
+
+    from conftest import ssl_handler, ssl_server_context
+
+    context = ssl_server_context(tmp_path, keys["rsa2048"], minimum=ssl.TLSVersion.TLSv1_2)
+    server = local_server(ssl_handler(context))
+    result = invoke("scan", "tls", f"127.0.0.1:{server.port}", "-f", "json", "--timeout", "1")
+    assert result.exit_code == ExitCode.OK
+    report = ScanResult.model_validate_json(result.stdout)
+    assert report.scanners == ["tls"]
+    assert any(f.usage == "tls.protocol" for f in report.findings)
+    assert report.config.timeout == 1.0
+
+
+def test_scan_tls_unreachable_exit_code() -> None:
+    import socket
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    result = invoke("scan", "tls", f"127.0.0.1:{port}", "--timeout", "0.5")
+    assert result.exit_code == ExitCode.ALL_TARGETS_FAILED
+    assert "connection_refused" in result.output

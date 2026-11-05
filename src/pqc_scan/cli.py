@@ -26,6 +26,7 @@ from pqc_scan.models import DEFAULT_EXCLUDES, MoscaInputs, RiskClass, ScanConfig
 from pqc_scan.reporters import IMPLEMENTED_FORMATS, ReportFormat, console, render
 from pqc_scan.scanners.base import Scanner
 from pqc_scan.scanners.files import FilesScanner
+from pqc_scan.scanners.tls import TLSScanner
 
 AUTHORIZATION_WARNING = (
     "Only scan systems you own or have written permission to test. "
@@ -257,6 +258,44 @@ def scan_files(
         mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
     )
     _run(FilesScanner(), targets, config, fmt, out, fail_on)
+
+
+@scan_app.command("tls", epilog=AUTHORIZATION_WARNING)
+def scan_tls(
+    hosts: Annotated[
+        list[str] | None,
+        typer.Argument(
+            help="Endpoints as host, host:port or [IPv6]:port (default port 443).",
+            show_default=False,
+        ),
+    ] = None,
+    targets_file: TargetsOption = None,
+    fmt: FormatOption = ReportFormat.CONSOLE,
+    out: OutOption = None,
+    fail_on: FailOnOption = None,
+    timeout: Annotated[
+        float,
+        typer.Option("--timeout", min=0.1, help="Seconds per network operation."),
+    ] = _DEFAULTS.timeout,
+    concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
+    mosca_x: MoscaXOption = None,
+    mosca_y: MoscaYOption = None,
+    mosca_z: MoscaZOption = None,
+) -> None:
+    """Probe TLS endpoints: versions, cipher suites, key-exchange groups
+    (including hybrid post-quantum groups) and certificates.
+
+    Each endpoint receives a few dozen short connections. No handshake is
+    completed except one to read a TLS 1.3 certificate; no data is sent.
+    """
+    _check_format(fmt)
+    targets = collect_targets(hosts, targets_file)
+    config = ScanConfig(
+        timeout=timeout,
+        concurrency=concurrency,
+        mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
+    )
+    _run(TLSScanner(), targets, config, fmt, out, fail_on)
 
 
 @app.command("report")

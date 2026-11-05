@@ -147,6 +147,10 @@ algorithms:
       - P-384
       - secp521r1
       - P-521
+      - secp256k1
+      - brainpoolP256r1
+      - brainpoolP384r1
+      - brainpoolP512r1
     primitives: [key_exchange]
     default: VULNERABLE
     reason: Elliptic-curve Diffie-Hellman is broken by Shor's algorithm
@@ -187,6 +191,14 @@ algorithms:
     default: VULNERABLE
     reason: Ed448 is broken by Shor's algorithm
     recommendation: Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).
+
+  - id: anon
+    name: Anonymous (no authentication)
+    aliases: [anon, aNULL]
+    primitives: [signature]
+    default: BROKEN
+    reason: Without server authentication anyone can impersonate the server (man-in-the-middle)
+    recommendation: Remove anonymous cipher suites.
 
   # ------------------------------------------------------------------
   # Hybrid (classical + post-quantum)
@@ -303,6 +315,7 @@ algorithms:
       - AES_256_GCM
       - AES_256_CBC
       - AES_256_CCM
+      - AES_256_CCM_8
       - aes256-ctr
       - aes256-cbc
       - aes256-gcm@openssh.com
@@ -379,6 +392,60 @@ algorithms:
     default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32)
     reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
     recommendation: Use AES-256-GCM.
+
+  - id: export-cipher
+    name: Export-grade cipher (40-bit)
+    aliases: [EXPORT, DES40_CBC, RC4_40, RC2_CBC_40]
+    primitives: [block_cipher, stream_cipher]
+    default: BROKEN
+    reason: Deliberately weakened 40-bit export cipher (FREAK, Logjam era)
+    recommendation: Remove export suites; use AES-256-GCM.
+
+  - id: idea
+    name: IDEA
+    aliases: [IDEA, IDEA_CBC]
+    primitives: [block_cipher]
+    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32); removed from TLS 1.2 (RFC 5469)
+    reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
+    recommendation: Use AES-256-GCM.
+
+  - id: seed
+    name: SEED
+    aliases: [SEED, SEED_CBC]
+    primitives: [block_cipher]
+    default: WEAKENED  # TODO: doğrula — 128-bit key, like AES-128 under Grover; little used
+    reason: 128-bit key leaves about 64-bit security under Grover's algorithm
+    recommendation: Use AES-256-GCM.
+
+  - id: camellia-128
+    name: Camellia-128
+    aliases: [CAMELLIA_128_CBC, CAMELLIA_128_GCM, Camellia128, camellia128-cbc]
+    primitives: [block_cipher, aead]
+    default: WEAKENED  # TODO: doğrula — same reasoning as AES-128
+    reason: 128-bit key leaves about 64-bit security under Grover's algorithm
+    recommendation: Use AES-256 or Camellia-256.
+
+  - id: camellia-256
+    name: Camellia-256
+    aliases: [CAMELLIA_256_CBC, CAMELLIA_256_GCM, Camellia256, camellia256-cbc]
+    primitives: [block_cipher, aead]
+    default: PQ_SAFE  # TODO: doğrula — same reasoning as AES-256
+    reason: 256-bit key keeps about 128-bit security under Grover's algorithm
+
+  - id: aria-128
+    name: ARIA-128
+    aliases: [ARIA_128_GCM, ARIA_128_CBC, ARIA128]
+    primitives: [block_cipher, aead]
+    default: WEAKENED  # TODO: doğrula — same reasoning as AES-128
+    reason: 128-bit key leaves about 64-bit security under Grover's algorithm
+    recommendation: Use AES-256 or ARIA-256.
+
+  - id: aria-256
+    name: ARIA-256
+    aliases: [ARIA_256_GCM, ARIA_256_CBC, ARIA256]
+    primitives: [block_cipher, aead]
+    default: PQ_SAFE  # TODO: doğrula — same reasoning as AES-256
+    reason: 256-bit key keeps about 128-bit security under Grover's algorithm
 
   - id: null-cipher
     name: No encryption

@@ -254,3 +254,100 @@ def crypto_tree(tmp_path_factory: pytest.TempPathFactory, keys: dict[str, Any]) 
     (tree.outside / "outside.pem").write_bytes(cert_pem(make_cert(k["rsa1024"])))
     (tree.root / "linked").symlink_to(tree.outside, target_is_directory=True)
     return tree
+
+
+# --- local TLS servers ---------------------------------------------------------
+
+
+class LocalServer:
+    """A TCP server on 127.0.0.1 that hands every connection to ``handler``.
+
+    Runs in a background thread; tests never touch the internet.
+    """
+
+    def __init__(self, handler: Any) -> None:
+        import socket
+        import threading
+
+        self.handler = handler
+        self.sock = socket.socket()
+        self.sock.bind(("127.0.0.1", 0))
+        self.sock.listen(64)
+        self.sock.settimeout(0.2)
+        self.port: int = self.sock.getsockname()[1]
+        self.connections = 0
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._loop, daemon=True)
+        self._thread.start()
+
+    def _loop(self) -> None:
+        while not self._stop.is_set():
+            try:
+                conn, _ = self.sock.accept()
+            except OSError:
+                continue
+            self.connections += 1
+            conn.settimeout(2)
+            try:
+                self.handler(conn)
+            except Exception:  # noqa: S110 - a misbehaving client must not stop the server
+                pass
+            finally:
+                conn.close()
+
+    def close(self) -> None:
+        self._stop.set()
+        self._thread.join(timeout=2)
+        self.sock.close()
+
+
+def ssl_server_context(
+    tmp_dir: Path,
+    key: Any,
+    *,
+    minimum: Any = None,
+    maximum: Any = None,
+    ciphers: str | None = None,
+) -> Any:
+    """A server-side ``ssl.SSLContext`` with a self-signed certificate for ``key``."""
+    import ssl
+
+    cert_file = tmp_dir / "server.pem"
+    key_file = tmp_dir / "server.key"
+    cert_file.write_bytes(cert_pem(make_cert(key, cn="localhost")))
+    key_file.write_bytes(private_pem(key, serialization.PrivateFormat.PKCS8))
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(cert_file, key_file)
+    key_file.unlink()  # loaded into memory; do not leave it lying around
+    if minimum is not None:
+        context.minimum_version = minimum
+    if maximum is not None:
+        context.maximum_version = maximum
+    if ciphers is not None:
+        context.set_ciphers(ciphers)
+    return context
+
+
+def ssl_handler(context: Any) -> Any:
+    """Connection handler running a real TLS handshake with ``context``."""
+
+    def handle(conn: Any) -> None:
+        with context.wrap_socket(conn, server_side=True):
+            pass
+
+    return handle
+
+
+@pytest.fixture
+def local_server() -> Any:
+    """Factory: ``local_server(handler) -> LocalServer``; all are closed afterwards."""
+    servers: list[LocalServer] = []
+
+    def start(handler: Any) -> LocalServer:
+        server = LocalServer(handler)
+        servers.append(server)
+        return server
+
+    yield start
+    for server in servers:
+        server.close()
