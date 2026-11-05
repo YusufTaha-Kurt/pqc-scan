@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from enum import StrEnum
-from typing import Final
+from typing import Any, Final
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 SCHEMA_VERSION: Final = "1"
 
@@ -161,6 +161,14 @@ class MoscaScore(_Model):
     x: float = Field(ge=0, description="Years the data must stay confidential")
     y: float = Field(ge=0, description="Years needed to migrate")
     z: float = Field(ge=0, description="Years until a cryptographically relevant QC")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_derived_fields(cls, data: Any) -> Any:
+        """Accept serialised scores: ``margin`` and ``at_risk`` are recomputed."""
+        if isinstance(data, dict):
+            data = {k: v for k, v in data.items() if k not in ("margin", "at_risk")}
+        return data
 
     @computed_field  # type: ignore[prop-decorator]
     @property
