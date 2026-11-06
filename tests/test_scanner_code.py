@@ -131,6 +131,36 @@ def test_go_findings(
     }
 
 
+def test_csharp_findings(
+    findings: dict[str, set[tuple[int, str, int | None, str | None, RiskClass]]],
+) -> None:
+    assert findings["Sample.cs"] == {
+        (9, "RSA", 1024, None, B),
+        (10, "ECDSA", 384, "secp384r1", V),
+        (11, "ECDH", 256, "secp256r1", V),
+        (12, "MD5", None, None, B),
+        (13, "HMAC-SHA1", None, None, W),
+        (14, "TripleDES", None, None, B),
+        (15, "ECB", None, None, B),
+        (16, "TLSv1.1", None, None, B),
+        (18, "ML-KEM-768", None, None, S),  # .NET 10 ML-KEM; line 17 is a comment
+    }
+
+
+def test_rust_findings(
+    findings: dict[str, set[tuple[int, str, int | None, str | None, RiskClass]]],
+) -> None:
+    assert findings["sample.rs"] == {
+        (8, "RSA", 1024, None, B),
+        (9, "EC", 256, "secp256r1", V),
+        (10, "sha1", None, None, B),
+        (11, "des-ede3", None, None, B),
+        (12, "RSA", 3072, None, V),
+        (14, "ECDSA", 256, "secp256r1", V),
+        (15, "ML-KEM-768", None, None, S),  # line 13 is a comment despite the 'a lifetimes
+    }
+
+
 def test_broken_python_file_is_skipped(
     findings: dict[str, set[tuple[int, str, int | None, str | None, RiskClass]]],
 ) -> None:
@@ -177,6 +207,8 @@ def test_strip_comments_keeps_strings_and_lines() -> None:
     assert "multi" not in stripped and "/* kept */" in stripped
     assert stripped.count("\n") == source.count("\n")
     assert strip_comments('s = "esc\\"aped // still string"') == 's = "esc\\"aped // still string"'
+    # Rust: a lifetime is not a string, so the comment after it is removed.
+    assert "gone" not in strip_comments("fn f<'a>(x: &'a str) {} // gone", quotes='"')
 
 
 def test_pattern_hits_language_filter() -> None:
@@ -216,6 +248,12 @@ def test_pattern_hits_language_filter() -> None:
         (Transform.HMAC, "sha-256", [("HMAC-SHA256", Primitive.MAC)]),
         (Transform.TLS_VERSION, "SSLv3_method", [("SSLv3", Primitive.PROTOCOL)]),
         (Transform.TLS_VERSION, "SSL30", [("SSLv3", Primitive.PROTOCOL)]),
+        (Transform.TLS_VERSION, "Tls", [("TLSv1.0", Primitive.PROTOCOL)]),
+        (
+            Transform.OPENSSL_CIPHER,
+            "aes_128_ecb",
+            [("aes-128", Primitive.BLOCK_CIPHER), ("ECB", Primitive.BLOCK_CIPHER)],
+        ),
         (Transform.WEBCRYPTO, "RSA-OAEP", [("RSA-OAEP", Primitive.PUBLIC_KEY_ENCRYPTION)]),
         (Transform.WEBCRYPTO, "X25519", [("X25519", Primitive.KEY_EXCHANGE)]),
         (Transform.NONE, "DiffieHellman", [("DiffieHellman", Primitive.KEY_EXCHANGE)]),

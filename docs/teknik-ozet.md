@@ -90,7 +90,7 @@ verirse) yalnızca `algorithms.yaml` güncellenir; tarayıcılara dokunulmaz.
 - **Python:** kod ağaç yapısına (AST) çevrilir; `import ... as ...`
   takma adları çözülür, böylece `r.generate_private_key(65537, 1024)` gibi
   bir çağrının gerçekte RSA-1024 olduğu anlaşılır.
-- **Java/Kotlin, JS/TS, Go:** yorumlar silinir, desen kuralları aranır
+- **Java/Kotlin, JS/TS, Go, C#, Rust:** yorumlar silinir, desen kuralları aranır
   (ör. `Cipher.getInstance("AES/ECB/...")` → AES + ECB). Anahtar boyutu ayrı
   satırda verilse bile (`kpg.initialize(2048)`) yakındaki satırlarda aranır.
 - Bulguda **kodun kendisi değil**, sadece dosya, satır numarası ve API adı

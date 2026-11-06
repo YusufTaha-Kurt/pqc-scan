@@ -390,3 +390,142 @@ patterns:
     algorithm: ECDH
     primitive: key_exchange
     usage: key_exchange
+
+  # --- C# / .NET (System.Security.Cryptography) ------------------------------
+  - id: dotnet-rsa
+    languages: [csharp]
+    regex: '(?:new\s+RSACryptoServiceProvider|RSA\s*\.\s*Create)\s*\(\s*(?P<key_size>\d+)?'
+    api: System.Security.Cryptography.RSA
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+  - id: dotnet-dsa
+    languages: [csharp]
+    regex: '(?:new\s+DSACryptoServiceProvider|DSA\s*\.\s*Create)\s*\(\s*(?P<key_size>\d+)?'
+    api: System.Security.Cryptography.DSA
+    algorithm: DSA
+    primitive: signature
+    usage: key_generation
+  - id: dotnet-ecdsa
+    languages: [csharp]
+    regex: 'ECDsa(?:Cng)?\s*\.\s*Create\s*\(\s*(?:ECCurve\s*\.\s*NamedCurves\s*\.\s*(?P<curve>\w+))?'
+    api: System.Security.Cryptography.ECDsa
+    algorithm: ECDSA
+    primitive: signature
+    usage: key_generation
+  - id: dotnet-ecdh
+    languages: [csharp]
+    regex: 'ECDiffieHellman(?:Cng)?\s*\.\s*Create\s*\(\s*(?:ECCurve\s*\.\s*NamedCurves\s*\.\s*(?P<curve>\w+))?'
+    api: System.Security.Cryptography.ECDiffieHellman
+    algorithm: ECDH
+    primitive: key_exchange
+    usage: key_exchange
+  - id: dotnet-hash
+    languages: [csharp]
+    regex: '\b(?P<algorithm>MD5|SHA1)(?:\s*\.\s*(?:Create|HashData)\s*\(|CryptoServiceProvider\b|Managed\b)'
+    api: System.Security.Cryptography hash
+    primitive: hash
+    usage: hash
+  - id: dotnet-hmac
+    languages: [csharp]
+    regex: '\bHMAC(?P<algorithm>MD5|SHA1)\b'
+    api: System.Security.Cryptography HMAC
+    primitive: mac
+    usage: mac
+    transform: hmac
+  - id: dotnet-cipher
+    languages: [csharp]
+    regex: '\b(?P<algorithm>TripleDES|DES|RC2)(?:\s*\.\s*Create\s*\(|CryptoServiceProvider\b)'
+    api: System.Security.Cryptography cipher
+    primitive: block_cipher
+    usage: cipher
+  - id: dotnet-ecb
+    languages: [csharp]
+    regex: '\bCipherMode\s*\.\s*ECB\b'
+    api: CipherMode.ECB
+    algorithm: ECB
+    primitive: block_cipher
+    usage: cipher
+  - id: dotnet-tls-version
+    languages: [csharp]
+    regex: '\bSslProtocols\s*\.\s*(?P<algorithm>Tls11|Tls|Ssl3|Ssl2)\b'
+    api: SslProtocols
+    primitive: protocol
+    usage: tls_config
+    transform: tls_version
+  - id: dotnet-mlkem
+    languages: [csharp]
+    regex: '\bMLKemAlgorithm\s*\.\s*MLKem(?P<algorithm>512|768|1024)\b'
+    api: System.Security.Cryptography.MLKem
+    algorithm_prefix: ML-KEM-
+    primitive: kem
+    usage: key_exchange
+  - id: dotnet-mldsa
+    languages: [csharp]
+    regex: '\bMLDsaAlgorithm\s*\.\s*MLDsa(?P<algorithm>44|65|87)\b'
+    api: System.Security.Cryptography.MLDsa
+    algorithm_prefix: ML-DSA-
+    primitive: signature
+    usage: key_generation
+
+  # --- Rust (rsa, openssl, RustCrypto, ring, dalek) ----------------------------
+  - id: rust-rsa-crate
+    languages: [rust]
+    regex: '\bRsaPrivateKey\s*::\s*new\s*\([^,()]*,\s*(?P<key_size>\d+)'
+    api: rsa::RsaPrivateKey::new
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+  - id: rust-openssl-rsa
+    languages: [rust]
+    regex: '\bRsa\s*::\s*generate\s*\(\s*(?P<key_size>\d+)'
+    api: openssl::rsa::Rsa::generate
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+  - id: rust-openssl-ec
+    languages: [rust]
+    regex: 'EcGroup\s*::\s*from_curve_name\s*\(\s*Nid\s*::\s*(?P<curve>\w+)'
+    api: openssl::ec::EcGroup::from_curve_name
+    algorithm: EC
+    primitive: signature
+    usage: key_generation
+  - id: rust-openssl-digest
+    languages: [rust]
+    regex: '\bMessageDigest\s*::\s*(?P<algorithm>md5|sha1)\s*\('
+    api: openssl::hash::MessageDigest
+    primitive: hash
+    usage: hash
+  - id: rust-openssl-cipher
+    languages: [rust]
+    regex: '\bCipher\s*::\s*(?P<algorithm>des_ede3\w*|des_\w+|rc4|bf_\w+|aes_\d+_ecb)\s*\('
+    api: openssl::symm::Cipher
+    primitive: block_cipher
+    usage: cipher
+    transform: openssl_cipher
+  - {id: rust-md5, languages: [rust], regex: '\b(?:md5\s*::\s*compute|Md5\s*::\s*(?:new|digest))\b', api: md5, algorithm: MD5, primitive: hash, usage: hash}
+  - {id: rust-sha1, languages: [rust], regex: '\bSha1\s*::\s*(?:new|digest)\b', api: sha1::Sha1, algorithm: SHA1, primitive: hash, usage: hash}
+  - {id: rust-3des, languages: [rust], regex: '\bTdesEde3\b', api: des::TdesEde3, algorithm: 3DES, primitive: block_cipher, usage: cipher}
+  - id: rust-nist-ecdsa
+    languages: [rust]
+    regex: '\b(?P<curve>p(?:256|384|521))\s*::\s*ecdsa\b'
+    api: RustCrypto p256/p384/p521 ecdsa
+    algorithm: ECDSA
+    primitive: signature
+    usage: key_generation
+  - {id: rust-ed25519, languages: [rust], regex: '\bed25519_dalek\b', api: ed25519_dalek, algorithm: Ed25519, primitive: signature, usage: key_generation}
+  - {id: rust-x25519, languages: [rust], regex: '\bx25519_dalek\b|\bagreement\s*::\s*X25519\b', api: X25519, algorithm: X25519, primitive: key_exchange, usage: key_exchange}
+  - id: rust-ring-ecdsa
+    languages: [rust]
+    regex: '\bECDSA_(?P<curve>P(?:256|384))_SHA\d+_\w+'
+    api: ring::signature ECDSA
+    algorithm: ECDSA
+    primitive: signature
+    usage: signature
+  - id: rust-mlkem
+    languages: [rust]
+    regex: '\bMlKem(?P<algorithm>512|768|1024)\b'
+    api: ml_kem
+    algorithm_prefix: ML-KEM-
+    primitive: kem
+    usage: key_exchange

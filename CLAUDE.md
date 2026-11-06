@@ -26,7 +26,7 @@ Referans standartlar:
 | --- | --- | --- |
 | `tls` | `host:port` listesi | Sertifika anahtar tipi/boyutu, imza algoritması, TLS sürümleri, şifre takımları, anahtar değişim grupları (hibrit PQ grupları dahil, ör. X25519MLKEM768) |
 | `ssh` | `host:port` listesi | Host key algoritmaları, KEX algoritmaları (ör. `sntrup761x25519`, `mlkem768x25519` desteği var mı) |
-| `code` | Yerel klasör / repo | Kaynak koddaki kripto API kullanımı (Python, Java, JavaScript/TypeScript, Go) — RSA/ECDSA/ECDH/DH çağrıları, zayıf hash'ler, sabit kodlanmış anahtar boyutları |
+| `code` | Yerel klasör / repo | Kaynak koddaki kripto API kullanımı (Python, Java/Kotlin, JavaScript/TypeScript, Go, C#, Rust) — RSA/ECDSA/ECDH/DH çağrıları, zayıf hash'ler, sabit kodlanmış anahtar boyutları |
 | `files` | Yerel klasör | Repo içindeki PEM/DER sertifika ve anahtar dosyaları, `.pub` SSH anahtarları |
 
 Kapsam dışı (şimdilik): aktif saldırı, zafiyet istismarı, kimlik doğrulama gerektiren tarama, ikili (binary) analiz.
@@ -59,7 +59,7 @@ Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gi
 - CLI: `typer` · terminal çıktısı: `rich` · veri modelleri: `pydantic` v2
 - TLS: ek bağımlılık yok — kendi saf Python ClientHello sorgumuz (sürümler, şifre takımları, hibrit PQ grupları dahil anahtar değişim grupları) + sertifika için standart `ssl` modülü; sertifika/anahtar ayrıştırma: `cryptography` (karar: D-2, D-11 — sslyze kullanılmaz)
 - SSH: ek bağımlılık yok — ham soketle sunucunun KEXINIT mesajı okunur, oturum açılmaz (karar: D-5, paramiko kullanılmaz)
-- Kod tarama: ek bağımlılık yok — Python için AST, Java/Kotlin, JS/TS ve Go için desen kuralları; hepsi `rules/code_rules.yaml` içinde veri olarak (karar: D-12 — Semgrep kullanılmaz)
+- Kod tarama: ek bağımlılık yok — Python için AST, Java/Kotlin, JS/TS, Go, C# ve Rust için desen kuralları; hepsi `rules/code_rules.yaml` içinde veri olarak (karar: D-12 — Semgrep kullanılmaz)
 - Rapor: JSON, HTML (`jinja2`), CycloneDX CBOM (`cyclonedx-python-lib`)
 - Geliştirme: `pytest`, `ruff` (lint + format), `mypy` (strict), `pre-commit`
 - Paketleme: `pyproject.toml` (hatchling), `src/` düzeni
@@ -170,7 +170,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
 - [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
 - [x] `tls` tarayıcısı
-- [x] `code` tarayıcısı (Python AST + Java/Kotlin, JS/TS, Go desen kuralları)
+- [x] `code` tarayıcısı (Python AST + Java/Kotlin, JS/TS, Go, C#, Rust desen kuralları)
 - [x] Konsol ve JSON raporlayıcı
 - [x] README: kurulum, kullanım, demo GIF, etik uyarı
 

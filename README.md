@@ -26,7 +26,7 @@ exports it as a CycloneDX **CBOM**.
 | --- | --- | --- |
 | `tls` | `host[:port]` | Protocol versions, every accepted cipher suite, key-exchange groups including hybrid `X25519MLKEM768`, DHE size, certificate chain |
 | `ssh` | `host[:port]` | Key exchange (e.g. `mlkem768x25519-sha256`), host keys, ciphers, MACs |
-| `code` | directory | Crypto API usage in Python, Java/Kotlin, JavaScript/TypeScript and Go |
+| `code` | directory | Crypto API usage in Python, Java/Kotlin, JavaScript/TypeScript, Go, C# and Rust |
 | `files` | directory | PEM/DER certificates, CSRs, keys, OpenSSH keys, `authorized_keys`, `known_hosts` |
 
 No external tools are needed: TLS and SSH are probed with small pure-Python

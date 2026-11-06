@@ -41,6 +41,8 @@ class Language(StrEnum):
     JAVA = "java"
     JAVASCRIPT = "javascript"
     GO = "go"
+    CSHARP = "csharp"
+    RUST = "rust"
 
 
 class _Strict(BaseModel):
@@ -170,6 +172,7 @@ _CURVE_ALIASES: Final = {
     "nistp384": "secp384r1",
     "p521": "secp521r1",
     "nistp521": "secp521r1",
+    "x962prime256v1": "secp256r1",
 }
 
 
@@ -231,9 +234,9 @@ def _jca_cipher(value: str, default: Primitive) -> list[tuple[str, Primitive]]:
 
 def _openssl_cipher(value: str, default: Primitive) -> list[tuple[str, Primitive]]:
     """``aes-128-cbc`` → AES-128; ``*-ecb`` also reports ECB."""
-    pieces = value.lower().split("-")
+    pieces = value.lower().replace("_", "-").split("-")
     mode = pieces[-1] if len(pieces) > 1 and pieces[-1] in _CIPHER_MODES else ""
-    name = "-".join(pieces[:-1]) if mode else value
+    name = "-".join(pieces[:-1]) if mode else "-".join(pieces)
     found = [(name, Primitive.AEAD if mode in ("gcm", "ccm") else default)]
     if mode == "ecb":
         found.append(("ECB", Primitive.BLOCK_CIPHER))
@@ -259,8 +262,18 @@ def _jwt(value: str) -> list[tuple[str, Primitive]]:
 def _tls_version(value: str) -> list[tuple[str, Primitive]]:
     """``TLSv1_method`` / ``TLS10`` / ``SSL30`` → protocol names used by algorithms.yaml."""
     text = value.removesuffix("_method").replace("_", ".")
-    go_names = {"SSL30": "SSLv3", "TLS10": "TLSv1.0", "TLS11": "TLSv1.1"}
-    return [(go_names.get(text, text), Primitive.PROTOCOL)]
+    known = {
+        # Go crypto/tls constants
+        "SSL30": "SSLv3",
+        "TLS10": "TLSv1.0",
+        "TLS11": "TLSv1.1",
+        # .NET SslProtocols members
+        "Ssl2": "SSLv2",
+        "Ssl3": "SSLv3",
+        "Tls": "TLSv1.0",
+        "Tls11": "TLSv1.1",
+    }
+    return [(known.get(text, text), Primitive.PROTOCOL)]
 
 
 def _webcrypto(value: str, default: Primitive) -> list[tuple[str, Primitive]]:

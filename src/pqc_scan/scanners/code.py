@@ -5,7 +5,7 @@ Two engines, both driven by ``rules/code_rules.yaml`` (decision D-12):
 * **Python** — the file is parsed with :mod:`ast`; imports and aliases are
   resolved, so ``from cryptography.hazmat.primitives.asymmetric import rsa as
   r; r.generate_private_key(65537, 1024)`` is recognised with its key size.
-* **Java/Kotlin, JavaScript/TypeScript, Go** — comments are blanked out and
+* **Java/Kotlin, JavaScript/TypeScript, Go, C#, Rust** — comments are blanked out and
   regular-expression rules are matched; string literals give the algorithm
   name (``Cipher.getInstance("AES/ECB/PKCS5Padding")``).
 
@@ -58,6 +58,8 @@ LANGUAGES: Final[dict[str, Language]] = {
     ".mts": Language.JAVASCRIPT,
     ".cts": Language.JAVASCRIPT,
     ".go": Language.GO,
+    ".cs": Language.CSHARP,
+    ".rs": Language.RUST,
 }
 
 _FOLLOW_LINES: Final = 8  # how far key_size_after / curve_after look ahead
@@ -190,8 +192,12 @@ def python_hits(source: str, rules: CodeRules) -> list[Hit]:
 # --- C-like languages (patterns) ---------------------------------------------------
 
 
-def strip_comments(source: str) -> str:
-    """Blank out ``//`` and ``/* */`` comments, keeping strings and line numbers."""
+def strip_comments(source: str, quotes: str = "\"'`") -> str:
+    """Blank out ``//`` and ``/* */`` comments, keeping strings and line numbers.
+
+    ``quotes`` are the characters that open string literals (Rust uses ``'``
+    for lifetimes, so it passes only ``"``).
+    """
     out: list[str] = []
     i, n = 0, len(source)
     quote: str | None = None
@@ -207,7 +213,7 @@ def strip_comments(source: str) -> str:
                 quote = None
             i += 1
             continue
-        if char in "\"'`":
+        if char in quotes:
             quote = char
             out.append(char)
             i += 1
@@ -264,7 +270,7 @@ def _pattern_hits(text: str, rule: PatternRule) -> Iterator[Hit]:
 
 
 def pattern_hits(source: str, language: Language, rules: CodeRules) -> list[Hit]:
-    text = strip_comments(source)
+    text = strip_comments(source, '"' if language is Language.RUST else "\"'`")
     hits: list[Hit] = []
     for rule in rules.patterns:
         if language in rule.languages:
@@ -285,7 +291,7 @@ def source_hits(path: Path, source: str, rules: CodeRules) -> list[Hit]:
 
 
 class CodeScanner(Scanner):
-    """Report cryptography APIs used in Python, Java/Kotlin, JS/TS and Go code."""
+    """Report cryptography APIs used in Python, Java/Kotlin, JS/TS, Go, C# and Rust code."""
 
     name = "code"
 

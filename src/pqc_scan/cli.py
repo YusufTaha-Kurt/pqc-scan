@@ -358,7 +358,7 @@ def scan_code(
     mosca_file: MoscaFileOption = None,
 ) -> None:
     """Find cryptography API usage in source code (Python, Java/Kotlin,
-    JavaScript/TypeScript, Go). Reports file, line and API name only.
+    JavaScript/TypeScript, Go, C#, Rust). Reports file, line and API name only.
     """
     _check_format(fmt)
     targets = collect_targets(paths, targets_file)

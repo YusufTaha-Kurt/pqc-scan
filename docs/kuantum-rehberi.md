@@ -309,7 +309,7 @@ parola **hiç** gönderilmez.
   okunabilir; PKCS#8 biçiminde ise tip görünmez, bulgu `UNKNOWN` olur.
 - **Kod taraması:** Kaynak kodda `RSA.generate(2048)` gibi kripto
   kullanımlarını bulmak. Python için **AST** (kodu ağaç yapısına çevirip
-  inceleme), Java/Kotlin, JavaScript/TypeScript ve Go için **düzenli ifade**
+  inceleme), Java/Kotlin, JavaScript/TypeScript, Go, C# ve Rust için **düzenli ifade**
   (metin içinde desen arama) kuralları kullanılır. Ek bir araç gerekmez
   (karar D-12; Semgrep büyük ve Windows'ta çalışmadığı için seçilmedi).
 - **JWT:** Web uygulamalarında oturum bilgisini taşıyan imzalı küçük

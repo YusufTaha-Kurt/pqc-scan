@@ -296,7 +296,7 @@ Two built-in engines read the same data file, `rules/code_rules.yaml`:
   `ssl.PROTOCOL_TLSv1`, `AES.MODE_ECB`). Literal arguments give key sizes and
   curves; a non-literal size lowers confidence to `medium`; a non-literal
   algorithm name is not reported. Files that do not parse are skipped.
-- **Java/Kotlin, JavaScript/TypeScript, Go:** comments are blanked out (string
+- **Java/Kotlin, JavaScript/TypeScript, Go, C#, Rust:** comments are blanked out (string
   literals and line numbers kept) and regular-expression `patterns` are
   matched. Named groups give `algorithm`, `key_size`, `curve`;
   `key_size_after` / `curve_after` look ahead (next 8 lines, or to the end of
