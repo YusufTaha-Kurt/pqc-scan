@@ -82,6 +82,10 @@ pqc-scan/
 ├── .github/workflows/ci.yml
 ├── docs/
 │   ├── architecture.md      # sistem tanımı (İngilizce)
+│   ├── migration-guide.md   # geçiş rehberi (İngilizce)
+│   ├── learn/               # Grover, Shor, BB84 not defterleri
+│   ├── kullanim-kilavuzu.md # kullanım kılavuzu (Türkçe)
+│   ├── teknik-ozet.md       # teknik özet (Türkçe)
 │   └── kuantum-rehberi.md   # öğretici terimler belgesi (Türkçe)
 ├── src/pqc_scan/
 │   ├── __init__.py
@@ -168,20 +172,20 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] `tls` tarayıcısı
 - [x] `code` tarayıcısı (Python AST + Java/Kotlin, JS/TS, Go desen kuralları)
 - [x] Konsol ve JSON raporlayıcı
-- [ ] README: kurulum, kullanım, demo GIF, etik uyarı
+- [x] README: kurulum, kullanım, demo GIF, etik uyarı
 
 **v0.2**
-- [ ] `ssh` tarayıcısı
-- [ ] HTML rapor ve CycloneDX CBOM çıktısı
-- [ ] Mosca öncelik skoru
+- [x] `ssh` tarayıcısı
+- [x] HTML rapor ve CycloneDX CBOM çıktısı
+- [x] Mosca öncelik skoru
 - [x] JavaScript/TypeScript ve Go kod kuralları
-- [ ] PyPI yayını
+- [~] PyPI yayını (iş akışı hazır; ilk yayın için PyPI/GitHub kurulumu kullanıcıda)
 
 **v0.3 ve sonrası**
-- [ ] GitHub Action olarak kullanım (PR'larda kripto değişikliği uyarısı)
-- [ ] Docker imajı
-- [ ] "Öğren" bölümü: BB84 ve Shor/Grover açıklamalı not defterleri
-- [ ] Bulunan zayıflıklar için geçiş önerileri (hibrit TLS yapılandırma örnekleri)
+- [x] GitHub Action olarak kullanım (PR'larda kripto değişikliği uyarısı)
+- [x] Docker imajı
+- [x] "Öğren" bölümü: BB84 ve Shor/Grover açıklamalı not defterleri
+- [x] Bulunan zayıflıklar için geçiş önerileri (hibrit TLS yapılandırma örnekleri)
 
 ## 11. Claude Code için çalışma şekli
 

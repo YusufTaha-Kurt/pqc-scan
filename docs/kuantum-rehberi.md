@@ -308,8 +308,41 @@ parola **hiç** gönderilmez.
   biçiminde açık anahtar kısmı kilitsiz durduğu için tip ve boyut yine
   okunabilir; PKCS#8 biçiminde ise tip görünmez, bulgu `UNKNOWN` olur.
 - **Kod taraması:** Kaynak kodda `RSA.generate(2048)` gibi kripto
-  kullanımlarını bulmak. Bunun için **Semgrep** (kod içinde desen arayan araç)
-  ve Python için **AST** (kodu ağaç yapısına çevirip inceleme) kullanılır.
+  kullanımlarını bulmak. Python için **AST** (kodu ağaç yapısına çevirip
+  inceleme), Java/Kotlin, JavaScript/TypeScript ve Go için **düzenli ifade**
+  (metin içinde desen arama) kuralları kullanılır. Ek bir araç gerekmez
+  (karar D-12; Semgrep büyük ve Windows'ta çalışmadığı için seçilmedi).
+- **JWT:** Web uygulamalarında oturum bilgisini taşıyan imzalı küçük
+  "bilet". İçindeki `RS256`, `ES256`, `HS256` gibi adlar hangi imza
+  algoritmasının kullanıldığını söyler; `none` hiç imza olmadığı anlamına
+  gelir (`BROKEN`).
+- **ECB modu:** Blok şifreyi her bloğa ayrı ayrı uygulayan en basit kullanım
+  biçimi. Aynı veri aynı şifreli çıktıyı verdiği için desenler görünür;
+  bugün bile kırık sayılır (`BROKEN`).
+
+### 6.4 Raporlar ve kurum içi kullanım
+
+- **CBOM (CycloneDX 1.6):** Bulguların, başka güvenlik araçlarının da
+  okuyabildiği standart "kriptografik malzeme listesi" biçimi. Her algoritma,
+  sertifika ve anahtar dosyası ayrı bir kayıt olur.
+- **Diff (fark) raporu:** İki taramayı karşılaştırıp yalnızca **yeni**
+  bulguları gösterir. Bir değişiklik (pull request) zayıf kripto eklediyse
+  CI'da yakalanır; eski bulgular yüzünden her PR kırmızı olmaz.
+- **Mosca eşleme dosyası:** Her sistem için ayrı "verinin gizli kalma
+  süresi" (x) ve "geçiş süresi" (y) yazılan YAML dosyası. Böylece uzun
+  süre gizli kalması gereken sistemler önce görünür.
+
+### 6.5 SSH'ın kendi algoritmaları
+
+- **KEXINIT:** SSH sunucusunun bağlantının başında, şifreleme başlamadan
+  gönderdiği "desteklediklerim" listesi. Araç sadece bunu okur ve çıkar.
+- **mlkem768x25519-sha256 / sntrup761x25519-sha512:** SSH'ın hibrit
+  (klasik + kuantuma dayanıklı) anahtar değişim yöntemleri (`HYBRID`).
+- **Host key (sunucu anahtarı):** SSH sunucusunun kimliğini kanıtlayan
+  anahtar (ör. `ssh-ed25519`). `ssh-rsa` adı SHA-1 ile imza demektir ve
+  kırık sayılır.
+- **UMAC:** SSH'ta kullanılan hızlı bir mesaj doğrulama yöntemi; 64 bitlik
+  sürümü zayıflatılmış (`WEAKENED`), 128 bitlik sürümü güvenli sayılır.
 
 ---
 
@@ -391,7 +424,9 @@ yazılı izin aldığın** sistemleri tara.
 | CSR | Sertifika imzalama isteği | 6.3 |
 | DH / ECDH | Klasik anahtar değişim yöntemleri | 1.3 |
 | DHE parametre boyutu | Eski tip DH anahtar değişimindeki sayının bit uzunluğu | 6.1 |
+| Diff raporu | İki tarama arasındaki yeni/çözülen bulgular | 6.4 |
 | ECDSA / Ed25519 | Eliptik eğri tabanlı imzalar | 1.3 |
+| ECB modu | Desenleri gizleyemeyen basit blok şifre kullanımı | 6.3 |
 | Export / anon şifre takımı | Bilerek zayıflatılmış / kimlik doğrulamasız TLS takımları | 6.1 |
 | Grover | Kaba kuvveti hızlandıran kuantum algoritması | 3.2 |
 | Grup (TLS) | Anahtar değişiminde kullanılan yapı | 6.1 |
@@ -401,8 +436,9 @@ yazılı izin aldığın** sistemleri tara.
 | HNDL | "Şimdi topla, sonra çöz" saldırısı | 3.3 |
 | HRR (HelloRetryRequest) | TLS 1.3'te sunucunun "başka grupla dene" cevabı | 6.1 |
 | JSON şeması | JSON dosyasının biçim kuralları | 7.5 |
+| JWT | İmzalı oturum "bileti" | 6.3 |
 | KEM | Anahtar kapsülleme mekanizması | 4 |
-| KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2 |
+| KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2, 6.5 |
 | Kafes (lattice) | ML-KEM ve ML-DSA'nın dayandığı zor problem | 4 |
 | Kendinden imzalı sertifika | Kendi anahtarıyla imzalanmış sertifika | 6.3 |
 | Kübit | Kuantum bilgisayarın temel birimi | 2 |

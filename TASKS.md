@@ -15,60 +15,29 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-05
+**Son güncelleme:** 2026-11-06
 
-**Biten:** Faz 0, 1.1 iskelet, 1.2 modeller + sınıflandırma, 1.3 motor,
-1.4 `files`, 1.5 konsol + JSON raporlayıcı, 1.6 CLI, **1.7 `tls` tarayıcısı**
-(D-11: sslyze yok, saf Python prob). 242 test (Python 3.11 ve 3.13), kapsama
-%96. Çalışan komutlar: `pqc-scan scan files`, `pqc-scan scan tls`,
-`pqc-scan report`.
+**Yol haritasının tamamı (v0.1–v0.3) bitti.** Sürüm 0.3.0. 341 test
+(Python 3.11 ve 3.13), kapsama %97. Tüm komutlar çalışıyor:
+`scan files|code|tls|ssh|all`, `report`, `diff`; biçimler
+`console|json|html|cbom`. GitHub Action, Docker imajı, yayın iş akışı,
+öğren not defterleri ve Türkçe kullanım kılavuzu + teknik özet hazır.
 
-**Sıradaki görev: 1.8 `code` tarayıcısı (T-171 … T-174).**
+**Kullanıcıyı bekleyenler:**
+1. Branch `claude/nice-gates-b8wil6`'yı PR ile `master`'a birleştirmek.
+2. İlk yayın: PyPI trusted publisher + GitHub `pypi` ortamı, sonra
+   `git tag v0.3.0 && git push origin v0.3.0`
+   (`docs/kullanim-kilavuzu.md` §11).
+3. `# TODO: doğrula` notlu sınıflandırmaların onayı
+   (`docs/teknik-ozet.md` §8'de liste).
 
-### `code` tarayıcısı için plan
-
-- **Dosya:** `src/pqc_scan/scanners/code.py` → `class CodeScanner(Scanner)`,
-  `name = "code"`. Hedef bir klasör/dosya; gezinti `files.iter_files` ile
-  (aynı exclude / boyut / symlink kuralları). Dil uzantıdan: `.py`, `.java`
-  (JS/TS ve Go v0.2'de).
-- **API → algoritma eşlemesi veri olarak:** `rules/code/python.yaml` ve
-  `rules/code/java.yaml`. Her kayıt: tam nitelikli çağrı adı
-  (`cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key`),
-  algoritma adı, primitive, anahtar boyutu argümanı (ad + konum) veya
-  algoritmayı veren string argüman (Java `getInstance("SHA1withRSA")`).
-  Sınıflandırma yine yalnızca `algorithms.yaml`'da.
-- **Python — AST (her zaman çalışır, Semgrep gerekmez):** `import` ve
-  `from … import … as …` takma adlarını çözen küçük bir ad tablosu;
-  `ast.Call` düğümlerinde tam adı bulup eşlemeye bak. Sabit argümanlar
-  (ör. `key_size=1024`, `ec.SECP256R1()`, `hashlib.new("md5")`) değere
-  çevrilir; sabit değilse `key_size=None`, `confidence=medium`. Kapsam:
-  `cryptography` (rsa/ec/dsa/dh/ed25519/x25519 üretimi, `hashes.MD5/SHA1`,
-  `Cipher(algorithms.TripleDES…)`, `modes.ECB`), `hashlib`, `pycryptodome`
-  (`RSA.generate`, `DES/DES3/ARC4.new`, `AES.MODE_ECB`), `ssl`
-  (`PROTOCOL_TLSv1`, `TLSVersion.TLSv1`), `paramiko` (`RSAKey.generate`).
-- **Java — Semgrep (opsiyonel `[code]` extra):** `rules/semgrep/java.yaml`
-  (JCA: `KeyPairGenerator.getInstance(...)` + `initialize(N)`,
-  `Signature`, `Cipher`, `MessageDigest`, `KeyAgreement`). Kural
-  `metadata`'sı algoritma/primitive taşır; `semgrep --json --config … PATH`
-  alt süreç olarak, zaman aşımıyla çalışır; çıktı → `Observation`.
-  Semgrep kurulu değilse: Python için AST çalışır, Java dosyaları atlanır ve
-  CLI stderr'e bir kez "semgrep not installed; Java files skipped" yazar
-  (hata değil, çıkış kodu değişmez). Semgrep varsa Python için de Semgrep
-  kuralları **değil** AST kullanılır (tek doğruluk kaynağı, çift bulgu yok).
-- **Gözlemler:** `code.key_generation`, `code.signature`, `code.cipher`,
-  `code.hash`, `code.tls_config`, `code.key_exchange`. Asset:
-  `file:///abs/path`, kind `source_file`, location göreli yol.
-  `Evidence.line` = satır, `detail` = API adı (ör.
-  `cryptography…rsa.generate_private_key`). **Satırın kendisi asla yazılmaz**
-  (CLAUDE.md §7).
-- **Testler (T-174):** `tests/fixtures/code/python/*.py` ve
-  `tests/fixtures/code/java/*.java` (yalnızca örnek kod, gizli bilgi yok):
-  takma adlı importlar, sabit/sabit olmayan argümanlar, aynı satırda iki
-  çağrı, sözdizimi hatalı dosya (atlanır). Semgrep testleri
-  `pytest.importorskip`/`shutil.which("semgrep")` ile atlanabilir; CI'da
-  Semgrep kurulu bir iş daha eklenebilir.
-- **CLI:** `scan code PATH… [--exclude] [--max-file-size]`; ardından
-  `scan all --targets FILE --path PATH` (tls + files + code tek raporda).
+**Sonraki fikirler (yol haritasında yok, isteğe bağlı):**
+- Gerçek OpenSSL ≥ 3.5 sunucusuyla hibrit grup uçtan uca testi (CI'da
+  `openssl s_server` ile).
+- Kod tarayıcısına C#/.NET ve Rust kuralları.
+- ML-DSA sertifikaları yaygınlaşınca CBOM'a sertifika ayrıntıları
+  (subject/issuer, geçerlilik tarihleri).
+- SARIF çıktısı (GitHub "code scanning" ekranında göstermek için).
 
 ### Bilinen notlar
 
@@ -125,6 +94,12 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
   `tls_probe.py` (saf Python ClientHello probu, boş key_share ile HRR
   tekniği), `tls.py` + `scan tls`; sahte ve gerçek yerel sunucularla testler.
   Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-06** — Kalan tüm fazlar: D-12 (Semgrep yok) ile `code`
+  tarayıcısı (Python AST, Java/Kotlin, JS/TS, Go); `ssh` tarayıcısı;
+  `scan all`; HTML ve CycloneDX 1.6 CBOM; öneriler; `diff`; Mosca eşleme
+  dosyası; GitHub Action; Docker; yayın iş akışı; öğren not defterleri;
+  README, CHANGELOG, örnek raporlar, geçiş rehberi, Türkçe kullanım
+  kılavuzu ve teknik özet. Sürüm 0.3.0. Branch: `claude/nice-gates-b8wil6`.
 
 ---
 
@@ -198,8 +173,8 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 
 - [x] **T-001** Sistem tanımı taslağı (`docs/architecture.md`)
 - [x] **T-002** Açık kararları (D-1 … D-10) netleştir, CLAUDE.md'yi güncelle
-- [~] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — süreç boyunca büyür
-- [~] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
+- [x] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — yeni kavramlarla büyümeye devam eder
+- [x] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
   primitive ve sınıf (TLS cipher suite'leri, TLS grupları, SSH KEX/host key,
   X.509 imza OID'leri, kod API'leri) — tablo olarak çıkar
 
@@ -265,9 +240,8 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.6 CLI (`feat/cli`)
 
-- [~] **T-151** `scan files`, `scan code`, `scan tls`, `scan all`, `report`
+- [x] **T-151** `scan files`, `scan code`, `scan tls`, `scan ssh`, `scan all`, `report`, `diff`
   komutları; `--targets` dosyası; ortak seçenekler (D-8)
-  (`scan files`, `scan tls` ve `report` hazır; `code`/`all` kendi tarayıcılarıyla gelir)
 - [x] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
 - [x] **T-153** `--help` içinde yetkilendirme uyarısı
 - [x] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
@@ -288,40 +262,47 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.8 `code` tarayıcısı (`feat/code-scanner`)
 
-- [ ] **T-171** Semgrep kuralları — Python (`cryptography`, `pycryptodome`,
-  `hashlib`, `ssl`, `paramiko`)
-- [ ] **T-172** Semgrep kuralları — Java (JCA: `KeyPairGenerator`, `Signature`,
-  `Cipher`, `MessageDigest`, `KeyAgreement`)
-- [ ] **T-173** Kural metadata'sı → `Observation` dönüşümü; Semgrep yoksa
-  Python AST yedeği (D-6)
-- [ ] **T-174** `tests/fixtures/code/{python,java}` örnekleri ve testleri
+D-12 ile Semgrep yerine yerleşik motorlar kullanıldı.
+
+- [x] **T-171** Python kuralları (`cryptography`, `pycryptodome`, `hashlib`,
+  `hmac`, `ssl`, `paramiko`, `PyJWT`) — AST ile
+- [x] **T-172** Java/Kotlin kuralları (JCA: `KeyPairGenerator`, `KeyGenerator`,
+  `Signature`, `Cipher`, `MessageDigest`, `Mac`, `KeyAgreement`, `SSLContext`)
+- [x] **T-173** Kural verisi (`rules/code_rules.yaml`) → `Observation`
+  dönüşümü; dönüştürücüler (JCA, OpenSSL, JOSE, TLS sürümü, WebCrypto)
+- [x] **T-174** `tests/fixtures/code/` örnekleri ve testleri
 
 ### 1.9 README ve yayın hazırlığı (`docs/readme`)
 
-- [ ] **T-181** README: kurulum, kullanım, örnek çıktı, risk sınıfları, etik uyarı
-- [ ] **T-182** Demo GIF (ör. `vhs` ile) ve `examples/` altında örnek raporlar
-- [ ] **T-183** `v0.1.0` etiketi, CHANGELOG
+- [x] **T-181** README: kurulum, kullanım, örnek çıktı, risk sınıfları, etik uyarı
+- [x] **T-182** Demo görseli (`docs/demo.svg`, GIF yerine rich ile üretilen
+  SVG) ve `examples/` altında örnek raporlar
+- [x] **T-183** CHANGELOG; sürüm 0.3.0 (etiket kullanıcı tarafından
+  `master`'a birleştirdikten sonra atılacak)
 
 ## Faz 2 — v0.2
 
-- [ ] **T-201** `ssh` tarayıcısı: banner + KEXINIT ham ayrıştırıcı (D-5),
+- [x] **T-201** `ssh` tarayıcısı: banner + KEXINIT ham ayrıştırıcı (D-5),
   sahte sunucu ile testler
-- [ ] **T-202** HTML raporu (`templates/report.html.j2`, tek dosya, harici
+- [x] **T-202** HTML raporu (`templates/report.html.j2`, tek dosya, harici
   kaynak yok)
-- [ ] **T-203** CycloneDX 1.6 CBOM çıktısı (önce kütüphane desteğini doğrula)
-- [~] **T-204** `mosca.py` + `--mosca-x/-y/-z`; varlık bazlı eşleme dosyası
-  (`mosca.py` ve motordaki hesaplama hazır; CLI bayrakları ve eşleme dosyası kaldı)
-- [ ] **T-205** JavaScript/TypeScript Semgrep kuralları (Node `crypto`,
-  WebCrypto, `node-forge`, `jsonwebtoken`)
-- [ ] **T-206** Go Semgrep kuralları (`crypto/rsa`, `crypto/ecdsa`,
-  `crypto/tls` yapılandırması)
-- [ ] **T-207** PyPI yayını (trusted publishing ile GitHub Actions)
+- [x] **T-203** CycloneDX 1.6 CBOM çıktısı (`cyclonedx-python-lib` 11,
+  resmi şemaya karşı doğrulanıyor)
+- [x] **T-204** `mosca.py` + `--mosca-x/-y/-z` + `--mosca-file` (varlık bazlı)
+- [x] **T-205** JavaScript/TypeScript kuralları (Node `crypto`, WebCrypto,
+  `node-forge`, JWT)
+- [x] **T-206** Go kuralları (`crypto/rsa`, `crypto/ecdsa`, `crypto/ecdh`,
+  `crypto/mlkem`, `crypto/tls` yapılandırması)
+- [~] **T-207** PyPI yayını: `release.yml` hazır (trusted publishing); ilk
+  yayın için PyPI ve GitHub ortam kurulumu kullanıcıda (bkz.
+  `docs/kullanim-kilavuzu.md` §11)
 
 ## Faz 3 — v0.3 ve sonrası
 
-- [ ] **T-301** GitHub Action (PR'da yeni zayıf kripto kullanımı uyarısı;
-  önceki `ScanResult` ile karşılaştırma için `Finding.id` kullanılır)
-- [ ] **T-302** Docker imajı
-- [ ] **T-303** "Öğren" bölümü: BB84, Shor, Grover not defterleri
-- [ ] **T-304** Bulgu bazlı geçiş önerileri (hibrit TLS yapılandırma
-  örnekleri: nginx, OpenSSL 3.5+, Go 1.24+)
+- [x] **T-301** GitHub Action (`action.yml`): PR'da yalnızca yeni bulgular
+  (`pqc-scan diff`, satır numarası/yol bağımsız eşleme)
+- [x] **T-302** Docker imajı (root olmayan kullanıcı; CI'da derleniyor)
+- [x] **T-303** "Öğren" bölümü: `docs/learn/` BB84, Shor, Grover not
+  defterleri (saf Python, testlerde çalıştırılıyor)
+- [x] **T-304** Bulgu bazlı öneriler (konsol + HTML) ve
+  `docs/migration-guide.md` (nginx, Apache, OpenSSH, Go örnekleri)

@@ -1,0 +1,190 @@
+pqc-scan 0.3.0 · scanners: files, code · 45 findings on 6 assets · 0.0s
+
+Summary                                                                         
+ Risk       ┃ Findings ┃ Meaning                                                
+━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │       20 │ Weak today, even without a quantum computer            
+ VULNERABLE │       14 │ Broken by a quantum computer (Shor)                    
+ WEAKENED   │        3 │ Security margin reduced by a quantum computer (Grover) 
+ UNKNOWN    │        2 │ Not in the rule set; review manually                   
+ HYBRID     │        1 │ Classical + post-quantum combined                      
+ PQ_SAFE    │        5 │ Considered quantum-resistant                           
+
+Findings                                                                                                      
+ Risk       ┃ Location             ┃ Usage                           ┃ Algorithm       ┃ Reason               
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ certs/legacy-api.pem │ file.certificate.public_key     │ RSA 1024-bit    │ RSA key shorter than 
+            │ :1                   │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ certs/legacy-api.pem │ file.certificate.signature      │ RSA 1024-bit    │ RSA key shorter than 
+            │ :1                   │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ src/Legacy.java:16   │ code.cipher                     │ DESede          │ 64-bit block size    
+            │                      │                                 │                 │ (Sweet32);           
+            │                      │                                 │                 │ disallowed by NIST   
+            │                      │                                 │                 │ since 2024           
+ BROKEN     │ src/Legacy.java:14   │ code.cipher                     │ ECB             │ ECB mode leaks       
+            │                      │                                 │                 │ patterns in the      
+            │                      │                                 │                 │ plaintext            
+ BROKEN     │ src/Legacy.java:16   │ code.cipher                     │ ECB             │ ECB mode leaks       
+            │                      │                                 │                 │ patterns in the      
+            │                      │                                 │                 │ plaintext            
+ BROKEN     │ src/Legacy.java:17   │ code.hash                       │ MD5             │ MD5 collisions are   
+            │                      │                                 │                 │ practical            
+ BROKEN     │ src/Legacy.java:9    │ code.key_generation             │ RSA 1024-bit    │ RSA key shorter than 
+            │                      │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ src/Legacy.java:13   │ code.signature                  │ SHA1            │ SHA-1 collisions are 
+            │                      │                                 │                 │ practical            
+            │                      │                                 │                 │ (SHAttered, 2017)    
+ BROKEN     │ src/Legacy.java:23   │ code.tls_config                 │ TLSv1.1         │ TLS 1.1 is           
+            │                      │                                 │                 │ deprecated (RFC      
+            │                      │                                 │                 │ 8996)                
+ BROKEN     │ src/crypto_utils.py: │ code.cipher                     │ 3DES            │ 64-bit block size    
+            │ 33                   │                                 │                 │ (Sweet32);           
+            │                      │                                 │                 │ disallowed by NIST   
+            │                      │                                 │                 │ since 2024           
+ BROKEN     │ src/crypto_utils.py: │ code.cipher                     │ ECB             │ ECB mode leaks       
+            │ 23                   │                                 │                 │ patterns in the      
+            │                      │                                 │                 │ plaintext            
+ BROKEN     │ src/crypto_utils.py: │ code.cipher                     │ ECB             │ ECB mode leaks       
+            │ 32                   │                                 │                 │ patterns in the      
+            │                      │                                 │                 │ plaintext            
+ BROKEN     │ src/crypto_utils.py: │ code.hash                       │ MD5             │ MD5 collisions are   
+            │ 24                   │                                 │                 │ practical            
+ BROKEN     │ src/crypto_utils.py: │ code.hash                       │ SHA1            │ SHA-1 collisions are 
+            │ 22                   │                                 │                 │ practical            
+            │                      │                                 │                 │ (SHAttered, 2017)    
+ BROKEN     │ src/crypto_utils.py: │ code.key_generation             │ RSA 1024-bit    │ RSA key shorter than 
+            │ 18                   │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ src/crypto_utils.py: │ code.tls_config                 │ TLSv1.0         │ TLS 1.0 is           
+            │ 29                   │                                 │                 │ deprecated (RFC      
+            │                      │                                 │                 │ 8996)                
+ BROKEN     │ src/crypto_utils.py: │ code.tls_config                 │ TLSv1.1         │ TLS 1.1 is           
+            │ 30                   │                                 │                 │ deprecated (RFC      
+            │                      │                                 │                 │ 8996)                
+ BROKEN     │ src/server.go:16     │ code.hash                       │ MD5             │ MD5 collisions are   
+            │                      │                                 │                 │ practical            
+ BROKEN     │ src/server.go:14     │ code.key_generation             │ RSA 1024-bit    │ RSA key shorter than 
+            │                      │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ src/server.go:19     │ code.tls_config                 │ TLSv1.0         │ TLS 1.0 is           
+            │                      │                                 │                 │ deprecated (RFC      
+            │                      │                                 │                 │ 8996)                
+ VULNERABLE │ certs/web.pem:1      │ file.certificate.public_key     │ EC secp256r1    │ Elliptic-curve       
+            │                      │                                 │                 │ cryptography is      
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ certs/web.pem:1      │ file.certificate.signature      │ ECDSA secp256r1 │ ECDSA is broken by   
+            │                      │                                 │                 │ Shor's algorithm     
+ VULNERABLE │ deploy/id_ed25519.pu │ file.ssh_public_key             │ Ed25519         │ Ed25519 is broken by 
+            │ b:1                  │                                 │                 │ Shor's algorithm     
+ VULNERABLE │ src/Legacy.java:18   │ code.key_exchange               │ ECDH            │ Elliptic-curve       
+            │                      │                                 │                 │ Diffie-Hellman is    
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/Legacy.java:11   │ code.key_generation             │ EC              │ Elliptic-curve       
+            │                      │                                 │                 │ cryptography is      
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/Legacy.java:12   │ code.key_generation             │ EC secp256r1    │ Elliptic-curve       
+            │                      │                                 │                 │ cryptography is      
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/Legacy.java:13   │ code.signature                  │ RSA             │ RSA is broken by     
+            │                      │                                 │                 │ Shor's algorithm at  
+            │                      │                                 │                 │ every key size       
+ VULNERABLE │ src/crypto_utils.py: │ code.key_generation             │ EC secp384r1    │ Elliptic-curve       
+            │ 20                   │                                 │                 │ cryptography is      
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/crypto_utils.py: │ code.key_generation             │ Ed25519         │ Ed25519 is broken by 
+            │ 21                   │                                 │                 │ Shor's algorithm     
+ VULNERABLE │ src/crypto_utils.py: │ code.key_generation             │ RSA             │ RSA is broken by     
+            │ 19                   │                                 │                 │ Shor's algorithm at  
+            │                      │                                 │                 │ every key size       
+ VULNERABLE │ src/crypto_utils.py: │ code.key_generation             │ RSA 2048-bit    │ RSA is broken by     
+            │ 31                   │                                 │                 │ Shor's algorithm at  
+            │                      │                                 │                 │ every key size       
+ VULNERABLE │ src/server.go:20     │ code.key_exchange               │ ECDH secp256r1  │ Elliptic-curve       
+            │                      │                                 │                 │ Diffie-Hellman is    
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/server.go:17     │ code.key_exchange               │ X25519          │ X25519 on its own is 
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/server.go:15     │ code.key_generation             │ ECDSA secp256r1 │ ECDSA is broken by   
+            │                      │                                 │                 │ Shor's algorithm     
+ WEAKENED   │ src/Legacy.java:21   │ code.key_generation             │ AES 128-bit     │ AES with a key       
+            │                      │                                 │                 │ shorter than 256     
+            │                      │                                 │                 │ bits loses half its  
+            │                      │                                 │                 │ security to Grover's 
+            │                      │                                 │                 │ algorithm            
+ WEAKENED   │ src/crypto_utils.py: │ code.hash                       │ sha224          │ 224-bit output       
+            │ 25                   │                                 │                 │ leaves a thin margin 
+            │                      │                                 │                 │ against quantum      
+            │                      │                                 │                 │ search               
+ WEAKENED   │ src/crypto_utils.py: │ code.mac                        │ HMAC-SHA1       │ HMAC-SHA1 is not     
+            │ 27                   │                                 │                 │ affected by SHA-1    
+            │                      │                                 │                 │ collisions but has a 
+            │                      │                                 │                 │ small security       
+            │                      │                                 │                 │ margin               
+ UNKNOWN    │ src/Legacy.java:14   │ code.cipher                     │ AES             │ AES key size could   
+            │                      │                                 │                 │ not be determined    
+ UNKNOWN    │ src/Legacy.java:15   │ code.cipher                     │ AES             │ AES key size could   
+            │                      │                                 │                 │ not be determined    
+ HYBRID     │ src/server.go:20     │ code.key_exchange               │ X25519MLKEM768  │ Hybrid of X25519 and 
+            │                      │                                 │                 │ ML-KEM-768; secure   
+            │                      │                                 │                 │ while either         
+            │                      │                                 │                 │ component holds      
+ PQ_SAFE    │ certs/legacy-api.pem │ file.certificate.signature_hash │ sha256          │ SHA-256 keeps about  
+            │ :1                   │                                 │                 │ 128-bit preimage     
+            │                      │                                 │                 │ security under       
+            │                      │                                 │                 │ Grover's algorithm   
+ PQ_SAFE    │ certs/web.pem:1      │ file.certificate.signature_hash │ sha256          │ SHA-256 keeps about  
+            │                      │                                 │                 │ 128-bit preimage     
+            │                      │                                 │                 │ security under       
+            │                      │                                 │                 │ Grover's algorithm   
+ PQ_SAFE    │ src/Legacy.java:25   │ code.key_generation             │ ML-KEM-768      │ ML-KEM is a NIST     
+            │                      │                                 │                 │ post-quantum KEM     
+            │                      │                                 │                 │ standard (FIPS 203)  
+ PQ_SAFE    │ src/crypto_utils.py: │ code.kdf                        │ HMAC-SHA256     │ SHA-256 keeps about  
+            │ 28                   │                                 │                 │ 128-bit preimage     
+            │                      │                                 │                 │ security under       
+            │                      │                                 │                 │ Grover's algorithm   
+ PQ_SAFE    │ src/crypto_utils.py: │ code.signature                  │ HMAC-SHA256     │ SHA-256 keeps about  
+            │ 34                   │                                 │                 │ 128-bit preimage     
+            │                      │                                 │                 │ security under       
+            │                      │                                 │                 │ Grover's algorithm   
+
+Recommendations                                                                                               
+ Risk       ┃ What to do                                       ┃ Applies to                                   
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ Migrate signatures to ML-DSA (FIPS 204) and key  │ RSA, RSA 1024-bit, RSA 2048-bit (8 findings) 
+            │ transport to ML-KEM (FIPS 203).                  │                                              
+ BROKEN     │ Disable it; use TLS 1.3.                         │ TLSv1.0, TLSv1.1 (4 findings)                
+ BROKEN     │ Use an AEAD mode such as AES-256-GCM.            │ ECB (4 findings)                             
+ BROKEN     │ Use SHA-384 or SHA-512 (HMAC-SHA-256 or better   │ HMAC-SHA1, SHA1 (3 findings)                 
+            │ for MACs).                                       │                                              
+ BROKEN     │ Use SHA-384, SHA-512 or SHA3.                    │ MD5 (3 findings)                             
+ BROKEN     │ Use AES-256-GCM.                                 │ 3DES, DESede (2 findings)                    
+ VULNERABLE │ Migrate signatures to ML-DSA and key exchange to │ EC, EC secp256r1, EC secp384r1 (4 findings)  
+            │ ML-KEM (hybrid during transition).               │                                              
+ VULNERABLE │ Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS    │ ECDSA secp256r1 (2 findings)                 
+            │ 205).                                            │                                              
+ VULNERABLE │ Plan migration to ML-DSA (FIPS 204) or SLH-DSA   │ Ed25519 (2 findings)                         
+            │ (FIPS 205).                                      │                                              
+ VULNERABLE │ Use hybrid X25519MLKEM768 or SecP256r1MLKEM768   │ ECDH, ECDH secp256r1 (2 findings)            
+            │ (TLS 1.3).                                       │                                              
+ VULNERABLE │ Use hybrid X25519MLKEM768 (TLS) or               │ X25519 (1 finding)                           
+            │ mlkem768x25519-sha256 (SSH).                     │                                              
+ WEAKENED   │ Use AES-256.                                     │ AES, AES 128-bit (3 findings)                
+ WEAKENED   │ Use SHA-384 or SHA-512.                          │ sha224 (1 finding)                           
+
+Worst risk: BROKEN

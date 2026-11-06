@@ -441,8 +441,29 @@ own or have written permission to test.
 | `html_report`  | Single self-contained file rendered from `templates/report.html.j2` (no external assets) |
 | `cbom`         | CycloneDX **1.6** BOM: each distinct algorithm → `cryptographic-asset` component (`assetType: algorithm`, `algorithmProperties`), each certificate → `assetType: certificate`; assets link to algorithms through `dependencies` |
 
-`html_report` and `cbom` are v0.2 items; until then `reporters.render()` raises
-`UnsupportedFormatError` for them (the CLI maps it to exit code 2).
+`html` and `cbom` need the optional `[report]` extra (Jinja2,
+cyclonedx-python-lib). Without it `reporters.render()` raises
+`UnsupportedFormatError`, which the CLI reports before scanning (exit code 2).
+The HTML page is autoescaped and loads nothing external; the CBOM is
+validated against the official CycloneDX 1.6 schema in the tests. Console and
+HTML reports end with a *Recommendations* section built from the rule set's
+`recommendation` texts (`reporters/common.py`).
+
+`pqc-scan diff BASE.json HEAD.json` (`diff.py`) lists new and resolved
+findings. Findings are matched on scanner, location, usage and algorithm
+(name, primitive, size, curve) — not line numbers or absolute paths — so
+moved code or another checkout directory produce no noise.
+
+## 9b. Distribution
+
+- `action.yml` + `scripts/github-action.sh`: composite GitHub Action. Inputs
+  reach the script only through environment variables. On pull requests with
+  `only-new: true` it scans the base branch in a temporary `git worktree` and
+  fails only on new findings (`pqc-scan diff`).
+- `Dockerfile`: multi-stage build, `[report]` extras, non-root user,
+  `ENTRYPOINT ["pqc-scan"]`, working directory `/scan`.
+- `.github/workflows/release.yml`: on `v*` tags — tests, tag/version check,
+  PyPI trusted publishing, image push to `ghcr.io`.
 
 Console and JSON output are covered by snapshot tests (`tests/snapshots/`);
 run `PQC_UPDATE_SNAPSHOTS=1 pytest` after an intentional change and review
