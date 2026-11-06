@@ -293,6 +293,34 @@
       "type": "cryptographic-asset"
     },
     {
+      "bom-ref": "crypto/ecdsa-signature-384-secp384r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp384r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "384",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECDSA secp384r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "ECDSA is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
       "bom-ref": "crypto/ed25519-signature",
       "cryptoProperties": {
         "algorithmProperties": {
@@ -494,6 +522,33 @@
       "type": "cryptographic-asset"
     },
     {
+      "bom-ref": "crypto/rsa-signature-3072",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "3072",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA-3072",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "RSA is broken by Shor's algorithm at every key size"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
       "bom-ref": "crypto/sha1-hash",
       "cryptoProperties": {
         "algorithmProperties": {
@@ -624,7 +679,11 @@
         "assetType": "certificate",
         "certificateProperties": {
           "certificateFormat": "X.509",
+          "issuerName": "CN=legacy-api.example",
+          "notValidAfter": "2026-12-06T19:11:10+00:00",
+          "notValidBefore": "2026-11-05T19:11:10+00:00",
           "signatureAlgorithmRef": "crypto/rsa-signature-1024",
+          "subjectName": "CN=legacy-api.example",
           "subjectPublicKeyRef": "crypto/rsa-signature-1024"
         }
       },
@@ -647,7 +706,11 @@
         "assetType": "certificate",
         "certificateProperties": {
           "certificateFormat": "X.509",
+          "issuerName": "CN=www.example",
+          "notValidAfter": "2026-12-06T19:11:10+00:00",
+          "notValidBefore": "2026-11-05T19:11:10+00:00",
           "signatureAlgorithmRef": "crypto/ecdsa-signature-256-secp256r1",
+          "subjectName": "CN=www.example",
           "subjectPublicKeyRef": "crypto/ec-signature-256-secp256r1"
         }
       },
@@ -750,6 +813,21 @@
     },
     {
       "bom-ref": "asset/4",
+      "name": "src/Payments.cs",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/Payments.cs"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/5",
       "name": "src/crypto_utils.py",
       "properties": [
         {
@@ -764,12 +842,27 @@
       "type": "file"
     },
     {
-      "bom-ref": "asset/5",
+      "bom-ref": "asset/6",
       "name": "src/server.go",
       "properties": [
         {
           "name": "pqc-scan:location",
           "value": "src/server.go"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/7",
+      "name": "src/signer.rs",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/signer.rs"
         },
         {
           "name": "pqc-scan:worst-risk",
@@ -823,6 +916,20 @@
     {
       "dependsOn": [
         "crypto/3des-block-cipher",
+        "crypto/ecb-block-cipher",
+        "crypto/ecdh-key-exchange-256-secp256r1",
+        "crypto/ecdsa-signature-384-secp384r1",
+        "crypto/md5-hash",
+        "crypto/ml-kem-kem",
+        "crypto/rsa-signature-1024",
+        "crypto/sha1-mac",
+        "crypto/tls1-1-protocol"
+      ],
+      "ref": "asset/4"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
         "crypto/ec-signature-384-secp384r1",
         "crypto/ecb-block-cipher",
         "crypto/ed25519-signature",
@@ -837,7 +944,7 @@
         "crypto/tls1-0-protocol",
         "crypto/tls1-1-protocol"
       ],
-      "ref": "asset/4"
+      "ref": "asset/5"
     },
     {
       "dependsOn": [
@@ -849,7 +956,19 @@
         "crypto/x25519-key-exchange",
         "crypto/x25519-mlkem768-key-exchange"
       ],
-      "ref": "asset/5"
+      "ref": "asset/6"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
+        "crypto/ec-signature-256-secp256r1",
+        "crypto/ecdsa-signature-256-secp256r1",
+        "crypto/ml-kem-kem",
+        "crypto/rsa-signature-1024",
+        "crypto/rsa-signature-3072",
+        "crypto/sha1-hash"
+      ],
+      "ref": "asset/7"
     },
     {
       "ref": "crypto/3des-block-cipher"
@@ -885,6 +1004,9 @@
       "ref": "crypto/ecdsa-signature-256-secp256r1"
     },
     {
+      "ref": "crypto/ecdsa-signature-384-secp384r1"
+    },
+    {
       "ref": "crypto/ed25519-signature"
     },
     {
@@ -901,6 +1023,9 @@
     },
     {
       "ref": "crypto/rsa-signature-2048"
+    },
+    {
+      "ref": "crypto/rsa-signature-3072"
     },
     {
       "ref": "crypto/sha1-hash"
@@ -931,7 +1056,7 @@
     }
   ],
   "metadata": {
-    "timestamp": "2026-11-06T19:11:12.295702+00:00",
+    "timestamp": "2026-11-06T20:10:45.678193+00:00",
     "tools": {
       "components": [
         {
@@ -942,7 +1067,7 @@
       ]
     }
   },
-  "serialNumber": "urn:uuid:fb9649a2-ac37-f30a-7a0f-680f487053bf",
+  "serialNumber": "urn:uuid:7938873f-491f-11d6-db48-95542982a866",
   "version": 1,
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",

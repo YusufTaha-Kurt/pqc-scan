@@ -1,14 +1,14 @@
-pqc-scan 0.3.0 · scanners: files, code · 45 findings on 6 assets · 0.0s
+pqc-scan 0.3.0 · scanners: files, code · 61 findings on 8 assets · 0.0s
 
 Summary                                                                         
  Risk       ┃ Findings ┃ Meaning                                                
 ━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- BROKEN     │       20 │ Weak today, even without a quantum computer            
- VULNERABLE │       14 │ Broken by a quantum computer (Shor)                    
- WEAKENED   │        3 │ Security margin reduced by a quantum computer (Grover) 
+ BROKEN     │       28 │ Weak today, even without a quantum computer            
+ VULNERABLE │       19 │ Broken by a quantum computer (Shor)                    
+ WEAKENED   │        4 │ Security margin reduced by a quantum computer (Grover) 
  UNKNOWN    │        2 │ Not in the rule set; review manually                   
  HYBRID     │        1 │ Classical + post-quantum combined                      
- PQ_SAFE    │        5 │ Considered quantum-resistant                           
+ PQ_SAFE    │        7 │ Considered quantum-resistant                           
 
 Findings                                                                                                      
  Risk       ┃ Location             ┃ Usage                           ┃ Algorithm       ┃ Reason               
@@ -41,6 +41,22 @@ Findings
             │                      │                                 │                 │ practical            
             │                      │                                 │                 │ (SHAttered, 2017)    
  BROKEN     │ src/Legacy.java:23   │ code.tls_config                 │ TLSv1.1         │ TLS 1.1 is           
+            │                      │                                 │                 │ deprecated (RFC      
+            │                      │                                 │                 │ 8996)                
+ BROKEN     │ src/Payments.cs:15   │ code.cipher                     │ ECB             │ ECB mode leaks       
+            │                      │                                 │                 │ patterns in the      
+            │                      │                                 │                 │ plaintext            
+ BROKEN     │ src/Payments.cs:14   │ code.cipher                     │ TripleDES       │ 64-bit block size    
+            │                      │                                 │                 │ (Sweet32);           
+            │                      │                                 │                 │ disallowed by NIST   
+            │                      │                                 │                 │ since 2024           
+ BROKEN     │ src/Payments.cs:12   │ code.hash                       │ MD5             │ MD5 collisions are   
+            │                      │                                 │                 │ practical            
+ BROKEN     │ src/Payments.cs:9    │ code.key_generation             │ RSA 1024-bit    │ RSA key shorter than 
+            │                      │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
+ BROKEN     │ src/Payments.cs:16   │ code.tls_config                 │ TLSv1.1         │ TLS 1.1 is           
             │                      │                                 │                 │ deprecated (RFC      
             │                      │                                 │                 │ 8996)                
  BROKEN     │ src/crypto_utils.py: │ code.cipher                     │ 3DES            │ 64-bit block size    
@@ -77,6 +93,17 @@ Findings
  BROKEN     │ src/server.go:19     │ code.tls_config                 │ TLSv1.0         │ TLS 1.0 is           
             │                      │                                 │                 │ deprecated (RFC      
             │                      │                                 │                 │ 8996)                
+ BROKEN     │ src/signer.rs:11     │ code.cipher                     │ des-ede3        │ 64-bit block size    
+            │                      │                                 │                 │ (Sweet32);           
+            │                      │                                 │                 │ disallowed by NIST   
+            │                      │                                 │                 │ since 2024           
+ BROKEN     │ src/signer.rs:10     │ code.hash                       │ sha1            │ SHA-1 collisions are 
+            │                      │                                 │                 │ practical            
+            │                      │                                 │                 │ (SHAttered, 2017)    
+ BROKEN     │ src/signer.rs:8      │ code.key_generation             │ RSA 1024-bit    │ RSA key shorter than 
+            │                      │                                 │                 │ 2048 bits is weak    
+            │                      │                                 │                 │ even without a       
+            │                      │                                 │                 │ quantum computer     
  VULNERABLE │ certs/web.pem:1      │ file.certificate.public_key     │ EC secp256r1    │ Elliptic-curve       
             │                      │                                 │                 │ cryptography is      
             │                      │                                 │                 │ broken by Shor's     
@@ -100,6 +127,12 @@ Findings
  VULNERABLE │ src/Legacy.java:13   │ code.signature                  │ RSA             │ RSA is broken by     
             │                      │                                 │                 │ Shor's algorithm at  
             │                      │                                 │                 │ every key size       
+ VULNERABLE │ src/Payments.cs:11   │ code.key_exchange               │ ECDH secp256r1  │ Elliptic-curve       
+            │                      │                                 │                 │ Diffie-Hellman is    
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/Payments.cs:10   │ code.key_generation             │ ECDSA secp384r1 │ ECDSA is broken by   
+            │                      │                                 │                 │ Shor's algorithm     
  VULNERABLE │ src/crypto_utils.py: │ code.key_generation             │ EC secp384r1    │ Elliptic-curve       
             │ 20                   │                                 │                 │ cryptography is      
             │                      │                                 │                 │ broken by Shor's     
@@ -121,11 +154,25 @@ Findings
             │                      │                                 │                 │ algorithm            
  VULNERABLE │ src/server.go:15     │ code.key_generation             │ ECDSA secp256r1 │ ECDSA is broken by   
             │                      │                                 │                 │ Shor's algorithm     
+ VULNERABLE │ src/signer.rs:9      │ code.key_generation             │ EC secp256r1    │ Elliptic-curve       
+            │                      │                                 │                 │ cryptography is      
+            │                      │                                 │                 │ broken by Shor's     
+            │                      │                                 │                 │ algorithm            
+ VULNERABLE │ src/signer.rs:14     │ code.key_generation             │ ECDSA secp256r1 │ ECDSA is broken by   
+            │                      │                                 │                 │ Shor's algorithm     
+ VULNERABLE │ src/signer.rs:12     │ code.key_generation             │ RSA 3072-bit    │ RSA is broken by     
+            │                      │                                 │                 │ Shor's algorithm at  
+            │                      │                                 │                 │ every key size       
  WEAKENED   │ src/Legacy.java:21   │ code.key_generation             │ AES 128-bit     │ AES with a key       
             │                      │                                 │                 │ shorter than 256     
             │                      │                                 │                 │ bits loses half its  
             │                      │                                 │                 │ security to Grover's 
             │                      │                                 │                 │ algorithm            
+ WEAKENED   │ src/Payments.cs:13   │ code.mac                        │ HMAC-SHA1       │ HMAC-SHA1 is not     
+            │                      │                                 │                 │ affected by SHA-1    
+            │                      │                                 │                 │ collisions but has a 
+            │                      │                                 │                 │ small security       
+            │                      │                                 │                 │ margin               
  WEAKENED   │ src/crypto_utils.py: │ code.hash                       │ sha224          │ 224-bit output       
             │ 25                   │                                 │                 │ leaves a thin margin 
             │                      │                                 │                 │ against quantum      
@@ -154,6 +201,9 @@ Findings
  PQ_SAFE    │ src/Legacy.java:25   │ code.key_generation             │ ML-KEM-768      │ ML-KEM is a NIST     
             │                      │                                 │                 │ post-quantum KEM     
             │                      │                                 │                 │ standard (FIPS 203)  
+ PQ_SAFE    │ src/Payments.cs:18   │ code.key_exchange               │ ML-KEM-768      │ ML-KEM is a NIST     
+            │                      │                                 │                 │ post-quantum KEM     
+            │                      │                                 │                 │ standard (FIPS 203)  
  PQ_SAFE    │ src/crypto_utils.py: │ code.kdf                        │ HMAC-SHA256     │ SHA-256 keeps about  
             │ 28                   │                                 │                 │ 128-bit preimage     
             │                      │                                 │                 │ security under       
@@ -162,29 +212,32 @@ Findings
             │ 34                   │                                 │                 │ 128-bit preimage     
             │                      │                                 │                 │ security under       
             │                      │                                 │                 │ Grover's algorithm   
+ PQ_SAFE    │ src/signer.rs:15     │ code.key_exchange               │ ML-KEM-768      │ ML-KEM is a NIST     
+            │                      │                                 │                 │ post-quantum KEM     
+            │                      │                                 │                 │ standard (FIPS 203)  
 
 Recommendations                                                                                               
- Risk       ┃ What to do                                       ┃ Applies to                                   
-━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- BROKEN     │ Migrate signatures to ML-DSA (FIPS 204) and key  │ RSA, RSA 1024-bit, RSA 2048-bit (8 findings) 
-            │ transport to ML-KEM (FIPS 203).                  │                                              
- BROKEN     │ Disable it; use TLS 1.3.                         │ TLSv1.0, TLSv1.1 (4 findings)                
- BROKEN     │ Use an AEAD mode such as AES-256-GCM.            │ ECB (4 findings)                             
- BROKEN     │ Use SHA-384 or SHA-512 (HMAC-SHA-256 or better   │ HMAC-SHA1, SHA1 (3 findings)                 
-            │ for MACs).                                       │                                              
- BROKEN     │ Use SHA-384, SHA-512 or SHA3.                    │ MD5 (3 findings)                             
- BROKEN     │ Use AES-256-GCM.                                 │ 3DES, DESede (2 findings)                    
- VULNERABLE │ Migrate signatures to ML-DSA and key exchange to │ EC, EC secp256r1, EC secp384r1 (4 findings)  
-            │ ML-KEM (hybrid during transition).               │                                              
- VULNERABLE │ Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS    │ ECDSA secp256r1 (2 findings)                 
-            │ 205).                                            │                                              
- VULNERABLE │ Plan migration to ML-DSA (FIPS 204) or SLH-DSA   │ Ed25519 (2 findings)                         
-            │ (FIPS 205).                                      │                                              
- VULNERABLE │ Use hybrid X25519MLKEM768 or SecP256r1MLKEM768   │ ECDH, ECDH secp256r1 (2 findings)            
-            │ (TLS 1.3).                                       │                                              
- VULNERABLE │ Use hybrid X25519MLKEM768 (TLS) or               │ X25519 (1 finding)                           
-            │ mlkem768x25519-sha256 (SSH).                     │                                              
- WEAKENED   │ Use AES-256.                                     │ AES, AES 128-bit (3 findings)                
- WEAKENED   │ Use SHA-384 or SHA-512.                          │ sha224 (1 finding)                           
+ Risk       ┃ What to do                                     ┃ Applies to                                     
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ Migrate signatures to ML-DSA (FIPS 204) and    │ RSA, RSA 1024-bit, RSA 2048-bit, RSA 3072-bit  
+            │ key transport to ML-KEM (FIPS 203).            │ (11 findings)                                  
+ BROKEN     │ Disable it; use TLS 1.3.                       │ TLSv1.0, TLSv1.1 (5 findings)                  
+ BROKEN     │ Use SHA-384 or SHA-512 (HMAC-SHA-256 or better │ HMAC-SHA1, SHA1, sha1 (5 findings)             
+            │ for MACs).                                     │                                                
+ BROKEN     │ Use an AEAD mode such as AES-256-GCM.          │ ECB (5 findings)                               
+ BROKEN     │ Use AES-256-GCM.                               │ 3DES, DESede, TripleDES, des-ede3 (4 findings) 
+ BROKEN     │ Use SHA-384, SHA-512 or SHA3.                  │ MD5 (4 findings)                               
+ VULNERABLE │ Migrate signatures to ML-DSA and key exchange  │ EC, EC secp256r1, EC secp384r1 (5 findings)    
+            │ to ML-KEM (hybrid during transition).          │                                                
+ VULNERABLE │ Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS  │ ECDSA secp256r1, ECDSA secp384r1 (4 findings)  
+            │ 205).                                          │                                                
+ VULNERABLE │ Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 │ ECDH, ECDH secp256r1 (3 findings)              
+            │ (TLS 1.3).                                     │                                                
+ VULNERABLE │ Plan migration to ML-DSA (FIPS 204) or SLH-DSA │ Ed25519 (2 findings)                           
+            │ (FIPS 205).                                    │                                                
+ VULNERABLE │ Use hybrid X25519MLKEM768 (TLS) or             │ X25519 (1 finding)                             
+            │ mlkem768x25519-sha256 (SSH).                   │                                                
+ WEAKENED   │ Use AES-256.                                   │ AES, AES 128-bit (3 findings)                  
+ WEAKENED   │ Use SHA-384 or SHA-512.                        │ sha224 (1 finding)                             
 
 Worst risk: BROKEN

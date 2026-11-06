@@ -58,8 +58,8 @@
   <h1>pqc-scan report</h1>
   <div class="meta">
     pqc-scan 0.3.0 · scanners: files, code ·
-    45 findings on 6 assets ·
-    2026-11-06 19:11:11 UTC (0.0s)
+    61 findings on 8 assets ·
+    2026-11-06 20:10:44 UTC (0.0s)
   </div>
   <div class="verdict">
 Worst risk: <span class="risk r-broken">BROKEN</span>
@@ -68,17 +68,17 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
   <div class="cards">
     <div class="card">
       <div class="label r-broken">BROKEN</div>
-      <div class="count">20</div>
+      <div class="count">28</div>
       <div class="hint">Weak today, even without a quantum computer</div>
     </div>
     <div class="card">
       <div class="label r-vulnerable">VULNERABLE</div>
-      <div class="count">14</div>
+      <div class="count">19</div>
       <div class="hint">Broken by a quantum computer (Shor)</div>
     </div>
     <div class="card">
       <div class="label r-weakened">WEAKENED</div>
-      <div class="count">3</div>
+      <div class="count">4</div>
       <div class="hint">Security margin reduced by a quantum computer (Grover)</div>
     </div>
     <div class="card">
@@ -93,7 +93,7 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
     </div>
     <div class="card">
       <div class="label r-pq_safe">PQ_SAFE</div>
-      <div class="count">5</div>
+      <div class="count">7</div>
       <div class="hint">Considered quantum-resistant</div>
     </div>
   </div>
@@ -105,52 +105,52 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
       <tr>
         <td><span class="risk r-broken">BROKEN</span></td>
         <td>Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).</td>
-        <td>RSA, RSA 1024-bit, RSA 2048-bit (8)</td>
+        <td>RSA, RSA 1024-bit, RSA 2048-bit, RSA 3072-bit (11)</td>
       </tr>
       <tr>
         <td><span class="risk r-broken">BROKEN</span></td>
         <td>Disable it; use TLS 1.3.</td>
-        <td>TLSv1.0, TLSv1.1 (4)</td>
-      </tr>
-      <tr>
-        <td><span class="risk r-broken">BROKEN</span></td>
-        <td>Use an AEAD mode such as AES-256-GCM.</td>
-        <td>ECB (4)</td>
+        <td>TLSv1.0, TLSv1.1 (5)</td>
       </tr>
       <tr>
         <td><span class="risk r-broken">BROKEN</span></td>
         <td>Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).</td>
-        <td>HMAC-SHA1, SHA1 (3)</td>
+        <td>HMAC-SHA1, SHA1, sha1 (5)</td>
       </tr>
       <tr>
         <td><span class="risk r-broken">BROKEN</span></td>
-        <td>Use SHA-384, SHA-512 or SHA3.</td>
-        <td>MD5 (3)</td>
+        <td>Use an AEAD mode such as AES-256-GCM.</td>
+        <td>ECB (5)</td>
       </tr>
       <tr>
         <td><span class="risk r-broken">BROKEN</span></td>
         <td>Use AES-256-GCM.</td>
-        <td>3DES, DESede (2)</td>
+        <td>3DES, DESede, TripleDES, des-ede3 (4)</td>
+      </tr>
+      <tr>
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td>Use SHA-384, SHA-512 or SHA3.</td>
+        <td>MD5 (4)</td>
       </tr>
       <tr>
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
         <td>Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition).</td>
-        <td>EC, EC secp256r1, EC secp384r1 (4)</td>
+        <td>EC, EC secp256r1, EC secp384r1 (5)</td>
       </tr>
       <tr>
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
         <td>Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).</td>
-        <td>ECDSA secp256r1 (2)</td>
+        <td>ECDSA secp256r1, ECDSA secp384r1 (4)</td>
+      </tr>
+      <tr>
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td>Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3).</td>
+        <td>ECDH, ECDH secp256r1 (3)</td>
       </tr>
       <tr>
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
         <td>Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).</td>
         <td>Ed25519 (2)</td>
-      </tr>
-      <tr>
-        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
-        <td>Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3).</td>
-        <td>ECDH, ECDH secp256r1 (2)</td>
       </tr>
       <tr>
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
@@ -173,17 +173,17 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
   <h2>Findings</h2>
   <div class="filters" role="group" aria-label="Filter findings">
     <button type="button" data-risk="BROKEN" aria-pressed="true">
-      <span class="r-broken">BROKEN</span> 20</button>
+      <span class="r-broken">BROKEN</span> 28</button>
     <button type="button" data-risk="VULNERABLE" aria-pressed="true">
-      <span class="r-vulnerable">VULNERABLE</span> 14</button>
+      <span class="r-vulnerable">VULNERABLE</span> 19</button>
     <button type="button" data-risk="WEAKENED" aria-pressed="true">
-      <span class="r-weakened">WEAKENED</span> 3</button>
+      <span class="r-weakened">WEAKENED</span> 4</button>
     <button type="button" data-risk="UNKNOWN" aria-pressed="true">
       <span class="r-unknown">UNKNOWN</span> 2</button>
     <button type="button" data-risk="HYBRID" aria-pressed="true">
       <span class="r-hybrid">HYBRID</span> 1</button>
     <button type="button" data-risk="PQ_SAFE" aria-pressed="true">
-      <span class="r-pq_safe">PQ_SAFE</span> 5</button>
+      <span class="r-pq_safe">PQ_SAFE</span> 7</button>
     <input type="search" id="q" placeholder="Search location, algorithm, usage…" aria-label="Search findings">
   </div>
   <div class="table-wrap"><table id="findings">
@@ -249,6 +249,41 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
       <tr data-risk="BROKEN">
         <td><span class="risk r-broken">BROKEN</span></td>
         <td class="loc">src/Legacy.java:23<div class="note">SSLContext.getInstance</div></td>
+        <td class="usage">code.tls_config</td>
+        <td>TLSv1.1</td>
+        <td>TLS 1.1 is deprecated (RFC 8996)</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/Payments.cs:15<div class="note">CipherMode.ECB</div></td>
+        <td class="usage">code.cipher</td>
+        <td>ECB</td>
+        <td>ECB mode leaks patterns in the plaintext</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/Payments.cs:14<div class="note">System.Security.Cryptography cipher</div></td>
+        <td class="usage">code.cipher</td>
+        <td>TripleDES</td>
+        <td>64-bit block size (Sweet32); disallowed by NIST since 2024</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/Payments.cs:12<div class="note">System.Security.Cryptography hash</div></td>
+        <td class="usage">code.hash</td>
+        <td>MD5</td>
+        <td>MD5 collisions are practical</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/Payments.cs:9<div class="note">System.Security.Cryptography.RSA</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>RSA 1024-bit</td>
+        <td>RSA key shorter than 2048 bits is weak even without a quantum computer</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/Payments.cs:16<div class="note">SslProtocols</div></td>
         <td class="usage">code.tls_config</td>
         <td>TLSv1.1</td>
         <td>TLS 1.1 is deprecated (RFC 8996)</td>
@@ -330,6 +365,27 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
         <td>TLSv1.0</td>
         <td>TLS 1.0 is deprecated (RFC 8996)</td>
       </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/signer.rs:11<div class="note">openssl::symm::Cipher</div></td>
+        <td class="usage">code.cipher</td>
+        <td>des-ede3</td>
+        <td>64-bit block size (Sweet32); disallowed by NIST since 2024</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/signer.rs:10<div class="note">openssl::hash::MessageDigest</div></td>
+        <td class="usage">code.hash</td>
+        <td>sha1</td>
+        <td>SHA-1 collisions are practical (SHAttered, 2017)</td>
+      </tr>
+      <tr data-risk="BROKEN">
+        <td><span class="risk r-broken">BROKEN</span></td>
+        <td class="loc">src/signer.rs:8<div class="note">openssl::rsa::Rsa::generate</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>RSA 1024-bit</td>
+        <td>RSA key shorter than 2048 bits is weak even without a quantum computer</td>
+      </tr>
       <tr data-risk="VULNERABLE">
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
         <td class="loc">certs/web.pem:1<div class="note">PEM block 1 (CERTIFICATE)</div></td>
@@ -381,6 +437,20 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
       </tr>
       <tr data-risk="VULNERABLE">
         <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td class="loc">src/Payments.cs:11<div class="note">System.Security.Cryptography.ECDiffieHellman</div></td>
+        <td class="usage">code.key_exchange</td>
+        <td>ECDH secp256r1</td>
+        <td>Elliptic-curve Diffie-Hellman is broken by Shor&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="VULNERABLE">
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td class="loc">src/Payments.cs:10<div class="note">System.Security.Cryptography.ECDsa</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>ECDSA secp384r1</td>
+        <td>ECDSA is broken by Shor&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="VULNERABLE">
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
         <td class="loc">src/crypto_utils.py:20<div class="note">cryptography.hazmat.primitives.asymmetric.ec.generate_private_key</div></td>
         <td class="usage">code.key_generation</td>
         <td>EC secp384r1</td>
@@ -428,12 +498,40 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
         <td>ECDSA secp256r1</td>
         <td>ECDSA is broken by Shor&#39;s algorithm</td>
       </tr>
+      <tr data-risk="VULNERABLE">
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td class="loc">src/signer.rs:9<div class="note">openssl::ec::EcGroup::from_curve_name</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>EC secp256r1</td>
+        <td>Elliptic-curve cryptography is broken by Shor&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="VULNERABLE">
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td class="loc">src/signer.rs:14<div class="note">RustCrypto p256/p384/p521 ecdsa</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>ECDSA secp256r1</td>
+        <td>ECDSA is broken by Shor&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="VULNERABLE">
+        <td><span class="risk r-vulnerable">VULNERABLE</span></td>
+        <td class="loc">src/signer.rs:12<div class="note">rsa::RsaPrivateKey::new</div></td>
+        <td class="usage">code.key_generation</td>
+        <td>RSA 3072-bit</td>
+        <td>RSA is broken by Shor&#39;s algorithm at every key size</td>
+      </tr>
       <tr data-risk="WEAKENED">
         <td><span class="risk r-weakened">WEAKENED</span></td>
         <td class="loc">src/Legacy.java:21<div class="note">KeyGenerator.getInstance</div></td>
         <td class="usage">code.key_generation</td>
         <td>AES 128-bit</td>
         <td>AES with a key shorter than 256 bits loses half its security to Grover&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="WEAKENED">
+        <td><span class="risk r-weakened">WEAKENED</span></td>
+        <td class="loc">src/Payments.cs:13<div class="note">System.Security.Cryptography HMAC</div></td>
+        <td class="usage">code.mac</td>
+        <td>HMAC-SHA1</td>
+        <td>HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin</td>
       </tr>
       <tr data-risk="WEAKENED">
         <td><span class="risk r-weakened">WEAKENED</span></td>
@@ -493,6 +591,13 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
       </tr>
       <tr data-risk="PQ_SAFE">
         <td><span class="risk r-pq_safe">PQ_SAFE</span></td>
+        <td class="loc">src/Payments.cs:18<div class="note">System.Security.Cryptography.MLKem</div></td>
+        <td class="usage">code.key_exchange</td>
+        <td>ML-KEM-768</td>
+        <td>ML-KEM is a NIST post-quantum KEM standard (FIPS 203)</td>
+      </tr>
+      <tr data-risk="PQ_SAFE">
+        <td><span class="risk r-pq_safe">PQ_SAFE</span></td>
         <td class="loc">src/crypto_utils.py:28<div class="note">hashlib.pbkdf2_hmac</div></td>
         <td class="usage">code.kdf</td>
         <td>HMAC-SHA256</td>
@@ -504,6 +609,13 @@ Worst risk: <span class="risk r-broken">BROKEN</span>
         <td class="usage">code.signature</td>
         <td>HMAC-SHA256</td>
         <td>SHA-256 keeps about 128-bit preimage security under Grover&#39;s algorithm</td>
+      </tr>
+      <tr data-risk="PQ_SAFE">
+        <td><span class="risk r-pq_safe">PQ_SAFE</span></td>
+        <td class="loc">src/signer.rs:15<div class="note">ml_kem</div></td>
+        <td class="usage">code.key_exchange</td>
+        <td>ML-KEM-768</td>
+        <td>ML-KEM is a NIST post-quantum KEM standard (FIPS 203)</td>
       </tr>
     </tbody>
   </table></div>

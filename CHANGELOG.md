@@ -17,20 +17,29 @@ First public release. It covers the whole v0.1–v0.3 roadmap.
 - `ssh`: reads the server's KEXINIT in clear text — key exchange (incl.
   `mlkem768x25519-sha256`), host keys, ciphers, MACs. No login.
 - `code`: Python (AST with import resolution), Java/Kotlin,
-  JavaScript/TypeScript and Go (pattern rules). No Semgrep (decision D-12).
+  JavaScript/TypeScript, Go, C# and Rust (pattern rules). No Semgrep
+  (decision D-12).
 
 ### Reports and CLI
 - Formats: console, JSON (with a published JSON Schema), self-contained HTML,
-  CycloneDX 1.6 CBOM (validated against the official schema).
+  CycloneDX 1.6 CBOM with certificate subject/issuer/validity (validated
+  against the official schema), SARIF 2.1.0 for code-scanning dashboards.
 - Recommendations per finding; `docs/migration-guide.md`.
 - Commands: `scan files|code|tls|ssh|all`, `report`, `diff`.
 - `--fail-on` and exit codes 0/1/2/3; Mosca's inequality with
   `--mosca-x/-y/-z` and per-asset `--mosca-file`.
 
 ### Integrations
-- GitHub Action (`action.yml`) that fails pull requests only on new findings.
+- GitHub Action (`action.yml`) that fails pull requests only on new findings
+  and can upload SARIF to GitHub code scanning.
+- CI interop job against real OpenSSL 3.5 and OpenSSH 10 servers; the TLS
+  probe detects `X25519MLKEM768` on a stock OpenSSL 3.5 server.
 - Docker image (non-root) and a release workflow publishing to PyPI (trusted
   publishing) and ghcr.io.
+
+### Classification
+- All judgement-call classifications were reviewed and approved
+  (decision D-13); see `docs/teknik-ozet.md` §8.
 
 ### Documentation
 - Learn notebooks: Grover, Shor, BB84 (pure Python, tested).

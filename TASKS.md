@@ -17,27 +17,22 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 **Son güncelleme:** 2026-11-06
 
-**Yol haritasının tamamı (v0.1–v0.3) bitti.** Sürüm 0.3.0. 341 test
-(Python 3.11 ve 3.13), kapsama %97. Tüm komutlar çalışıyor:
+**Yol haritasının tamamı (v0.1–v0.3) ve ek fikirlerin hepsi bitti.** Sürüm
+0.3.0. 349 test (+2 gerçek sunucu testi CI'da), kapsama %97. Komutlar:
 `scan files|code|tls|ssh|all`, `report`, `diff`; biçimler
-`console|json|html|cbom`. GitHub Action, Docker imajı, yayın iş akışı,
-öğren not defterleri ve Türkçe kullanım kılavuzu + teknik özet hazır.
+`console|json|html|cbom|sarif`. Kod tarayıcısı Python, Java/Kotlin, JS/TS,
+Go, C# ve Rust'ı destekliyor. Tüm yoruma açık sınıflandırmalar onaylandı
+(D-13). GitHub Action (SARIF yükleme dahil), Docker imajı, yayın iş akışı,
+öğren not defterleri, Türkçe kullanım kılavuzu ve teknik özet hazır.
 
-**Kullanıcıyı bekleyenler:**
-1. Branch `claude/nice-gates-b8wil6`'yı PR ile `master`'a birleştirmek.
-2. İlk yayın: PyPI trusted publisher + GitHub `pypi` ortamı, sonra
-   `git tag v0.3.0 && git push origin v0.3.0`
-   (`docs/kullanim-kilavuzu.md` §11).
-3. `# TODO: doğrula` notlu sınıflandırmaların onayı
-   (`docs/teknik-ozet.md` §8'de liste).
+**Biten ek fikirler (2026-11-06):** SARIF çıktısı; gerçek OpenSSL 3.5 /
+OpenSSH 10 sunucularıyla CI testi (TLS tarafı yerelde de doğrulandı:
+X25519MLKEM768 ilk tercih olarak bulundu); C# ve Rust kuralları; CBOM'da
+sertifika sahibi/düzenleyeni/geçerlilik tarihleri.
 
-**Sonraki fikirler (yol haritasında yok, isteğe bağlı):**
-- Gerçek OpenSSL ≥ 3.5 sunucusuyla hibrit grup uçtan uca testi (CI'da
-  `openssl s_server` ile).
-- Kod tarayıcısına C#/.NET ve Rust kuralları.
-- ML-DSA sertifikaları yaygınlaşınca CBOM'a sertifika ayrıntıları
-  (subject/issuer, geçerlilik tarihleri).
-- SARIF çıktısı (GitHub "code scanning" ekranında göstermek için).
+**Yalnızca proje sahibinin yapabileceği tek adım:** PyPI'de ilk yayın —
+PyPI hesabında trusted publisher ve GitHub'da `pypi` ortamı kurulumu, sonra
+`git tag v0.3.0 && git push origin v0.3.0` (`docs/kullanim-kilavuzu.md` §11).
 
 ### Bilinen notlar
 
@@ -100,6 +95,10 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
   dosyası; GitHub Action; Docker; yayın iş akışı; öğren not defterleri;
   README, CHANGELOG, örnek raporlar, geçiş rehberi, Türkçe kullanım
   kılavuzu ve teknik özet. Sürüm 0.3.0. Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-06 (2)** — Kullanıcı tüm sınıflandırmaları onayladı (D-13);
+  SARIF çıktısı + Action'da code scanning yüklemesi; gerçek OpenSSL 3.5 /
+  OpenSSH 10 interop testleri (CI işi `interop`); C# ve Rust kuralları;
+  sertifika ayrıntıları (Asset.details → CBOM); örnek raporlar yenilendi.
 
 ---
 

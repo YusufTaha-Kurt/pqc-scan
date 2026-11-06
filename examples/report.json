@@ -1,8 +1,8 @@
 {
   "schema_version": "1",
   "tool_version": "0.3.0",
-  "started_at": "2026-11-06T19:11:10.795015Z",
-  "finished_at": "2026-11-06T19:11:10.813183Z",
+  "started_at": "2026-11-06T20:10:44.069471Z",
+  "finished_at": "2026-11-06T20:10:44.094380Z",
   "scanners": [
     "files",
     "code"
@@ -34,32 +34,62 @@
     {
       "id": "file:///scan/example-repo/certs/legacy-api.pem",
       "kind": "certificate",
-      "location": "certs/legacy-api.pem"
+      "location": "certs/legacy-api.pem",
+      "details": {
+        "subject": "CN=legacy-api.example",
+        "issuer": "CN=legacy-api.example",
+        "not_before": "2026-11-05T19:11:10+00:00",
+        "not_after": "2026-12-06T19:11:10+00:00",
+        "serial": "5b3f3d295bc05436a94bdf189ac05a5d2bbefe7a"
+      }
     },
     {
       "id": "file:///scan/example-repo/certs/web.pem",
       "kind": "certificate",
-      "location": "certs/web.pem"
+      "location": "certs/web.pem",
+      "details": {
+        "subject": "CN=www.example",
+        "issuer": "CN=www.example",
+        "not_before": "2026-11-05T19:11:10+00:00",
+        "not_after": "2026-12-06T19:11:10+00:00",
+        "serial": "3f6cc4b0c74e57e3b665fe2b3d60bb64d4e24c01"
+      }
     },
     {
       "id": "file:///scan/example-repo/deploy/id_ed25519.pub",
       "kind": "public_key",
-      "location": "deploy/id_ed25519.pub"
+      "location": "deploy/id_ed25519.pub",
+      "details": {}
     },
     {
       "id": "file:///scan/example-repo/src/Legacy.java",
       "kind": "source_file",
-      "location": "src/Legacy.java"
+      "location": "src/Legacy.java",
+      "details": {}
+    },
+    {
+      "id": "file:///scan/example-repo/src/Payments.cs",
+      "kind": "source_file",
+      "location": "src/Payments.cs",
+      "details": {}
     },
     {
       "id": "file:///scan/example-repo/src/crypto_utils.py",
       "kind": "source_file",
-      "location": "src/crypto_utils.py"
+      "location": "src/crypto_utils.py",
+      "details": {}
     },
     {
       "id": "file:///scan/example-repo/src/server.go",
       "kind": "source_file",
-      "location": "src/server.go"
+      "location": "src/server.go",
+      "details": {}
+    },
+    {
+      "id": "file:///scan/example-repo/src/signer.rs",
+      "kind": "source_file",
+      "location": "src/signer.rs",
+      "details": {}
     }
   ],
   "findings": [
@@ -67,7 +97,14 @@
       "asset": {
         "id": "file:///scan/example-repo/certs/legacy-api.pem",
         "kind": "certificate",
-        "location": "certs/legacy-api.pem"
+        "location": "certs/legacy-api.pem",
+        "details": {
+          "subject": "CN=legacy-api.example",
+          "issuer": "CN=legacy-api.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "5b3f3d295bc05436a94bdf189ac05a5d2bbefe7a"
+        }
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -93,7 +130,14 @@
       "asset": {
         "id": "file:///scan/example-repo/certs/legacy-api.pem",
         "kind": "certificate",
-        "location": "certs/legacy-api.pem"
+        "location": "certs/legacy-api.pem",
+        "details": {
+          "subject": "CN=legacy-api.example",
+          "issuer": "CN=legacy-api.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "5b3f3d295bc05436a94bdf189ac05a5d2bbefe7a"
+        }
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -119,7 +163,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "DESede",
@@ -145,7 +190,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECB",
@@ -171,7 +217,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECB",
@@ -197,7 +244,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "MD5",
@@ -223,7 +271,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -249,7 +298,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "SHA1",
@@ -275,7 +325,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "TLSv1.1",
@@ -299,9 +350,145 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ECB",
+        "primitive": "block_cipher",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.cipher",
+      "scanner": "code",
+      "evidence": {
+        "line": 15,
+        "detail": "CipherMode.ECB"
+      },
+      "confidence": "high",
+      "id": "e1215d59694f8bf4",
+      "risk": "BROKEN",
+      "algorithm_id": "ecb",
+      "reason": "ECB mode leaks patterns in the plaintext",
+      "recommendation": "Use an AEAD mode such as AES-256-GCM.",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "TripleDES",
+        "primitive": "block_cipher",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.cipher",
+      "scanner": "code",
+      "evidence": {
+        "line": 14,
+        "detail": "System.Security.Cryptography cipher"
+      },
+      "confidence": "high",
+      "id": "5a728c8e3bcfe397",
+      "risk": "BROKEN",
+      "algorithm_id": "3des",
+      "reason": "64-bit block size (Sweet32); disallowed by NIST since 2024",
+      "recommendation": "Use AES-256-GCM.",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "MD5",
+        "primitive": "hash",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.hash",
+      "scanner": "code",
+      "evidence": {
+        "line": 12,
+        "detail": "System.Security.Cryptography hash"
+      },
+      "confidence": "high",
+      "id": "57bffc60cb2ea0b7",
+      "risk": "BROKEN",
+      "algorithm_id": "md5",
+      "reason": "MD5 collisions are practical",
+      "recommendation": "Use SHA-384, SHA-512 or SHA3.",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "RSA",
+        "primitive": "signature",
+        "key_size": 1024,
+        "curve": null
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 9,
+        "detail": "System.Security.Cryptography.RSA"
+      },
+      "confidence": "high",
+      "id": "a9502b9fa7667313",
+      "risk": "BROKEN",
+      "algorithm_id": "rsa",
+      "reason": "RSA key shorter than 2048 bits is weak even without a quantum computer",
+      "recommendation": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "TLSv1.1",
+        "primitive": "protocol",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.tls_config",
+      "scanner": "code",
+      "evidence": {
+        "line": 16,
+        "detail": "SslProtocols"
+      },
+      "confidence": "high",
+      "id": "c4715ee94e659a72",
+      "risk": "BROKEN",
+      "algorithm_id": "tls1.1",
+      "reason": "TLS 1.1 is deprecated (RFC 8996)",
+      "recommendation": "Disable it; use TLS 1.3.",
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "3DES",
@@ -327,7 +514,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECB",
@@ -353,7 +541,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECB",
@@ -379,7 +568,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "MD5",
@@ -405,7 +595,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "SHA1",
@@ -431,7 +622,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -457,7 +649,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "TLSv1.0",
@@ -483,7 +676,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "TLSv1.1",
@@ -509,7 +703,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "MD5",
@@ -535,7 +730,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -561,7 +757,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "TLSv1.0",
@@ -585,9 +782,97 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "des-ede3",
+        "primitive": "block_cipher",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.cipher",
+      "scanner": "code",
+      "evidence": {
+        "line": 11,
+        "detail": "openssl::symm::Cipher"
+      },
+      "confidence": "high",
+      "id": "420359556e0f118e",
+      "risk": "BROKEN",
+      "algorithm_id": "3des",
+      "reason": "64-bit block size (Sweet32); disallowed by NIST since 2024",
+      "recommendation": "Use AES-256-GCM.",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "sha1",
+        "primitive": "hash",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.hash",
+      "scanner": "code",
+      "evidence": {
+        "line": 10,
+        "detail": "openssl::hash::MessageDigest"
+      },
+      "confidence": "high",
+      "id": "561136479ac1e149",
+      "risk": "BROKEN",
+      "algorithm_id": "sha1",
+      "reason": "SHA-1 collisions are practical (SHAttered, 2017)",
+      "recommendation": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "RSA",
+        "primitive": "signature",
+        "key_size": 1024,
+        "curve": null
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 8,
+        "detail": "openssl::rsa::Rsa::generate"
+      },
+      "confidence": "high",
+      "id": "ab5e1322cc3a375b",
+      "risk": "BROKEN",
+      "algorithm_id": "rsa",
+      "reason": "RSA key shorter than 2048 bits is weak even without a quantum computer",
+      "recommendation": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/certs/web.pem",
         "kind": "certificate",
-        "location": "certs/web.pem"
+        "location": "certs/web.pem",
+        "details": {
+          "subject": "CN=www.example",
+          "issuer": "CN=www.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "3f6cc4b0c74e57e3b665fe2b3d60bb64d4e24c01"
+        }
       },
       "algorithm": {
         "raw_name": "EC",
@@ -613,7 +898,14 @@
       "asset": {
         "id": "file:///scan/example-repo/certs/web.pem",
         "kind": "certificate",
-        "location": "certs/web.pem"
+        "location": "certs/web.pem",
+        "details": {
+          "subject": "CN=www.example",
+          "issuer": "CN=www.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "3f6cc4b0c74e57e3b665fe2b3d60bb64d4e24c01"
+        }
       },
       "algorithm": {
         "raw_name": "ECDSA",
@@ -639,7 +931,8 @@
       "asset": {
         "id": "file:///scan/example-repo/deploy/id_ed25519.pub",
         "kind": "public_key",
-        "location": "deploy/id_ed25519.pub"
+        "location": "deploy/id_ed25519.pub",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "Ed25519",
@@ -665,7 +958,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECDH",
@@ -691,7 +985,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "EC",
@@ -717,7 +1012,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "EC",
@@ -743,7 +1039,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -767,9 +1064,64 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ECDH",
+        "primitive": "key_exchange",
+        "key_size": 256,
+        "curve": "secp256r1"
+      },
+      "usage": "code.key_exchange",
+      "scanner": "code",
+      "evidence": {
+        "line": 11,
+        "detail": "System.Security.Cryptography.ECDiffieHellman"
+      },
+      "confidence": "high",
+      "id": "f32b2303ff8ff4d6",
+      "risk": "VULNERABLE",
+      "algorithm_id": "ecdh",
+      "reason": "Elliptic-curve Diffie-Hellman is broken by Shor's algorithm",
+      "recommendation": "Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ECDSA",
+        "primitive": "signature",
+        "key_size": 384,
+        "curve": "secp384r1"
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 10,
+        "detail": "System.Security.Cryptography.ECDsa"
+      },
+      "confidence": "high",
+      "id": "9d38c7872d702e3a",
+      "risk": "VULNERABLE",
+      "algorithm_id": "ecdsa",
+      "reason": "ECDSA is broken by Shor's algorithm",
+      "recommendation": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).",
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "EC",
@@ -795,7 +1147,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "Ed25519",
@@ -821,7 +1174,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -847,7 +1201,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -873,7 +1228,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECDH",
@@ -899,7 +1255,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "X25519",
@@ -925,7 +1282,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ECDSA",
@@ -949,9 +1307,91 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "EC",
+        "primitive": "signature",
+        "key_size": 256,
+        "curve": "secp256r1"
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 9,
+        "detail": "openssl::ec::EcGroup::from_curve_name"
+      },
+      "confidence": "high",
+      "id": "097d50b7bb4df8a3",
+      "risk": "VULNERABLE",
+      "algorithm_id": "ec",
+      "reason": "Elliptic-curve cryptography is broken by Shor's algorithm",
+      "recommendation": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ECDSA",
+        "primitive": "signature",
+        "key_size": 256,
+        "curve": "secp256r1"
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 14,
+        "detail": "RustCrypto p256/p384/p521 ecdsa"
+      },
+      "confidence": "high",
+      "id": "7016fb0fe6eac6ba",
+      "risk": "VULNERABLE",
+      "algorithm_id": "ecdsa",
+      "reason": "ECDSA is broken by Shor's algorithm",
+      "recommendation": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "RSA",
+        "primitive": "signature",
+        "key_size": 3072,
+        "curve": null
+      },
+      "usage": "code.key_generation",
+      "scanner": "code",
+      "evidence": {
+        "line": 12,
+        "detail": "rsa::RsaPrivateKey::new"
+      },
+      "confidence": "high",
+      "id": "58d6b1a8e280d6ca",
+      "risk": "VULNERABLE",
+      "algorithm_id": "rsa",
+      "reason": "RSA is broken by Shor's algorithm at every key size",
+      "recommendation": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "AES",
@@ -975,9 +1415,37 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "HMAC-SHA1",
+        "primitive": "mac",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.mac",
+      "scanner": "code",
+      "evidence": {
+        "line": 13,
+        "detail": "System.Security.Cryptography HMAC"
+      },
+      "confidence": "high",
+      "id": "b0d13891d6d340e7",
+      "risk": "WEAKENED",
+      "algorithm_id": "sha1",
+      "reason": "HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin",
+      "recommendation": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).",
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "sha224",
@@ -1003,7 +1471,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "HMAC-SHA1",
@@ -1029,7 +1498,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "AES",
@@ -1055,7 +1525,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "AES",
@@ -1081,7 +1552,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/server.go",
         "kind": "source_file",
-        "location": "src/server.go"
+        "location": "src/server.go",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "X25519MLKEM768",
@@ -1107,7 +1579,14 @@
       "asset": {
         "id": "file:///scan/example-repo/certs/legacy-api.pem",
         "kind": "certificate",
-        "location": "certs/legacy-api.pem"
+        "location": "certs/legacy-api.pem",
+        "details": {
+          "subject": "CN=legacy-api.example",
+          "issuer": "CN=legacy-api.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "5b3f3d295bc05436a94bdf189ac05a5d2bbefe7a"
+        }
       },
       "algorithm": {
         "raw_name": "sha256",
@@ -1133,7 +1612,14 @@
       "asset": {
         "id": "file:///scan/example-repo/certs/web.pem",
         "kind": "certificate",
-        "location": "certs/web.pem"
+        "location": "certs/web.pem",
+        "details": {
+          "subject": "CN=www.example",
+          "issuer": "CN=www.example",
+          "not_before": "2026-11-05T19:11:10+00:00",
+          "not_after": "2026-12-06T19:11:10+00:00",
+          "serial": "3f6cc4b0c74e57e3b665fe2b3d60bb64d4e24c01"
+        }
       },
       "algorithm": {
         "raw_name": "sha256",
@@ -1159,7 +1645,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/Legacy.java",
         "kind": "source_file",
-        "location": "src/Legacy.java"
+        "location": "src/Legacy.java",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ML-KEM-768",
@@ -1183,9 +1670,37 @@
     },
     {
       "asset": {
+        "id": "file:///scan/example-repo/src/Payments.cs",
+        "kind": "source_file",
+        "location": "src/Payments.cs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ML-KEM-768",
+        "primitive": "kem",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.key_exchange",
+      "scanner": "code",
+      "evidence": {
+        "line": 18,
+        "detail": "System.Security.Cryptography.MLKem"
+      },
+      "confidence": "high",
+      "id": "d76be08546db9629",
+      "risk": "PQ_SAFE",
+      "algorithm_id": "ml-kem",
+      "reason": "ML-KEM is a NIST post-quantum KEM standard (FIPS 203)",
+      "recommendation": null,
+      "mosca": null
+    },
+    {
+      "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "HMAC-SHA256",
@@ -1211,7 +1726,8 @@
       "asset": {
         "id": "file:///scan/example-repo/src/crypto_utils.py",
         "kind": "source_file",
-        "location": "src/crypto_utils.py"
+        "location": "src/crypto_utils.py",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "HMAC-SHA256",
@@ -1230,6 +1746,33 @@
       "risk": "PQ_SAFE",
       "algorithm_id": "sha256",
       "reason": "SHA-256 keeps about 128-bit preimage security under Grover's algorithm",
+      "recommendation": null,
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///scan/example-repo/src/signer.rs",
+        "kind": "source_file",
+        "location": "src/signer.rs",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ML-KEM-768",
+        "primitive": "kem",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "code.key_exchange",
+      "scanner": "code",
+      "evidence": {
+        "line": 15,
+        "detail": "ml_kem"
+      },
+      "confidence": "high",
+      "id": "6440e3df7207c765",
+      "risk": "PQ_SAFE",
+      "algorithm_id": "ml-kem",
+      "reason": "ML-KEM is a NIST post-quantum KEM standard (FIPS 203)",
       "recommendation": null,
       "mosca": null
     }
