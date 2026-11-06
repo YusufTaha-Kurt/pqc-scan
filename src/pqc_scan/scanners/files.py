@@ -369,7 +369,7 @@ def iter_files(root: Path, config: ScanConfig) -> Iterator[Path]:
             yield path
 
 
-def _read_candidate(path: Path, max_size: int) -> bytes | None:
+def read_candidate(path: Path, max_size: int) -> bytes | None:
     """File content, or None for non-regular, oversized or unreadable files."""
     try:
         info = path.stat()
@@ -399,7 +399,7 @@ class FilesScanner(Scanner):
 
         observations: list[Observation] = []
         for path in iter_files(root, config):
-            data = _read_candidate(path, config.max_file_size)
+            data = read_candidate(path, config.max_file_size)
             if data is None:
                 continue
             observations += self._observations(path, base, parse_file(path, data))

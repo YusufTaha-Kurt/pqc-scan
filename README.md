@@ -51,7 +51,7 @@ Private key **contents are never reported** — only path, type and size.
 pip install -e ".[dev]"      # development install (PyPI release planned for v0.2)
 ```
 
-Optional extras: `[code]` (Semgrep), `[report]` (HTML and
+Optional extras: `[report]` (HTML and
 CycloneDX CBOM), `[all]`.
 
 ## Usage

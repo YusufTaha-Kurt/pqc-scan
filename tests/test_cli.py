@@ -49,7 +49,9 @@ def test_version() -> None:
     assert __version__ in result.output
 
 
-@pytest.mark.parametrize("command", [[], ["scan"], ["scan", "files"], ["scan", "tls"]])
+@pytest.mark.parametrize(
+    "command", [[], ["scan"], ["scan", "files"], ["scan", "tls"], ["scan", "code"]]
+)
 def test_help_contains_authorization_warning(command: list[str]) -> None:
     result = invoke(*command, "--help")
     assert result.exit_code == 0
@@ -265,3 +267,15 @@ def test_scan_tls_unreachable_exit_code() -> None:
     result = invoke("scan", "tls", f"127.0.0.1:{port}", "--timeout", "0.5")
     assert result.exit_code == ExitCode.ALL_TARGETS_FAILED
     assert "connection_refused" in result.output
+
+
+# --- scan code ------------------------------------------------------------------
+
+
+def test_scan_code_fail_on() -> None:
+    fixtures = str(Path(__file__).parent / "fixtures" / "code")
+    result = invoke("scan", "code", fixtures, "-f", "json", "--fail-on", "BROKEN")
+    assert result.exit_code == ExitCode.FAIL_ON
+    report = ScanResult.model_validate_json(result.stdout)
+    assert report.scanners == ["code"]
+    assert {f.asset.location for f in report.findings} >= {"Sample.java", "sample.go"}

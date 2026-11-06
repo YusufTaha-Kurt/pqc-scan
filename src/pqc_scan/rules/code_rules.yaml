@@ -1,0 +1,392 @@
+# Rules for the `code` scanner (decision D-12): which source-code APIs use
+# which algorithm. This file only *finds* algorithms; whether they are safe
+# is decided by algorithms.yaml.
+#
+# python_calls       matched on the Python AST by fully qualified name, after
+#                    resolving imports and aliases ("Cryptodome." is read as
+#                    "Crypto.").
+# python_attributes  attribute references (constants), e.g. ssl.PROTOCOL_TLSv1.
+# patterns           regular expressions for Java/Kotlin, JavaScript/TypeScript
+#                    and Go. Comments are blanked out before matching; string
+#                    literals are kept. Named groups: algorithm, key_size, curve.
+#
+# Fields:
+#   algorithm      fixed algorithm name (or taken from an argument / regex group)
+#   transform      how to turn an algorithm string into algorithms:
+#                  none | jca_signature | jca_cipher | openssl_cipher | jwt | hmac | tls_version | webcrypto
+#   key_size       {keyword, position}: argument holding the key size (Python)
+#   curve          {keyword, position}: argument holding the curve (Python)
+#   key_size_after regex searched after the match for the key size (patterns)
+#   curve_after    same, for the curve name
+#   follow         how far *_after looks: lines (next 8 lines, default) or
+#                  statement (up to the first ';')
+#   ignore         algorithm values to skip (e.g. the generic "TLS")
+#   usage          key_generation | signature | cipher | hash | mac | key_exchange | tls_config | kdf
+
+schema_version: 1
+
+python_calls:
+  # --- cryptography (pyca) -------------------------------------------------
+  - call: cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: key_size, position: 1}
+  - call: cryptography.hazmat.primitives.asymmetric.dsa.generate_private_key
+    algorithm: DSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: key_size, position: 0}
+  - call: cryptography.hazmat.primitives.asymmetric.dh.generate_parameters
+    algorithm: DH
+    primitive: key_exchange
+    usage: key_exchange
+    key_size: {keyword: key_size, position: 1}
+  - call: cryptography.hazmat.primitives.asymmetric.ec.generate_private_key
+    algorithm: EC
+    primitive: signature
+    usage: key_generation
+    curve: {keyword: curve, position: 0}
+  - call: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey.generate
+    algorithm: Ed25519
+    primitive: signature
+    usage: key_generation
+  - call: cryptography.hazmat.primitives.asymmetric.ed448.Ed448PrivateKey.generate
+    algorithm: Ed448
+    primitive: signature
+    usage: key_generation
+  - call: cryptography.hazmat.primitives.asymmetric.x25519.X25519PrivateKey.generate
+    algorithm: X25519
+    primitive: key_exchange
+    usage: key_exchange
+  - call: cryptography.hazmat.primitives.asymmetric.x448.X448PrivateKey.generate
+    algorithm: X448
+    primitive: key_exchange
+    usage: key_exchange
+  - call: cryptography.hazmat.primitives.asymmetric.mlkem.MLKEM768PrivateKey.generate
+    algorithm: ML-KEM-768
+    primitive: kem
+    usage: key_exchange
+  - call: cryptography.hazmat.primitives.asymmetric.mlkem.MLKEM1024PrivateKey.generate
+    algorithm: ML-KEM-1024
+    primitive: kem
+    usage: key_exchange
+  - call: cryptography.hazmat.primitives.asymmetric.mldsa.MLDSA44PrivateKey.generate
+    algorithm: ML-DSA-44
+    primitive: signature
+    usage: key_generation
+  - call: cryptography.hazmat.primitives.asymmetric.mldsa.MLDSA65PrivateKey.generate
+    algorithm: ML-DSA-65
+    primitive: signature
+    usage: key_generation
+  - call: cryptography.hazmat.primitives.asymmetric.mldsa.MLDSA87PrivateKey.generate
+    algorithm: ML-DSA-87
+    primitive: signature
+    usage: key_generation
+  - {call: cryptography.hazmat.primitives.hashes.MD5, algorithm: MD5, primitive: hash, usage: hash}
+  - {call: cryptography.hazmat.primitives.hashes.SHA1, algorithm: SHA1, primitive: hash, usage: hash}
+  - {call: cryptography.hazmat.primitives.hashes.SHA224, algorithm: SHA224, primitive: hash, usage: hash}
+  - {call: cryptography.hazmat.primitives.ciphers.algorithms.TripleDES, algorithm: 3DES, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES, algorithm: 3DES, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.primitives.ciphers.algorithms.ARC4, algorithm: RC4, primitive: stream_cipher, usage: cipher}
+  - {call: cryptography.hazmat.decrepit.ciphers.algorithms.ARC4, algorithm: RC4, primitive: stream_cipher, usage: cipher}
+  - {call: cryptography.hazmat.primitives.ciphers.algorithms.Blowfish, algorithm: Blowfish, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.decrepit.ciphers.algorithms.Blowfish, algorithm: Blowfish, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.primitives.ciphers.algorithms.IDEA, algorithm: IDEA, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.decrepit.ciphers.algorithms.IDEA, algorithm: IDEA, primitive: block_cipher, usage: cipher}
+  - {call: cryptography.hazmat.primitives.ciphers.modes.ECB, algorithm: ECB, primitive: block_cipher, usage: cipher}
+
+  # --- hashlib / hmac ----------------------------------------------------------
+  - {call: hashlib.md5, algorithm: MD5, primitive: hash, usage: hash}
+  - {call: hashlib.sha1, algorithm: SHA1, primitive: hash, usage: hash}
+  - {call: hashlib.sha224, algorithm: SHA224, primitive: hash, usage: hash}
+  - call: hashlib.new
+    algorithm_arg: {keyword: name, position: 0}
+    primitive: hash
+    usage: hash
+  - call: hashlib.pbkdf2_hmac
+    algorithm_arg: {keyword: hash_name, position: 0}
+    transform: hmac
+    primitive: mac
+    usage: kdf
+  - call: hmac.new
+    algorithm_arg: {keyword: digestmod, position: 2}
+    transform: hmac
+    primitive: mac
+    usage: mac
+
+  # --- pycryptodome ----------------------------------------------------------
+  - call: Crypto.PublicKey.RSA.generate
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: bits, position: 0}
+  - call: Crypto.PublicKey.DSA.generate
+    algorithm: DSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: bits, position: 0}
+  - call: Crypto.PublicKey.ECC.generate
+    algorithm: EC
+    primitive: signature
+    usage: key_generation
+    curve: {keyword: curve, position: -1}
+  - {call: Crypto.Cipher.DES.new, algorithm: DES, primitive: block_cipher, usage: cipher}
+  - {call: Crypto.Cipher.DES3.new, algorithm: 3DES, primitive: block_cipher, usage: cipher}
+  - {call: Crypto.Cipher.ARC4.new, algorithm: RC4, primitive: stream_cipher, usage: cipher}
+  - {call: Crypto.Cipher.Blowfish.new, algorithm: Blowfish, primitive: block_cipher, usage: cipher}
+  - {call: Crypto.Hash.MD5.new, algorithm: MD5, primitive: hash, usage: hash}
+  - {call: Crypto.Hash.SHA1.new, algorithm: SHA1, primitive: hash, usage: hash}
+
+  # --- paramiko ----------------------------------------------------------------
+  - call: paramiko.RSAKey.generate
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: bits, position: 0}
+  - call: paramiko.DSSKey.generate
+    algorithm: DSA
+    primitive: signature
+    usage: key_generation
+    key_size: {keyword: bits, position: 0}
+
+  # --- PyJWT -------------------------------------------------------------------
+  - call: jwt.encode
+    algorithm_arg: {keyword: algorithm, position: 2}
+    transform: jwt
+    primitive: signature
+    usage: signature
+
+python_attributes:
+  - {name: ssl.PROTOCOL_SSLv2, algorithm: SSLv2, primitive: protocol, usage: tls_config}
+  - {name: ssl.PROTOCOL_SSLv3, algorithm: SSLv3, primitive: protocol, usage: tls_config}
+  - {name: ssl.PROTOCOL_TLSv1, algorithm: TLSv1.0, primitive: protocol, usage: tls_config}
+  - {name: ssl.PROTOCOL_TLSv1_1, algorithm: TLSv1.1, primitive: protocol, usage: tls_config}
+  - {name: ssl.TLSVersion.SSLv3, algorithm: SSLv3, primitive: protocol, usage: tls_config}
+  - {name: ssl.TLSVersion.TLSv1, algorithm: TLSv1.0, primitive: protocol, usage: tls_config}
+  - {name: ssl.TLSVersion.TLSv1_1, algorithm: TLSv1.1, primitive: protocol, usage: tls_config}
+  - {name: Crypto.Cipher.AES.MODE_ECB, algorithm: ECB, primitive: block_cipher, usage: cipher}
+  - {name: Crypto.Cipher.DES3.MODE_ECB, algorithm: ECB, primitive: block_cipher, usage: cipher}
+
+patterns:
+  # --- Java / Kotlin (JCA) ------------------------------------------------
+  - id: jca-keypairgenerator
+    languages: [java]
+    regex: 'KeyPairGenerator\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: KeyPairGenerator.getInstance
+    primitive: signature
+    usage: key_generation
+    key_size_after: '\.initialize\s*\(\s*(\d+)'
+  - id: jca-keygenerator
+    languages: [java]
+    regex: 'KeyGenerator\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: KeyGenerator.getInstance
+    primitive: block_cipher
+    usage: key_generation
+    key_size_after: '\.init\s*\(\s*(\d+)'
+  - id: jca-signature
+    languages: [java]
+    regex: '\bSignature\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: Signature.getInstance
+    primitive: signature
+    usage: signature
+    transform: jca_signature
+  - id: jca-cipher
+    languages: [java]
+    regex: '\bCipher\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: Cipher.getInstance
+    primitive: block_cipher
+    usage: cipher
+    transform: jca_cipher
+  - id: jca-messagedigest
+    languages: [java]
+    regex: 'MessageDigest\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: MessageDigest.getInstance
+    primitive: hash
+    usage: hash
+  - id: jca-mac
+    languages: [java]
+    regex: '\bMac\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: Mac.getInstance
+    primitive: mac
+    usage: mac
+  - id: jca-keyagreement
+    languages: [java]
+    regex: 'KeyAgreement\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: KeyAgreement.getInstance
+    primitive: key_exchange
+    usage: key_exchange
+  - id: jca-ecgenparameterspec
+    languages: [java]
+    regex: 'ECGenParameterSpec\s*\(\s*"(?P<curve>[^"]+)"'
+    api: ECGenParameterSpec
+    algorithm: EC
+    primitive: signature
+    usage: key_generation
+  - id: jca-sslcontext
+    languages: [java]
+    regex: 'SSLContext\s*\.\s*getInstance\s*\(\s*"(?P<algorithm>[^"]+)"'
+    api: SSLContext.getInstance
+    primitive: protocol
+    usage: tls_config
+    transform: tls_version
+    ignore: [TLS, Default, SSL]
+
+  # --- JavaScript / TypeScript --------------------------------------------
+  - id: node-generatekeypair
+    languages: [javascript]
+    regex: 'generateKeyPair(?:Sync)?\s*\(\s*[''"`](?P<algorithm>rsa|rsa-pss|dsa|ec|ed25519|ed448|x25519|x448|dh)[''"`]'
+    api: crypto.generateKeyPair
+    follow: statement
+    primitive: signature
+    usage: key_generation
+    key_size_after: 'modulusLength\s*:\s*(\d+)'
+    curve_after: 'namedCurve\s*:\s*[''"`]([\w-]+)[''"`]'
+  - id: node-createhash
+    languages: [javascript]
+    regex: 'createHash\s*\(\s*[''"`](?P<algorithm>[\w-]+)[''"`]'
+    api: crypto.createHash
+    primitive: hash
+    usage: hash
+  - id: node-createhmac
+    languages: [javascript]
+    regex: 'createHmac\s*\(\s*[''"`](?P<algorithm>[\w-]+)[''"`]'
+    api: crypto.createHmac
+    primitive: mac
+    usage: mac
+    transform: hmac
+  - id: node-createcipheriv
+    languages: [javascript]
+    regex: 'create(?:De)?[Cc]ipher(?:iv)?\s*\(\s*[''"`](?P<algorithm>[\w-]+)[''"`]'
+    api: crypto.createCipheriv
+    primitive: block_cipher
+    usage: cipher
+    transform: openssl_cipher
+  - id: node-createecdh
+    languages: [javascript]
+    regex: 'createECDH\s*\(\s*[''"`](?P<curve>[\w-]+)[''"`]'
+    api: crypto.createECDH
+    algorithm: ECDH
+    primitive: key_exchange
+    usage: key_exchange
+  - id: node-createdh
+    languages: [javascript]
+    regex: 'createDiffieHellman\s*\(\s*(?P<key_size>\d+)'
+    api: crypto.createDiffieHellman
+    algorithm: DH
+    primitive: key_exchange
+    usage: key_exchange
+  - id: webcrypto-algorithm
+    languages: [javascript]
+    regex: 'subtle\s*\.\s*(?:generateKey|importKey|sign|encrypt|deriveKey|deriveBits)\s*\([^)]*?name\s*:\s*[''"`](?P<algorithm>[\w-]+)[''"`]'
+    api: crypto.subtle
+    follow: statement
+    primitive: signature
+    usage: key_generation
+    transform: webcrypto
+    key_size_after: '(?:modulusLength|\blength)\s*:\s*(\d+)'
+    curve_after: 'namedCurve\s*:\s*[''"`]([\w-]+)[''"`]'
+  - id: jwt-algorithm
+    languages: [javascript]
+    regex: '\balgorithms?\s*:\s*\[?\s*[''"`](?P<algorithm>(?:RS|PS|ES|HS)(?:256|384|512)|EdDSA|none)[''"`]'
+    api: JWT algorithm
+    primitive: signature
+    usage: signature
+    transform: jwt
+  - id: forge-rsa
+    languages: [javascript]
+    regex: 'pki\s*\.\s*rsa\s*\.\s*generateKeyPair\s*\(\s*(?:\{\s*bits\s*:\s*)?(?P<key_size>\d+)'
+    api: forge.pki.rsa.generateKeyPair
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+  - id: forge-md
+    languages: [javascript]
+    regex: 'forge\s*\.\s*md\s*\.\s*(?P<algorithm>md5|sha1)\s*\.\s*create'
+    api: forge.md
+    primitive: hash
+    usage: hash
+  - id: node-tls-version
+    languages: [javascript]
+    regex: '(?:minVersion|maxVersion|secureProtocol)\s*:\s*[''"`](?P<algorithm>TLSv1(?:\.1)?|TLSv1_method|TLSv1_1_method|SSLv3_method|SSLv23_method)[''"`]'
+    api: tls options
+    primitive: protocol
+    usage: tls_config
+    transform: tls_version
+    ignore: [SSLv23]
+
+  # --- Go -----------------------------------------------------------------
+  - id: go-rsa-generatekey
+    languages: [go]
+    regex: 'rsa\s*\.\s*GenerateKey\s*\([^,()]*(?:\([^()]*\))?[^,()]*,\s*(?P<key_size>\d+)'
+    api: rsa.GenerateKey
+    algorithm: RSA
+    primitive: signature
+    usage: key_generation
+  - id: go-ecdsa-generatekey
+    languages: [go]
+    regex: 'ecdsa\s*\.\s*GenerateKey\s*\(\s*elliptic\s*\.\s*(?P<curve>P224|P256|P384|P521)\s*\(\s*\)'
+    api: ecdsa.GenerateKey
+    algorithm: ECDSA
+    primitive: signature
+    usage: key_generation
+  - id: go-ed25519
+    languages: [go]
+    regex: '\bed25519\s*\.\s*GenerateKey\b'
+    api: ed25519.GenerateKey
+    algorithm: Ed25519
+    primitive: signature
+    usage: key_generation
+  - id: go-ecdh
+    languages: [go]
+    regex: '\becdh\s*\.\s*(?P<curve>P256|P384|P521)\s*\(\s*\)'
+    api: crypto/ecdh
+    algorithm: ECDH
+    primitive: key_exchange
+    usage: key_exchange
+  - id: go-x25519
+    languages: [go]
+    regex: '\becdh\s*\.\s*X25519\s*\(\s*\)'
+    api: crypto/ecdh.X25519
+    algorithm: X25519
+    primitive: key_exchange
+    usage: key_exchange
+  - id: go-dsa
+    languages: [go]
+    regex: 'dsa\s*\.\s*L(?P<key_size>1024|2048|3072)N\d+'
+    api: crypto/dsa
+    algorithm: DSA
+    primitive: signature
+    usage: key_generation
+  - id: go-mlkem
+    languages: [go]
+    regex: '\bmlkem\s*\.\s*GenerateKey(?P<algorithm>768|1024)\b'
+    api: crypto/mlkem
+    algorithm_prefix: ML-KEM-
+    primitive: kem
+    usage: key_exchange
+  - {id: go-md5, languages: [go], regex: '\bmd5\s*\.\s*(?:New|Sum)\b', api: crypto/md5, algorithm: MD5, primitive: hash, usage: hash}
+  - {id: go-sha1, languages: [go], regex: '\bsha1\s*\.\s*(?:New|Sum)\b', api: crypto/sha1, algorithm: SHA1, primitive: hash, usage: hash}
+  - {id: go-des, languages: [go], regex: '\bdes\s*\.\s*NewCipher\b', api: des.NewCipher, algorithm: DES, primitive: block_cipher, usage: cipher}
+  - {id: go-3des, languages: [go], regex: '\bdes\s*\.\s*NewTripleDESCipher\b', api: des.NewTripleDESCipher, algorithm: 3DES, primitive: block_cipher, usage: cipher}
+  - {id: go-rc4, languages: [go], regex: '\brc4\s*\.\s*NewCipher\b', api: rc4.NewCipher, algorithm: RC4, primitive: stream_cipher, usage: cipher}
+  - id: go-tls-version
+    languages: [go]
+    regex: '\btls\s*\.\s*Version(?P<algorithm>SSL30|TLS10|TLS11)\b'
+    api: tls.Config version
+    primitive: protocol
+    usage: tls_config
+    transform: tls_version
+  - id: go-tls-curve
+    languages: [go]
+    regex: '\btls\s*\.\s*(?P<algorithm>X25519MLKEM768|SecP256r1MLKEM768|SecP384r1MLKEM1024|X25519)\b'
+    api: tls.Config CurvePreferences
+    primitive: key_exchange
+    usage: key_exchange
+  - id: go-tls-nist-curve
+    languages: [go]
+    regex: '\btls\s*\.\s*Curve(?P<curve>P256|P384|P521)\b'
+    api: tls.Config CurvePreferences
+    algorithm: ECDH
+    primitive: key_exchange
+    usage: key_exchange

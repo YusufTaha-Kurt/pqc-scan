@@ -25,6 +25,7 @@ from pqc_scan.engine import ScanJob, run_scan
 from pqc_scan.models import DEFAULT_EXCLUDES, MoscaInputs, RiskClass, ScanConfig, ScanResult
 from pqc_scan.reporters import IMPLEMENTED_FORMATS, ReportFormat, console, render
 from pqc_scan.scanners.base import Scanner
+from pqc_scan.scanners.code import CodeScanner
 from pqc_scan.scanners.files import FilesScanner
 from pqc_scan.scanners.tls import TLSScanner
 
@@ -128,6 +129,29 @@ MoscaZOption = Annotated[
 
 _DEFAULTS = ScanConfig()
 
+PathsArgument = Annotated[
+    list[str] | None,
+    typer.Argument(help="Directories or files to scan.", show_default=False),
+]
+ExcludeOption = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--exclude",
+        "-e",
+        help="Skip files and directories matching this glob (repeatable). "
+        "Added to the defaults (.git, node_modules, .venv, ...).",
+    ),
+]
+MaxFileSizeOption = Annotated[
+    int, typer.Option("--max-file-size", min=1, help="Skip files larger than this (bytes).")
+]
+FollowSymlinksOption = Annotated[
+    bool, typer.Option("--follow-symlinks", help="Follow symbolic links.")
+]
+TimeoutOption = Annotated[
+    float, typer.Option("--timeout", min=0.1, help="Seconds per network operation.")
+]
+
 
 # --- helpers ------------------------------------------------------------------
 
@@ -217,31 +241,32 @@ def _run(
 # --- commands -----------------------------------------------------------------
 
 
+def _local_config(
+    concurrency: int,
+    follow_symlinks: bool,
+    max_file_size: int,
+    exclude: list[str] | None,
+    mosca: MoscaInputs | None,
+) -> ScanConfig:
+    return ScanConfig(
+        concurrency=concurrency,
+        follow_symlinks=follow_symlinks,
+        max_file_size=max_file_size,
+        exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
+        mosca=mosca,
+    )
+
+
 @scan_app.command("files", epilog=AUTHORIZATION_WARNING)
 def scan_files(
-    paths: Annotated[
-        list[str] | None,
-        typer.Argument(help="Directories or files to scan.", show_default=False),
-    ] = None,
+    paths: PathsArgument = None,
     targets_file: TargetsOption = None,
     fmt: FormatOption = ReportFormat.CONSOLE,
     out: OutOption = None,
     fail_on: FailOnOption = None,
-    exclude: Annotated[
-        list[str] | None,
-        typer.Option(
-            "--exclude",
-            "-e",
-            help="Skip files and directories matching this glob (repeatable). "
-            "Added to the defaults (.git, node_modules, .venv, ...).",
-        ),
-    ] = None,
-    max_file_size: Annotated[
-        int, typer.Option("--max-file-size", min=1, help="Skip files larger than this (bytes).")
-    ] = _DEFAULTS.max_file_size,
-    follow_symlinks: Annotated[
-        bool, typer.Option("--follow-symlinks", help="Follow symbolic links.")
-    ] = False,
+    exclude: ExcludeOption = None,
+    max_file_size: MaxFileSizeOption = _DEFAULTS.max_file_size,
+    follow_symlinks: FollowSymlinksOption = False,
     concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
@@ -250,14 +275,34 @@ def scan_files(
     """Find certificates and keys (PEM, DER, OpenSSH) in local files."""
     _check_format(fmt)
     targets = collect_targets(paths, targets_file)
-    config = ScanConfig(
-        concurrency=concurrency,
-        follow_symlinks=follow_symlinks,
-        max_file_size=max_file_size,
-        exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
-        mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
-    )
+    mosca = mosca_inputs(mosca_x, mosca_y, mosca_z)
+    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca)
     _run(FilesScanner(), targets, config, fmt, out, fail_on)
+
+
+@scan_app.command("code", epilog=AUTHORIZATION_WARNING)
+def scan_code(
+    paths: PathsArgument = None,
+    targets_file: TargetsOption = None,
+    fmt: FormatOption = ReportFormat.CONSOLE,
+    out: OutOption = None,
+    fail_on: FailOnOption = None,
+    exclude: ExcludeOption = None,
+    max_file_size: MaxFileSizeOption = _DEFAULTS.max_file_size,
+    follow_symlinks: FollowSymlinksOption = False,
+    concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
+    mosca_x: MoscaXOption = None,
+    mosca_y: MoscaYOption = None,
+    mosca_z: MoscaZOption = None,
+) -> None:
+    """Find cryptography API usage in source code (Python, Java/Kotlin,
+    JavaScript/TypeScript, Go). Reports file, line and API name only.
+    """
+    _check_format(fmt)
+    targets = collect_targets(paths, targets_file)
+    mosca = mosca_inputs(mosca_x, mosca_y, mosca_z)
+    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca)
+    _run(CodeScanner(), targets, config, fmt, out, fail_on)
 
 
 @scan_app.command("tls", epilog=AUTHORIZATION_WARNING)
@@ -273,10 +318,7 @@ def scan_tls(
     fmt: FormatOption = ReportFormat.CONSOLE,
     out: OutOption = None,
     fail_on: FailOnOption = None,
-    timeout: Annotated[
-        float,
-        typer.Option("--timeout", min=0.1, help="Seconds per network operation."),
-    ] = _DEFAULTS.timeout,
+    timeout: TimeoutOption = _DEFAULTS.timeout,
     concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,

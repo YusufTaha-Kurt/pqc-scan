@@ -278,10 +278,29 @@ on servers that only offer algorithms it does not support (e.g.
 
 ### 5.4 `code`
 
-- Semgrep rules in `rules/semgrep/` for Python and Java (v0.1), JS/TS and Go
-  (v0.2). Each rule's metadata names the canonical algorithm and primitive so
-  the scanner can build an `Observation` without interpreting messages.
-- A Python-AST fallback for Python files when Semgrep is unavailable **[D-6]**.
+Implementation note **[D-12]**: no Semgrep (a 72 MB Linux/macOS-only wheel).
+Two built-in engines read the same data file, `rules/code_rules.yaml`:
+
+- **Python:** `ast` parse; imports and aliases are resolved (`from x import y
+  as z`, `Cryptodome.` → `Crypto.`), so calls are matched by fully qualified
+  name (`python_calls`) and constants by attribute (`python_attributes`, e.g.
+  `ssl.PROTOCOL_TLSv1`, `AES.MODE_ECB`). Literal arguments give key sizes and
+  curves; a non-literal size lowers confidence to `medium`; a non-literal
+  algorithm name is not reported. Files that do not parse are skipped.
+- **Java/Kotlin, JavaScript/TypeScript, Go:** comments are blanked out (string
+  literals and line numbers kept) and regular-expression `patterns` are
+  matched. Named groups give `algorithm`, `key_size`, `curve`;
+  `key_size_after` / `curve_after` look ahead (next 8 lines, or to the end of
+  the statement) for values set separately, e.g. `kpg.initialize(2048)`.
+- **Transforms** turn API strings into algorithms: `SHA256withECDSA` → ECDSA +
+  SHA256, `AES/ECB/PKCS5Padding` → AES + ECB (a bare Java cipher name implies
+  ECB), `aes-128-cbc` → AES-128, JOSE names (`RS256`, `HS256`, `none`), TLS
+  version constants, WebCrypto names.
+- Usages: `code.key_generation`, `code.signature`, `code.cipher`, `code.hash`,
+  `code.mac`, `code.kdf`, `code.key_exchange`, `code.tls_config`. Asset:
+  `file:///abs/path` (`source_file`).
+- Known limits: no data-flow analysis (a name chosen at run time is not
+  seen), regex rules may match inside strings that look like code.
 - Detects: RSA/EC/DH/DSA key generation and usage, weak hashes (MD5, SHA-1),
   weak ciphers (DES, 3DES, RC4, ECB mode), hard-coded key sizes.
 - Evidence contains file path and line number only (and at most the matched
@@ -424,5 +443,5 @@ the diff.
   `pqc-scan = "pqc_scan.cli:app"`.
 - `rules/**/*.yaml` and `templates/*.j2` shipped as package data and loaded via
   `importlib.resources`.
-- Optional extras: `[code]` (semgrep), `[report]` (jinja2,
+- Optional extras: `[report]` (jinja2,
   cyclonedx-python-lib), `[dev]`, `[all]` **[D-6]**.

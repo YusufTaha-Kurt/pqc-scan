@@ -59,11 +59,11 @@ Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gi
 - CLI: `typer` · terminal çıktısı: `rich` · veri modelleri: `pydantic` v2
 - TLS: ek bağımlılık yok — kendi saf Python ClientHello sorgumuz (sürümler, şifre takımları, hibrit PQ grupları dahil anahtar değişim grupları) + sertifika için standart `ssl` modülü; sertifika/anahtar ayrıştırma: `cryptography` (karar: D-2, D-11 — sslyze kullanılmaz)
 - SSH: ek bağımlılık yok — ham soketle sunucunun KEXINIT mesajı okunur, oturum açılmaz (karar: D-5, paramiko kullanılmaz)
-- Kod tarama: Semgrep kuralları (`rules/semgrep/`) + basit dosyalar için Python AST
+- Kod tarama: ek bağımlılık yok — Python için AST, Java/Kotlin, JS/TS ve Go için desen kuralları; hepsi `rules/code_rules.yaml` içinde veri olarak (karar: D-12 — Semgrep kullanılmaz)
 - Rapor: JSON, HTML (`jinja2`), CycloneDX CBOM (`cyclonedx-python-lib`)
 - Geliştirme: `pytest`, `ruff` (lint + format), `mypy` (strict), `pre-commit`
 - Paketleme: `pyproject.toml` (hatchling), `src/` düzeni
-- Ağır bağımlılıklar opsiyonel extra'dır: `[code]` (semgrep), `[report]` (jinja2, cyclonedx), `[dev]`, `[all]`. Semgrep yoksa Python dosyaları için AST yedeği çalışır. (karar: D-6)
+- Ağır bağımlılıklar opsiyonel extra'dır: `[report]` (jinja2), `[dev]`, `[all]`. (karar: D-6, D-11, D-12)
 - Eşzamanlılık: `concurrent.futures.ThreadPoolExecutor` (karar: D-4)
 
 Yeni bir bağımlılık eklemeden önce gerekçesini PR açıklamasında belirt.
@@ -103,7 +103,7 @@ pqc-scan/
 │   │   └── cbom.py
 │   ├── rules/
 │   │   ├── algorithms.yaml
-│   │   └── semgrep/*.yaml
+│   │   └── code_rules.yaml
 │   └── templates/report.html.j2
 ├── tests/
 │   ├── fixtures/            # test için üretilmiş sertifikalar, anahtarlar, örnek kodlar
@@ -166,7 +166,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
 - [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
 - [x] `tls` tarayıcısı
-- [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
+- [x] `code` tarayıcısı (Python AST + Java/Kotlin, JS/TS, Go desen kuralları)
 - [x] Konsol ve JSON raporlayıcı
 - [ ] README: kurulum, kullanım, demo GIF, etik uyarı
 
@@ -174,7 +174,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [ ] `ssh` tarayıcısı
 - [ ] HTML rapor ve CycloneDX CBOM çıktısı
 - [ ] Mosca öncelik skoru
-- [ ] JavaScript/TypeScript ve Go kod kuralları
+- [x] JavaScript/TypeScript ve Go kod kuralları
 - [ ] PyPI yayını
 
 **v0.3 ve sonrası**

@@ -35,9 +35,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-code = ["semgrep>=1.80"]
 report = ["jinja2>=3.1", "cyclonedx-python-lib>=8.0"]
-all = ["pqc-scan[code,report]"]
+all = ["pqc-scan[report]"]
 dev = [
     "jsonschema>=4.18",
     "mypy>=1.10",
@@ -70,6 +69,8 @@ include = ["src/pqc_scan", "tests", "LICENSE", "README.md"]
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# Sample code with deliberately weak cryptography, scanned by the tests.
+extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
 select = [
