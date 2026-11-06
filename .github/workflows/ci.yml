@@ -42,3 +42,26 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest -q --cov=pqc_scan --cov-report=term-missing
+
+  docker:
+    name: Container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t pqc-scan:ci .
+      - run: docker run --rm pqc-scan:ci --version
+      - run: docker run --rm -v "$PWD/tests/fixtures/code:/scan:ro" pqc-scan:ci scan code /scan --format cbom
+
+  action:
+    name: GitHub Action (self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pqc
+        uses: ./
+        with:
+          path: tests/fixtures/code
+          fail-on: ""
+      - run: test "${{ steps.pqc.outputs.worst-risk }}" = "BROKEN"
