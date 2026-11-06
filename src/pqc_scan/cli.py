@@ -21,9 +21,12 @@ from pydantic import ValidationError
 from rich.console import Console
 
 from pqc_scan import __version__
+from pqc_scan.diff import build as build_diff
+from pqc_scan.diff import diff
+from pqc_scan.diff import render_console as render_diff_console
 from pqc_scan.engine import ScanJob, run_scan
 from pqc_scan.models import DEFAULT_EXCLUDES, MoscaInputs, RiskClass, ScanConfig, ScanResult
-from pqc_scan.reporters import IMPLEMENTED_FORMATS, ReportFormat, console, render
+from pqc_scan.reporters import ReportFormat, console, missing_dependency, render
 from pqc_scan.scanners.base import Scanner
 from pqc_scan.scanners.code import CodeScanner
 from pqc_scan.scanners.files import FilesScanner
@@ -195,8 +198,9 @@ def mosca_inputs(x: float | None, y: float | None, z: float | None) -> MoscaInpu
 
 def _check_format(fmt: ReportFormat) -> None:
     """Fail before scanning if the format cannot be produced."""
-    if fmt not in IMPLEMENTED_FORMATS:
-        raise typer.BadParameter(f"'{fmt.value}' is not implemented yet", param_hint="--format")
+    problem = missing_dependency(fmt)
+    if problem:
+        raise typer.BadParameter(problem, param_hint="--format")
 
 
 def emit(result: ScanResult, fmt: ReportFormat, out: Path | None) -> None:
@@ -459,6 +463,58 @@ def scan_all(
     _run_jobs(jobs, config, fmt, out, fail_on)
 
 
+def _load_result(path: Path) -> ScanResult:
+    try:
+        return ScanResult.model_validate_json(path.read_bytes())
+    except OSError as exc:
+        raise typer.BadParameter(f"cannot read {path}: {exc}") from exc
+    except ValidationError as exc:
+        message = f"{path} is not a pqc-scan JSON report ({exc.error_count()} errors)"
+        raise typer.BadParameter(message) from exc
+
+
+@app.command("diff")
+def diff_command(
+    base: Annotated[Path, typer.Argument(dir_okay=False, help="Earlier JSON report.")],
+    head: Annotated[Path, typer.Argument(dir_okay=False, help="Newer JSON report.")],
+    fmt: Annotated[
+        str,
+        typer.Option("--format", "-f", help="console or json."),
+    ] = "console",
+    out: OutOption = None,
+    fail_on: Annotated[
+        RiskClass | None,
+        typer.Option(
+            "--fail-on",
+            case_sensitive=False,
+            help="Exit with code 1 if a NEW finding is at least this severe.",
+        ),
+    ] = None,
+) -> None:
+    """Show findings that are new in HEAD compared with BASE (for pull requests)."""
+    if fmt not in ("console", "json"):
+        raise typer.BadParameter("diff supports 'console' and 'json'", param_hint="--format")
+    result = diff(_load_result(base), _load_result(head))
+    if fmt == "json":
+        text = result.model_dump_json(indent=2) + "\n"
+    elif out is None:
+        Console().print(build_diff(result))
+        text = ""
+    else:
+        text = render_diff_console(result)
+    if text:
+        if out is None:
+            sys.stdout.write(text)
+        else:
+            try:
+                out.write_text(text, encoding="utf-8")
+            except OSError as exc:
+                raise typer.BadParameter(f"cannot write {out}: {exc}", param_hint="--out") from exc
+    worst = result.worst_new_risk()
+    failed = fail_on is not None and worst is not None and worst.at_least(fail_on)
+    raise typer.Exit(ExitCode.FAIL_ON if failed else ExitCode.OK)
+
+
 @app.command("report")
 def report(
     result_file: Annotated[
@@ -471,12 +527,6 @@ def report(
 ) -> None:
     """Render a saved JSON report in another format."""
     _check_format(fmt)
-    try:
-        result = ScanResult.model_validate_json(result_file.read_bytes())
-    except OSError as exc:
-        raise typer.BadParameter(f"cannot read {result_file}: {exc}") from exc
-    except ValidationError as exc:
-        message = f"{result_file} is not a pqc-scan JSON report ({exc.error_count()} errors)"
-        raise typer.BadParameter(message) from exc
+    result = _load_result(result_file)
     emit(result, fmt, out)
     raise typer.Exit(exit_code(result, 0, fail_on))

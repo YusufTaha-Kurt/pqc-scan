@@ -188,8 +188,6 @@ def test_mosca_scores(ec_dir: Path) -> None:
     [
         (["scan", "files"], "no targets given"),
         (["scan", "files", ".", "--mosca-x", "1"], "must be given together"),
-        (["scan", "files", ".", "--format", "html"], "not implemented yet"),
-        (["scan", "files", ".", "--format", "cbom"], "not implemented yet"),
         (["scan", "files", ".", "--targets", "/nonexistent/targets.txt"], "cannot read"),
         (["scan", "files", ".", "--fail-on", "SCARY"], "SCARY"),
         (["scan", "files", ".", "--concurrency", "0"], "concurrency"),
@@ -338,3 +336,21 @@ def test_scan_all_without_targets() -> None:
     result = invoke("scan", "all")
     assert result.exit_code == ExitCode.USAGE
     assert "no targets given" in flat(result.output)
+
+
+@pytest.mark.parametrize("fmt", ["html", "cbom"])
+def test_report_formats_to_file(ec_dir: Path, tmp_path: Path, fmt: str) -> None:
+    out = tmp_path / f"report.{fmt}"
+    result = invoke("scan", "files", str(ec_dir), "-f", fmt, "-o", str(out))
+    assert result.exit_code == ExitCode.OK
+    text = out.read_text()
+    assert ("<!doctype html>" in text) if fmt == "html" else ('"specVersion": "1.6"' in text)
+
+
+def test_missing_report_extra_is_a_usage_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    import pqc_scan.cli as cli
+
+    monkeypatch.setattr(cli, "missing_dependency", lambda fmt: "needs extra packages")
+    result = invoke("scan", "files", ".", "--format", "html")
+    assert result.exit_code == ExitCode.USAGE
+    assert "needs extra packages" in flat(result.output)

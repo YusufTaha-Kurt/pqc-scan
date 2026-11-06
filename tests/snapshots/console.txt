@@ -31,6 +31,15 @@ Findings
             │                        │                                 │                       │ post-quantum KEM       
             │                        │                                 │                       │ standard (FIPS 203)    
 
+Recommendations                                                                                                         
+ Risk       ┃ What to do                                                                     ┃ Applies to               
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS      │ RSA 1024-bit (1 finding) 
+            │ 203).                                                                          │                          
+ BROKEN     │ Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).                      │ sha1 (1 finding)         
+ VULNERABLE │ Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during         │ EC secp256r1 (1 finding) 
+            │ transition).                                                                   │                          
+
 Errors                                                        
  Scanner ┃ Target      ┃ Kind           ┃ Message             
 ━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━

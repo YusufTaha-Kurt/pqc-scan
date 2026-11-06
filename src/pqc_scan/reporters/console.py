@@ -14,7 +14,8 @@ from rich.console import Console, Group, RenderableType
 from rich.table import Table
 from rich.text import Text
 
-from pqc_scan.models import Algorithm, Finding, RiskClass, ScanError, ScanResult
+from pqc_scan.models import Finding, RiskClass, ScanError, ScanResult
+from pqc_scan.reporters.common import Recommendation, describe_algorithm, recommendations
 
 RISK_STYLES: Final[dict[RiskClass, str]] = {
     RiskClass.BROKEN: "bold red",
@@ -37,15 +38,6 @@ RISK_MEANINGS: Final[dict[RiskClass, str]] = {
 
 def risk_text(risk: RiskClass) -> Text:
     return Text(risk.value, style=RISK_STYLES[risk])
-
-
-def describe_algorithm(algorithm: Algorithm) -> str:
-    """Short display form, e.g. ``RSA 2048-bit`` or ``EC secp256r1``."""
-    if algorithm.curve:
-        return f"{algorithm.raw_name} {algorithm.curve}"
-    if algorithm.key_size:
-        return f"{algorithm.raw_name} {algorithm.key_size}-bit"
-    return algorithm.raw_name
 
 
 def _location(finding: Finding) -> str:
@@ -76,7 +68,7 @@ def _summary(result: ScanResult) -> Table:
     return table
 
 
-def _findings(findings: list[Finding]) -> Table:
+def findings_table(findings: list[Finding]) -> Table:
     with_mosca = any(f.mosca is not None for f in findings)
     table = Table(title="Findings", title_justify="left", show_edge=False)
     table.add_column("Risk", no_wrap=True)
@@ -102,6 +94,19 @@ def _findings(findings: list[Finding]) -> Table:
                 row.append(Text(f"{label} ({mosca.margin:+.1f}y)"))
         row.append(Text(finding.reason))
         table.add_row(*row)
+    return table
+
+
+def _recommendations(items: list[Recommendation]) -> Table:
+    table = Table(title="Recommendations", title_justify="left", show_edge=False)
+    table.add_column("Risk", no_wrap=True)
+    table.add_column("What to do", ratio=3)
+    table.add_column("Applies to", ratio=2, overflow="fold")
+    for item in items:
+        applies = (
+            f"{', '.join(item.algorithms)} ({item.count} finding{'s' if item.count != 1 else ''})"
+        )
+        table.add_row(risk_text(item.risk), Text(item.text), Text(applies))
     return table
 
 
@@ -131,7 +136,10 @@ def build(result: ScanResult) -> RenderableType:
     """The full report as a single renderable."""
     parts: list[RenderableType] = [_header(result), Text(), _summary(result), Text()]
     if result.findings:
-        parts += [_findings(result.findings), Text()]
+        parts += [findings_table(result.findings), Text()]
+    advice = recommendations(result)
+    if advice:
+        parts += [_recommendations(advice), Text()]
     if result.errors:
         parts += [_errors(result.errors), Text()]
     parts.append(_verdict(result))
