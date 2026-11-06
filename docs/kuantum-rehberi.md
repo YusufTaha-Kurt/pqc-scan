@@ -239,6 +239,23 @@ Kavramlar:
   imzalanmış belge. İçinde sitenin **açık anahtarı** (ör. RSA-2048) ve
   **imza algoritması** (ör. `sha256WithRSAEncryption`) bulunur. İkisi de
   kuantuma karşı savunmasız olabilir.
+- **HelloRetryRequest (HRR):** TLS 1.3'te sunucunun "gönderdiğin anahtar
+  parçası işime yaramadı, şu grupla tekrar dene" cevabı. Araç bunu bilerek
+  tetikler: ClientHello'da hiç anahtar parçası göndermez, sunucu da HRR ile
+  hangi grubu istediğini söylemek zorunda kalır. Böylece araç ML-KEM
+  hesaplaması yapmadan sunucunun hibrit grubu destekleyip desteklemediğini
+  öğrenir.
+- **DHE parametre boyutu:** Eski tip Diffie-Hellman (DHE) anahtar değişiminde
+  sunucunun kullandığı sayının bit uzunluğu. 2048 bitten kısası (ör. 1024)
+  bugün bile zayıf sayılır (`BROKEN`).
+- **Export ve anon şifre takımları:** 1990'larda ABD ihracat kuralları
+  yüzünden bilerek 40 bite zayıflatılmış "export" şifreler ve sunucunun
+  kimliğini hiç doğrulamayan "anon" (anonim) takımlar. İkisi de bugün kırık
+  kabul edilir (`BROKEN`).
+- **Camellia, ARIA, SEED, IDEA:** AES'e alternatif, daha az yaygın blok
+  şifreler. 128 bit anahtarlılar AES-128 gibi Grover'la zayıflar
+  (`WEAKENED`), 256 bit olanlar AES-256 gibi güvenli kalır. IDEA eski ve
+  64 bitlik blok yapısı yüzünden zayıf sayılır.
 
 #### "Prob" (sorgu) ne demek?
 
@@ -247,10 +264,12 @@ hazırlanmış bir **ClientHello** gönderip cevabına bakmaktır. Kapıyı çal
 "içeride X var mı?" diye sormak gibi; içeri girilmez. Araç cevabı okuduktan
 sonra bağlantıyı **kapatır**, el sıkışmayı tamamlamaz, oturum açmaz.
 
-Neden kendi sorgumuzu yazıyoruz? TLS taraması için kullandığımız hazır
-kütüphane (`sslyze`) eski bir altyapı kullandığı için hibrit PQ gruplarını
-soramıyor. Bu yüzden sadece "X25519MLKEM768 destekleniyor mu?" sorusunu soran
-küçük bir parça kendimiz yazacağız.
+Neden kendi sorgumuzu yazıyoruz? Hazır TLS tarama kütüphanesi (`sslyze`)
+eski bir altyapı kullandığı için hibrit PQ gruplarını soramıyor, üstelik
+kurulumu ağır. Bu yüzden (karar D-11) sürümleri, şifre takımlarını ve
+grupları soran sorgu kodunu tamamen kendimiz yazdık. Aynı soruyu, her
+seferinde cevap olarak gelen seçeneği listeden çıkararak tekrar sorarız;
+böylece sunucunun desteklediği her şeyi ve **tercih sırasını** öğreniriz.
 
 ### 6.2 SSH — sunuculara uzaktan bağlanma
 
@@ -270,10 +289,60 @@ parola **hiç** gönderilmez.
 - **PEM:** `-----BEGIN CERTIFICATE-----` gibi satırlarla başlayan, metin
   biçimindeki sertifika/anahtar dosyası.
 - **DER:** Aynı içeriğin ikili (binary) biçimi.
-- **`.pub` dosyası:** SSH açık anahtarı.
+- **`.pub` dosyası:** SSH açık anahtarı. `authorized_keys` (bir sunucuya
+  kimlerin girebileceği) ve `known_hosts` (bilgisayarının daha önce gördüğü
+  sunucuların anahtarları) da aynı türden satırlar içerir.
+- **CSR (sertifika imzalama isteği):** Bir sertifika otoritesine "bu açık
+  anahtar için bana sertifika ver" diye gönderilen, sahibinin kendi anahtarıyla
+  imzaladığı başvuru dosyası.
+- **Kendinden imzalı (self-signed) sertifika:** Bir otorite yerine kendi
+  anahtarıyla imzalanmış sertifika. Test ortamlarında yaygındır; burada imzayı
+  atan anahtar sertifikanın kendi anahtarı olduğu için araç imzanın boyutunu
+  da bilir.
+- **OID:** Algoritmaların noktalı sayılardan oluşan resmi kimlik numarası
+  (ör. `1.2.840.113549.1.1.11` = "SHA-256 ile RSA imzası"). Sertifikaların
+  içinde algoritma adı değil OID yazar; araç OID'yi ada çevirir. Tanımadığı
+  bir OID'yi olduğu gibi raporlar (`UNKNOWN`).
+- **Parolalı (şifreli) özel anahtar:** Özel anahtar dosyası bir parolayla
+  kilitlenmiş olabilir. Araç **asla parola denemez ve kilidi açmaz**. OpenSSH
+  biçiminde açık anahtar kısmı kilitsiz durduğu için tip ve boyut yine
+  okunabilir; PKCS#8 biçiminde ise tip görünmez, bulgu `UNKNOWN` olur.
 - **Kod taraması:** Kaynak kodda `RSA.generate(2048)` gibi kripto
-  kullanımlarını bulmak. Bunun için **Semgrep** (kod içinde desen arayan araç)
-  ve Python için **AST** (kodu ağaç yapısına çevirip inceleme) kullanılır.
+  kullanımlarını bulmak. Python için **AST** (kodu ağaç yapısına çevirip
+  inceleme), Java/Kotlin, JavaScript/TypeScript, Go, C# ve Rust için **düzenli ifade**
+  (metin içinde desen arama) kuralları kullanılır. Ek bir araç gerekmez
+  (karar D-12; Semgrep büyük ve Windows'ta çalışmadığı için seçilmedi).
+- **JWT:** Web uygulamalarında oturum bilgisini taşıyan imzalı küçük
+  "bilet". İçindeki `RS256`, `ES256`, `HS256` gibi adlar hangi imza
+  algoritmasının kullanıldığını söyler; `none` hiç imza olmadığı anlamına
+  gelir (`BROKEN`).
+- **ECB modu:** Blok şifreyi her bloğa ayrı ayrı uygulayan en basit kullanım
+  biçimi. Aynı veri aynı şifreli çıktıyı verdiği için desenler görünür;
+  bugün bile kırık sayılır (`BROKEN`).
+
+### 6.4 Raporlar ve kurum içi kullanım
+
+- **CBOM (CycloneDX 1.6):** Bulguların, başka güvenlik araçlarının da
+  okuyabildiği standart "kriptografik malzeme listesi" biçimi. Her algoritma,
+  sertifika ve anahtar dosyası ayrı bir kayıt olur.
+- **Diff (fark) raporu:** İki taramayı karşılaştırıp yalnızca **yeni**
+  bulguları gösterir. Bir değişiklik (pull request) zayıf kripto eklediyse
+  CI'da yakalanır; eski bulgular yüzünden her PR kırmızı olmaz.
+- **Mosca eşleme dosyası:** Her sistem için ayrı "verinin gizli kalma
+  süresi" (x) ve "geçiş süresi" (y) yazılan YAML dosyası. Böylece uzun
+  süre gizli kalması gereken sistemler önce görünür.
+
+### 6.5 SSH'ın kendi algoritmaları
+
+- **KEXINIT:** SSH sunucusunun bağlantının başında, şifreleme başlamadan
+  gönderdiği "desteklediklerim" listesi. Araç sadece bunu okur ve çıkar.
+- **mlkem768x25519-sha256 / sntrup761x25519-sha512:** SSH'ın hibrit
+  (klasik + kuantuma dayanıklı) anahtar değişim yöntemleri (`HYBRID`).
+- **Host key (sunucu anahtarı):** SSH sunucusunun kimliğini kanıtlayan
+  anahtar (ör. `ssh-ed25519`). `ssh-rsa` adı SHA-1 ile imza demektir ve
+  kırık sayılır.
+- **UMAC:** SSH'ta kullanılan hızlı bir mesaj doğrulama yöntemi; 64 bitlik
+  sürümü zayıflatılmış (`WEAKENED`), 128 bitlik sürümü güvenli sayılır.
 
 ---
 
@@ -321,6 +390,22 @@ Sadece sunucunun herkese açık olarak söylediklerini dinlemek. Saldırı yok,
 parola denemesi yok, oturum açma yok. Yine de **yalnızca sahibi olduğun veya
 yazılı izin aldığın** sistemleri tara.
 
+### 7.5 Raporlar, CI kapısı ve çıkış kodları
+
+- **Konsol raporu:** Terminalde renkli tablo. En kötü bulgu en üstte.
+- **JSON raporu:** Aynı bilgilerin programların okuyabileceği hâli.
+  `pqc-scan report rapor.json` ile sonradan tekrar tabloya çevrilebilir.
+  Biçimi bir **JSON şeması** ile tanımlıdır (şema: "bu dosyada hangi alanlar
+  olur, hangi tipte olur" diyen kural dosyası).
+- **CI (sürekli entegrasyon):** Kod her değiştiğinde testleri otomatik
+  çalıştıran sistem (ör. GitHub Actions). `--fail-on VULNERABLE` dersen,
+  araç `VULNERABLE` veya daha kötü bir bulgu gördüğünde **çıkış kodu 1** ile
+  biter ve CI işi "kırmızı" olur — yani yeni bir zayıf anahtar fark
+  edilmeden içeri giremez.
+- **Çıkış kodu:** Bir programın bittiğinde işletim sistemine bıraktığı sayı.
+  `0` her şey yolunda · `1` `--fail-on` eşiği aşıldı · `2` komut yanlış
+  kullanıldı · `3` hiçbir hedef taranamadı.
+
 ---
 
 ## Sözlük
@@ -332,23 +417,35 @@ yazılı izin aldığın** sistemleri tara.
 | AST | Kodu ağaç yapısında inceleme yöntemi | 6.3 |
 | Açık / özel anahtar | Paylaşılabilen / gizli tutulan anahtar çifti | 1.3 |
 | CBOM | Kriptografik malzeme listesi | 7.3 |
+| CI / çıkış kodu | Otomatik test sistemi / programın bitiş sayısı | 7.5 |
 | Cipher suite | Bir TLS bağlantısındaki algoritma paketi | 6.1 |
 | ClientHello / ServerHello | TLS el sıkışmasının ilk iki mesajı | 6.1 |
 | CRQC | Kriptografiyi kırabilecek güçte kuantum bilgisayar | 2.1 |
+| CSR | Sertifika imzalama isteği | 6.3 |
 | DH / ECDH | Klasik anahtar değişim yöntemleri | 1.3 |
+| DHE parametre boyutu | Eski tip DH anahtar değişimindeki sayının bit uzunluğu | 6.1 |
+| Diff raporu | İki tarama arasındaki yeni/çözülen bulgular | 6.4 |
 | ECDSA / Ed25519 | Eliptik eğri tabanlı imzalar | 1.3 |
+| ECB modu | Desenleri gizleyemeyen basit blok şifre kullanımı | 6.3 |
+| Export / anon şifre takımı | Bilerek zayıflatılmış / kimlik doğrulamasız TLS takımları | 6.1 |
 | Grover | Kaba kuvveti hızlandıran kuantum algoritması | 3.2 |
 | Grup (TLS) | Anahtar değişiminde kullanılan yapı | 6.1 |
 | Hash | Verinin geri döndürülemez parmak izi | 1.4 |
 | Hibrit | Klasik + PQ algoritmanın birlikte kullanımı | 4.1 |
 | HMAC | Anahtarlı hash; mesaj doğrulama | 1.5 |
 | HNDL | "Şimdi topla, sonra çöz" saldırısı | 3.3 |
+| HRR (HelloRetryRequest) | TLS 1.3'te sunucunun "başka grupla dene" cevabı | 6.1 |
+| JSON şeması | JSON dosyasının biçim kuralları | 7.5 |
+| JWT | İmzalı oturum "bileti" | 6.3 |
 | KEM | Anahtar kapsülleme mekanizması | 4 |
-| KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2 |
+| KEX / KEXINIT | SSH anahtar değişimi / ilk algoritma listesi mesajı | 6.2, 6.5 |
 | Kafes (lattice) | ML-KEM ve ML-DSA'nın dayandığı zor problem | 4 |
+| Kendinden imzalı sertifika | Kendi anahtarıyla imzalanmış sertifika | 6.3 |
 | Kübit | Kuantum bilgisayarın temel birimi | 2 |
 | ML-KEM / ML-DSA / SLH-DSA | NIST'in PQC standartları | 4 |
 | Mosca teoremi | Aciliyet formülü: x + y > z | 5 |
+| OID | Algoritmanın resmi sayısal kimliği | 6.3 |
+| Parolalı özel anahtar | Parolayla kilitlenmiş anahtar dosyası; araç kilidi açmaz | 6.3 |
 | PEM / DER | Sertifika/anahtar dosya biçimleri | 6.3 |
 | PQC | Post-kuantum kriptografi | 4 |
 | Prob (sorgu) | Sunucuya destek sorusu sorup cevabı okumak | 6.1 |

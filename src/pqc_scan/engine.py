@@ -74,7 +74,7 @@ def _classify(observation: Observation, classifier: Classifier, config: ScanConf
         algorithm_id=result.algorithm_id,
         reason=result.reason,
         recommendation=result.recommendation,
-        mosca=mosca.score(result.risk, config.mosca),
+        mosca=mosca.score(result.risk, mosca.inputs_for(observation.asset, config)),
     )
 
 

@@ -15,66 +15,54 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-04
+**Son güncelleme:** 2026-11-06
 
-**Biten:** Faz 0 (sistem tanımı, kararlar), 1.1 repo iskeleti, 1.2 modeller +
-sınıflandırma, 1.3 tarama motoru. 86 test, kapsama %99. Henüz kullanıcıya
-dönük bir tarama komutu yok (`pqc-scan --version` çalışıyor).
+**Yol haritasının tamamı (v0.1–v0.3) ve ek fikirlerin hepsi bitti.** Sürüm
+0.3.0. 349 test (+2 gerçek sunucu testi CI'da), kapsama %97. Komutlar:
+`scan files|code|tls|ssh|all`, `report`, `diff`; biçimler
+`console|json|html|cbom|sarif`. Kod tarayıcısı Python, Java/Kotlin, JS/TS,
+Go, C# ve Rust'ı destekliyor. Tüm yoruma açık sınıflandırmalar onaylandı
+(D-13). GitHub Action (SARIF yükleme dahil), Docker imajı, yayın iş akışı,
+öğren not defterleri, Türkçe kullanım kılavuzu ve teknik özet hazır.
 
-**Sıradaki görev: 1.4 `files` tarayıcısı (T-131 … T-135).**
-Bundan sonra 1.5 raporlayıcılar ve 1.6 CLI gelir; üçü bitince
-`pqc-scan scan files ./repo` uçtan uca çalışır (ilk kullanılabilir sürüm).
+**Biten ek fikirler (2026-11-06):** SARIF çıktısı; gerçek OpenSSL 3.5 /
+OpenSSH 10 sunucularıyla CI testi (TLS tarafı yerelde de doğrulandı:
+X25519MLKEM768 ilk tercih olarak bulundu); C# ve Rust kuralları; CBOM'da
+sertifika sahibi/düzenleyeni/geçerlilik tarihleri.
 
-### `files` tarayıcısı için plan
-
-- **Dosya:** `src/pqc_scan/scanners/files.py` → `class FilesScanner(Scanner)`,
-  `name = "files"`. Hedef bir klasör (veya tek dosya) yoludur; yol yoksa
-  `ScanTargetError(ErrorKind.INVALID_TARGET, ...)`.
-- **Gezinti:** `os.walk(followlinks=config.follow_symlinks)`; `config.exclude`
-  içindeki klasörleri buda; `config.max_file_size`'dan büyük dosyaları atla.
-  Tek bir dosyanın okunamaması veya ayrıştırılamaması hedefin tamamını
-  düşürmez — sessizce atlanır (kripto dosyası olmayan dosyalar zaten çoğunluk).
-- **Algılama (içeriğe göre, uzantıya güvenme):**
-  - `-----BEGIN ` içeren dosyalar → her PEM bloğunu ayrı işle
-    (CERTIFICATE, PUBLIC KEY, RSA/EC/DSA PRIVATE KEY, PRIVATE KEY,
-    ENCRYPTED PRIVATE KEY, OPENSSH PRIVATE KEY, CERTIFICATE REQUEST).
-  - `.der`, `.cer`, `.crt` → DER sertifika olarak dene.
-  - `*.pub`, `authorized_keys`, `known_hosts` → OpenSSH açık anahtar satırları
-    (`cryptography.hazmat.primitives.serialization.load_ssh_public_key`).
-  - `OPENSSH PRIVATE KEY` → **şifre çözmeden** `openssh-key-v1` başlığındaki
-    şifresiz açık anahtar bloğundan tip ve boyutu oku.
-  - Şifreli PKCS#8 özel anahtar → tip bilinemez; `raw_name="encrypted private key"`
-    (sınıflandırıcı `UNKNOWN` verir) — kabul edilebilir.
-- **Gözlemler (`usage` değerleri):**
-  - Sertifika: `file.certificate.public_key` (RSA/EC/Ed25519/… + `key_size`,
-    `curve`), `file.certificate.signature` (imzalayan anahtarın algoritması,
-    `signature_algorithm_oid`'den), `file.certificate.signature_hash`
-    (`signature_hash_algorithm.name`, ör. `sha256`; Ed25519'da yok).
-  - `file.private_key`, `file.public_key`, `file.ssh_public_key`.
-  - `cryptography` nesne → ad eşlemesi: RSA → `RSA`, EC → `EC` (+ `curve.name`,
-    `key_size`), Ed25519 → `Ed25519`, Ed448, DSA, X25519, X448.
-    `cryptography` sürümünün ML-DSA/ML-KEM anahtarlarını destekleyip
-    desteklemediğini kontrol et; destekliyorsa onları da eşle.
-- **Asset:** `id = file://<mutlak yol>`; bir dosyada birden çok PEM bloğu
-  varsa `#block-<n>` eki. `kind`: `certificate` / `private_key` / `public_key`.
-  `location` = hedef köke göre göreli yol.
-- **Güvenlik:** `Evidence.detail` yalnızca "PEM block 2" / "line 5" gibi
-  konum bilgisi içerir; anahtar içeriği hiçbir yerde (rapor, hata, log) yer
-  almaz.
-- **Testler:** `tests/conftest.py` içinde session-scope fixture'larla
-  `cryptography` kullanarak RSA-1024/2048, EC P-256/P-384, Ed25519, DSA
-  anahtarları, kendinden imzalı sertifikalar, OpenSSH açık/özel anahtarları
-  (şifreli ve şifresiz) ve çok bloklu bir PEM dosyası **test sırasında** üret
-  (`tmp_path_factory`). `tests/test_scanner_files.py`: her tür doğru tip/boyutu
-  verir; exclude ve boyut sınırı çalışır; symlink takip edilmez; bozuk PEM
-  atlanır; **özel anahtarın base64 gövdesi `ScanResult` JSON'unda geçmez**
-  (T-135).
+**Yalnızca proje sahibinin yapabileceği tek adım:** PyPI'de ilk yayın —
+PyPI hesabında trusted publisher ve GitHub'da `pypi` ortamı kurulumu, sonra
+`git tag v0.3.0 && git push origin v0.3.0` (`docs/kullanim-kilavuzu.md` §11).
 
 ### Bilinen notlar
 
 - Geliştirme Python 3.11 venv ile yapıldı; testler 3.13'te de geçiyor.
 - CI (`.github/workflows/ci.yml`) yalnızca `master`'a push ve PR'larda çalışır;
   GitHub'da henüz hiç çalıştırılmadı.
+- `cryptography` 50: DH/DSA sınıflarına erişim kullanımdan kaldırma uyarısı
+  veriyor; `files.py` anahtar tiplerini içe aktarma anında uyarıyı bastırarak
+  ve `getattr` ile yüklüyor (ileride kaldırılırlarsa da çalışır). OpenSSL artık
+  SHA-1 imza üretmiyor; SHA-1 sertifika testi OID'si değiştirilmiş bir
+  sertifikayla yapılıyor. Şifreli OpenSSH anahtarı üretmek `bcrypt` istediği
+  için test anahtarı elle kuruluyor (`conftest.encrypted_openssh_private`).
+- `files` tarayıcısı `AssetKind.CERTIFICATE_REQUEST` ekledi (CSR'lar için).
+- `typer` 0.27 artık `click`'e bağımlı değil (içine gömülü); CLI'de yalnızca
+  `typer.BadParameter` / `typer.Exit` kullanılır, `import click` yapılmaz.
+- Raporlayıcı snapshot'ları `tests/snapshots/`; bilerek değişiklik yapınca
+  `PQC_UPDATE_SNAPSHOTS=1 pytest` ile güncelle ve farkı gözden geçir. JSON
+  şeması `docs/schema/scan-result.schema.json` da aynı yolla güncellenir.
+- TLS testleri iki tür yerel sunucu kullanır (`tests/conftest.py`:
+  `LocalServer`, `local_server` fixture'ı): Python `ssl` ile gerçek OpenSSL
+  sunucusu ve `test_scanner_tls.py` içindeki betikli sahte sunucu. Bu
+  ortamdaki OpenSSL 3.0 ML-KEM bilmediği için hibrit grup yolu sahte
+  sunucuyla test edilir; OpenSSL ≥ 3.5 olan bir makinede gerçek sunucuyla
+  da denenebilir.
+- `algorithms.yaml`'a TLS için eklenen ve doğrulanması gerekenler:
+  IDEA → BROKEN, SEED → WEAKENED, Camellia-128 / ARIA-128 → WEAKENED,
+  Camellia-256 / ARIA-256 → PQ_SAFE (hepsi `# TODO: doğrula`). Kesin
+  olanlar: export şifreleri ve `anon` kimlik doğrulama → BROKEN.
+- Düzeltilen hata: Mosca skorlu JSON raporu geri okunamıyordu
+  (`margin`/`at_risk` hesaplanan alanları reddediliyordu).
 - `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
   cevap bekleniyor: TLS 1.2 → VULNERABLE, TLS 1.3 → PQ_SAFE, SHA-256 → PQ_SAFE,
   AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish → BROKEN,
@@ -87,6 +75,30 @@ Bundan sonra 1.5 raporlayıcılar ve 1.6 CLI gelir; üçü bitince
   kararları; `docs/kuantum-rehberi.md`; repo iskeleti + CI; modeller,
   `classify.py` + `algorithms.yaml` (53 algoritma); `engine.py`, `mosca.py`,
   `scanners/base.py`. Branch: `claude/nice-carson-avv8te`.
+- **2026-11-04 (2)** — 1.4 `files` tarayıcısı: PEM (çok bloklu), DER, CSR,
+  açık/özel anahtarlar, OpenSSH açık/özel anahtarlar (şifre çözmeden),
+  ML-DSA/ML-KEM anahtarları; test anahtarları `tests/conftest.py`'de test
+  sırasında üretiliyor; özel anahtar sızıntı testi (T-135). Branch:
+  `claude/nice-gates-b8wil6`.
+- **2026-11-05** — 1.5 konsol + JSON raporlayıcı (JSON şeması, snapshot
+  testleri), 1.6 CLI (`scan files`, `report`, `--fail-on`, çıkış kodları,
+  Mosca bayrakları); Mosca JSON geri okuma hatası düzeltildi; sslyze
+  incelendi → D-11 açık kararı. Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-05 (2)** — D-11 = B (sslyze yok). Sertifika ayrıştırma
+  `scanners/certs.py`'ye taşındı; `tls_names.py` (IANA tabloları),
+  `tls_probe.py` (saf Python ClientHello probu, boş key_share ile HRR
+  tekniği), `tls.py` + `scan tls`; sahte ve gerçek yerel sunucularla testler.
+  Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-06** — Kalan tüm fazlar: D-12 (Semgrep yok) ile `code`
+  tarayıcısı (Python AST, Java/Kotlin, JS/TS, Go); `ssh` tarayıcısı;
+  `scan all`; HTML ve CycloneDX 1.6 CBOM; öneriler; `diff`; Mosca eşleme
+  dosyası; GitHub Action; Docker; yayın iş akışı; öğren not defterleri;
+  README, CHANGELOG, örnek raporlar, geçiş rehberi, Türkçe kullanım
+  kılavuzu ve teknik özet. Sürüm 0.3.0. Branch: `claude/nice-gates-b8wil6`.
+- **2026-11-06 (2)** — Kullanıcı tüm sınıflandırmaları onayladı (D-13);
+  SARIF çıktısı + Action'da code scanning yüklemesi; gerçek OpenSSL 3.5 /
+  OpenSSH 10 interop testleri (CI işi `interop`); C# ve Rust kuralları;
+  sertifika ayrıntıları (Asset.details → CBOM); örnek raporlar yenilendi.
 
 ---
 
@@ -136,21 +148,24 @@ ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 ## Kararlar
 
-Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
+D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te, D-12 ve D-13 2026-11-06'da onaylandı ve `CLAUDE.md` ile
 `docs/architecture.md`'ye işlendi.
 
 | #    | Konu | Karar |
 | ---- | ---- | ----- |
 | D-1  | Tarayıcı çıktı tipi | Tarayıcılar `Observation` döndürür, `engine.py` `classify` ile `Finding`'e çevirir |
-| D-2  | TLS PQ grup tespiti | sslyze + kendi minimal TLS 1.3 ClientHello sorgumuz |
+| D-2  | TLS PQ grup tespiti | Kendi minimal TLS 1.3 ClientHello sorgumuz (D-11 ile tüm TLS taraması buna genişledi) |
 | D-3  | Bilinmeyen algoritma | `UNKNOWN` risk sınıfı; çakışmada en kötü sınıf kazanır; sınıf bağlama (primitive) göre belirlenir |
 | D-4  | Eşzamanlılık modeli | `ThreadPoolExecutor` |
 | D-5  | SSH uygulaması | paramiko yok; ham soket + KEXINIT ayrıştırıcı |
-| D-6  | Ağır bağımlılıklar | `[tls]`, `[code]`, `[report]` opsiyonel extra; Python için AST yedeği |
+| D-6  | Ağır bağımlılıklar | `[code]`, `[report]` opsiyonel extra; Python için AST yedeği (`[tls]` D-11 ile kalktı) |
 | D-7  | Mosca z | Varsayılan yok; x, y, z üçü de verilmezse skor hesaplanmaz |
 | D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH`; çıkış kodları 0/1/2/3 |
 | D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE (YAML'da `# TODO: doğrula`) |
 | D-10 | Varsayılan branch | `master` kalır |
+| D-13 | Yoruma açık sınıflandırmalar | Kullanıcı tüm `# TODO: doğrula` kararlarını onayladı (2026-11-06); YAML'da `judgement call, approved (D-13)` olarak işaretli |
+| D-12 | Kod tarama motoru | Semgrep kullanılmaz (72 MB, yalnızca Linux/macOS tekerleği). Python için `ast`, Java/Kotlin, JS/TS, Go için yorumları silinmiş kaynakta düzenli ifade kuralları; kurallar `rules/code_rules.yaml` (2026-11-06). `[code]` extra'sı kaldırıldı |
+| D-11 | TLS için sslyze | sslyze kullanılmaz; sürüm, cipher suite, grup ve sertifika kendi saf Python probumuzla (+ TLS 1.3 sertifikası için `ssl`). `[tls]` extra'sı kaldırıldı (2026-11-05, seçenek B) |
 
 ---
 
@@ -158,8 +173,8 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 - [x] **T-001** Sistem tanımı taslağı (`docs/architecture.md`)
 - [x] **T-002** Açık kararları (D-1 … D-10) netleştir, CLAUDE.md'yi güncelle
-- [~] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — süreç boyunca büyür
-- [~] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
+- [x] **T-004** Öğretici kavram belgesi (`docs/kuantum-rehberi.md`) — yeni kavramlarla büyümeye devam eder
+- [x] **T-003** `algorithms.yaml` için kapsam listesi: hangi algoritma, alias,
   primitive ve sınıf (TLS cipher suite'leri, TLS grupları, SSH KEX/host key,
   X.509 imza OID'leri, kod API'leri) — tablo olarak çıkar
 
@@ -207,80 +222,87 @@ Tüm kararlar 2026-11-04'te onaylandı ve `CLAUDE.md` ile
 
 ### 1.4 `files` tarayıcısı (`feat/files-scanner`)
 
-- [ ] **T-131** Dizin gezintisi (exclude listesi, boyut sınırı, symlink takip
+- [x] **T-131** Dizin gezintisi (exclude listesi, boyut sınırı, symlink takip
   etmeme)
-- [ ] **T-132** PEM (çoklu blok), DER sertifika, açık/özel anahtar ayrıştırma
-- [ ] **T-133** OpenSSH açık anahtarları (`*.pub`, `authorized_keys`,
+- [x] **T-132** PEM (çoklu blok), DER sertifika, açık/özel anahtar ayrıştırma
+- [x] **T-133** OpenSSH açık anahtarları (`*.pub`, `authorized_keys`,
   `known_hosts`) ve OpenSSH özel anahtar başlığı (yalnızca tip/boyut)
-- [ ] **T-134** `tests/conftest.py`: RSA-1024/2048/4096, EC P-256/P-384,
+- [x] **T-134** `tests/conftest.py`: RSA-1024/2048/4096, EC P-256/P-384,
   Ed25519, DSA anahtar ve sertifikalarını test sırasında üret
-- [ ] **T-135** Test: özel anahtar içeriğinin hiçbir çıktıda (rapor, hata
+- [x] **T-135** Test: özel anahtar içeriğinin hiçbir çıktıda (rapor, hata
   mesajı, log) geçmediğini doğrulayan test
 
 ### 1.5 Konsol ve JSON raporlayıcı (`feat/reporters-basic`)
 
-- [ ] **T-141** `reporters/console.py` (rich tablo, risk renkleri, özet, hatalar)
-- [ ] **T-142** `reporters/json_report.py` + JSON Schema dışa aktarımı
-- [ ] **T-143** Snapshot testleri
+- [x] **T-141** `reporters/console.py` (rich tablo, risk renkleri, özet, hatalar)
+- [x] **T-142** `reporters/json_report.py` + JSON Schema dışa aktarımı
+- [x] **T-143** Snapshot testleri
 
 ### 1.6 CLI (`feat/cli`)
 
-- [ ] **T-151** `scan files`, `scan code`, `scan tls`, `scan all`, `report`
+- [x] **T-151** `scan files`, `scan code`, `scan tls`, `scan ssh`, `scan all`, `report`, `diff`
   komutları; `--targets` dosyası; ortak seçenekler (D-8)
-- [ ] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
-- [ ] **T-153** `--help` içinde yetkilendirme uyarısı
-- [ ] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
+- [x] **T-152** `--fail-on` ve çıkış kodları (0/1/2/3)
+- [x] **T-153** `--help` içinde yetkilendirme uyarısı
+- [x] **T-154** `typer.testing.CliRunner` ile uçtan uca testler
 
 **Not:** 1.4 + 1.5 + 1.6 bittiğinde `pqc-scan scan files ./repo` uçtan uca
 çalışır — ilk kullanılabilir sürüm.
 
 ### 1.7 `tls` tarayıcısı (`feat/tls-scanner`)
 
-- [ ] **T-161** sslyze entegrasyonu: protokol sürümleri, cipher suite'ler,
-  sertifika zinciri
-- [ ] **T-162** Cipher suite ayrıştırıcı (`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
+- [x] **T-161** Sürüm, cipher suite ve sertifika zinciri taraması — D-11 ile
+  sslyze yerine kendi probumuz + TLS 1.3 sertifikası için `ssl`
+- [x] **T-162** Cipher suite ayrıştırıcı (`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
   → kex/auth/cipher/mac bileşenleri)
-- [ ] **T-163** PQ grup probu: TLS 1.3 ClientHello (supported_groups +
+- [x] **T-163** PQ grup probu: TLS 1.3 ClientHello (supported_groups +
   key_share), ServerHello/HRR okuma, el sıkışmayı tamamlamadan kapatma (D-2)
-- [ ] **T-164** Testler: yerel `ssl` sunucusu (127.0.0.1), kaydedilmiş
+- [x] **T-164** Testler: yerel `ssl` sunucusu (127.0.0.1), kaydedilmiş
   ServerHello baytlarıyla prob testleri
 
 ### 1.8 `code` tarayıcısı (`feat/code-scanner`)
 
-- [ ] **T-171** Semgrep kuralları — Python (`cryptography`, `pycryptodome`,
-  `hashlib`, `ssl`, `paramiko`)
-- [ ] **T-172** Semgrep kuralları — Java (JCA: `KeyPairGenerator`, `Signature`,
-  `Cipher`, `MessageDigest`, `KeyAgreement`)
-- [ ] **T-173** Kural metadata'sı → `Observation` dönüşümü; Semgrep yoksa
-  Python AST yedeği (D-6)
-- [ ] **T-174** `tests/fixtures/code/{python,java}` örnekleri ve testleri
+D-12 ile Semgrep yerine yerleşik motorlar kullanıldı.
+
+- [x] **T-171** Python kuralları (`cryptography`, `pycryptodome`, `hashlib`,
+  `hmac`, `ssl`, `paramiko`, `PyJWT`) — AST ile
+- [x] **T-172** Java/Kotlin kuralları (JCA: `KeyPairGenerator`, `KeyGenerator`,
+  `Signature`, `Cipher`, `MessageDigest`, `Mac`, `KeyAgreement`, `SSLContext`)
+- [x] **T-173** Kural verisi (`rules/code_rules.yaml`) → `Observation`
+  dönüşümü; dönüştürücüler (JCA, OpenSSL, JOSE, TLS sürümü, WebCrypto)
+- [x] **T-174** `tests/fixtures/code/` örnekleri ve testleri
 
 ### 1.9 README ve yayın hazırlığı (`docs/readme`)
 
-- [ ] **T-181** README: kurulum, kullanım, örnek çıktı, risk sınıfları, etik uyarı
-- [ ] **T-182** Demo GIF (ör. `vhs` ile) ve `examples/` altında örnek raporlar
-- [ ] **T-183** `v0.1.0` etiketi, CHANGELOG
+- [x] **T-181** README: kurulum, kullanım, örnek çıktı, risk sınıfları, etik uyarı
+- [x] **T-182** Demo görseli (`docs/demo.svg`, GIF yerine rich ile üretilen
+  SVG) ve `examples/` altında örnek raporlar
+- [x] **T-183** CHANGELOG; sürüm 0.3.0 (etiket kullanıcı tarafından
+  `master`'a birleştirdikten sonra atılacak)
 
 ## Faz 2 — v0.2
 
-- [ ] **T-201** `ssh` tarayıcısı: banner + KEXINIT ham ayrıştırıcı (D-5),
+- [x] **T-201** `ssh` tarayıcısı: banner + KEXINIT ham ayrıştırıcı (D-5),
   sahte sunucu ile testler
-- [ ] **T-202** HTML raporu (`templates/report.html.j2`, tek dosya, harici
+- [x] **T-202** HTML raporu (`templates/report.html.j2`, tek dosya, harici
   kaynak yok)
-- [ ] **T-203** CycloneDX 1.6 CBOM çıktısı (önce kütüphane desteğini doğrula)
-- [~] **T-204** `mosca.py` + `--mosca-x/-y/-z`; varlık bazlı eşleme dosyası
-  (`mosca.py` ve motordaki hesaplama hazır; CLI bayrakları ve eşleme dosyası kaldı)
-- [ ] **T-205** JavaScript/TypeScript Semgrep kuralları (Node `crypto`,
-  WebCrypto, `node-forge`, `jsonwebtoken`)
-- [ ] **T-206** Go Semgrep kuralları (`crypto/rsa`, `crypto/ecdsa`,
-  `crypto/tls` yapılandırması)
-- [ ] **T-207** PyPI yayını (trusted publishing ile GitHub Actions)
+- [x] **T-203** CycloneDX 1.6 CBOM çıktısı (`cyclonedx-python-lib` 11,
+  resmi şemaya karşı doğrulanıyor)
+- [x] **T-204** `mosca.py` + `--mosca-x/-y/-z` + `--mosca-file` (varlık bazlı)
+- [x] **T-205** JavaScript/TypeScript kuralları (Node `crypto`, WebCrypto,
+  `node-forge`, JWT)
+- [x] **T-206** Go kuralları (`crypto/rsa`, `crypto/ecdsa`, `crypto/ecdh`,
+  `crypto/mlkem`, `crypto/tls` yapılandırması)
+- [~] **T-207** PyPI yayını: `release.yml` hazır (trusted publishing); ilk
+  yayın için PyPI ve GitHub ortam kurulumu kullanıcıda (bkz.
+  `docs/kullanim-kilavuzu.md` §11)
 
 ## Faz 3 — v0.3 ve sonrası
 
-- [ ] **T-301** GitHub Action (PR'da yeni zayıf kripto kullanımı uyarısı;
-  önceki `ScanResult` ile karşılaştırma için `Finding.id` kullanılır)
-- [ ] **T-302** Docker imajı
-- [ ] **T-303** "Öğren" bölümü: BB84, Shor, Grover not defterleri
-- [ ] **T-304** Bulgu bazlı geçiş önerileri (hibrit TLS yapılandırma
-  örnekleri: nginx, OpenSSL 3.5+, Go 1.24+)
+- [x] **T-301** GitHub Action (`action.yml`): PR'da yalnızca yeni bulgular
+  (`pqc-scan diff`, satır numarası/yol bağımsız eşleme)
+- [x] **T-302** Docker imajı (root olmayan kullanıcı; CI'da derleniyor)
+- [x] **T-303** "Öğren" bölümü: `docs/learn/` BB84, Shor, Grover not
+  defterleri (saf Python, testlerde çalıştırılıyor)
+- [x] **T-304** Bulgu bazlı öneriler (konsol + HTML) ve
+  `docs/migration-guide.md` (nginx, Apache, OpenSSH, Go örnekleri)

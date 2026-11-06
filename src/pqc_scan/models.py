@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from enum import StrEnum
-from typing import Final
+from typing import Any, Final
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 SCHEMA_VERSION: Final = "1"
 
@@ -74,6 +74,7 @@ class AssetKind(StrEnum):
     TLS_ENDPOINT = "tls_endpoint"
     SSH_ENDPOINT = "ssh_endpoint"
     CERTIFICATE = "certificate"
+    CERTIFICATE_REQUEST = "certificate_request"
     PRIVATE_KEY = "private_key"
     PUBLIC_KEY = "public_key"
     SOURCE_FILE = "source_file"
@@ -116,6 +117,10 @@ class Asset(_Model):
     )
     kind: AssetKind
     location: str = Field(description="Human readable location (host:port or path)")
+    details: dict[str, str] = Field(
+        default_factory=dict,
+        description="Public metadata, e.g. a certificate's subject, issuer and validity",
+    )
 
 
 class Evidence(_Model):
@@ -160,6 +165,14 @@ class MoscaScore(_Model):
     x: float = Field(ge=0, description="Years the data must stay confidential")
     y: float = Field(ge=0, description="Years needed to migrate")
     z: float = Field(ge=0, description="Years until a cryptographically relevant QC")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_derived_fields(cls, data: Any) -> Any:
+        """Accept serialised scores: ``margin`` and ``at_risk`` are recomputed."""
+        if isinstance(data, dict):
+            data = {k: v for k, v in data.items() if k not in ("margin", "at_risk")}
+        return data
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -219,6 +232,15 @@ class MoscaInputs(_Model):
     z: float = Field(ge=0)
 
 
+class MoscaRule(_Model):
+    """Mosca values for assets whose id or location matches a glob pattern."""
+
+    match: str = Field(min_length=1, description="Glob on asset id or location")
+    x: float = Field(ge=0)
+    y: float = Field(ge=0)
+    z: float = Field(ge=0)
+
+
 class ScanConfig(_Model):
     """Options shared by all scanners. Defaults are deliberately conservative."""
 
@@ -228,6 +250,7 @@ class ScanConfig(_Model):
     max_file_size: int = Field(default=1024 * 1024, gt=0, description="Bytes")
     exclude: tuple[str, ...] = DEFAULT_EXCLUDES
     mosca: MoscaInputs | None = None
+    mosca_rules: tuple[MoscaRule, ...] = ()
 
 
 class ScanResult(_Model):

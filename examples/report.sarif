@@ -1,0 +1,1846 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "pqc-scan",
+          "version": "0.3.0",
+          "informationUri": "https://github.com/YusufTaha-Kurt/pqc-scan",
+          "rules": [
+            {
+              "id": "pqc/broken/rsa",
+              "name": "rsa",
+              "shortDescription": {
+                "text": "BROKEN: RSA"
+              },
+              "fullDescription": {
+                "text": "RSA key shorter than 2048 bits is weak even without a quantum computer"
+              },
+              "help": {
+                "text": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+                "markdown": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/3des",
+              "name": "3des",
+              "shortDescription": {
+                "text": "BROKEN: DESede"
+              },
+              "fullDescription": {
+                "text": "64-bit block size (Sweet32); disallowed by NIST since 2024"
+              },
+              "help": {
+                "text": "Use AES-256-GCM.",
+                "markdown": "Use AES-256-GCM."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/ecb",
+              "name": "ecb",
+              "shortDescription": {
+                "text": "BROKEN: ECB"
+              },
+              "fullDescription": {
+                "text": "ECB mode leaks patterns in the plaintext"
+              },
+              "help": {
+                "text": "Use an AEAD mode such as AES-256-GCM.",
+                "markdown": "Use an AEAD mode such as AES-256-GCM."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/md5",
+              "name": "md5",
+              "shortDescription": {
+                "text": "BROKEN: MD5"
+              },
+              "fullDescription": {
+                "text": "MD5 collisions are practical"
+              },
+              "help": {
+                "text": "Use SHA-384, SHA-512 or SHA3.",
+                "markdown": "Use SHA-384, SHA-512 or SHA3."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/sha1",
+              "name": "sha1",
+              "shortDescription": {
+                "text": "BROKEN: SHA1"
+              },
+              "fullDescription": {
+                "text": "SHA-1 collisions are practical (SHAttered, 2017)"
+              },
+              "help": {
+                "text": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).",
+                "markdown": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs)."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/tls1.1",
+              "name": "tls1.1",
+              "shortDescription": {
+                "text": "BROKEN: TLSv1.1"
+              },
+              "fullDescription": {
+                "text": "TLS 1.1 is deprecated (RFC 8996)"
+              },
+              "help": {
+                "text": "Disable it; use TLS 1.3.",
+                "markdown": "Disable it; use TLS 1.3."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/broken/tls1.0",
+              "name": "tls1.0",
+              "shortDescription": {
+                "text": "BROKEN: TLSv1.0"
+              },
+              "fullDescription": {
+                "text": "TLS 1.0 is deprecated (RFC 8996)"
+              },
+              "help": {
+                "text": "Disable it; use TLS 1.3.",
+                "markdown": "Disable it; use TLS 1.3."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "BROKEN"
+                ],
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/ec",
+              "name": "ec",
+              "shortDescription": {
+                "text": "VULNERABLE: EC"
+              },
+              "fullDescription": {
+                "text": "Elliptic-curve cryptography is broken by Shor's algorithm"
+              },
+              "help": {
+                "text": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition).",
+                "markdown": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/ecdsa",
+              "name": "ecdsa",
+              "shortDescription": {
+                "text": "VULNERABLE: ECDSA"
+              },
+              "fullDescription": {
+                "text": "ECDSA is broken by Shor's algorithm"
+              },
+              "help": {
+                "text": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).",
+                "markdown": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/ed25519",
+              "name": "ed25519",
+              "shortDescription": {
+                "text": "VULNERABLE: Ed25519"
+              },
+              "fullDescription": {
+                "text": "Ed25519 is broken by Shor's algorithm"
+              },
+              "help": {
+                "text": "Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205).",
+                "markdown": "Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/ecdh",
+              "name": "ecdh",
+              "shortDescription": {
+                "text": "VULNERABLE: ECDH"
+              },
+              "fullDescription": {
+                "text": "Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+              },
+              "help": {
+                "text": "Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3).",
+                "markdown": "Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/rsa",
+              "name": "rsa",
+              "shortDescription": {
+                "text": "VULNERABLE: RSA"
+              },
+              "fullDescription": {
+                "text": "RSA is broken by Shor's algorithm at every key size"
+              },
+              "help": {
+                "text": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+                "markdown": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/vulnerable/x25519",
+              "name": "x25519",
+              "shortDescription": {
+                "text": "VULNERABLE: X25519"
+              },
+              "fullDescription": {
+                "text": "X25519 on its own is broken by Shor's algorithm"
+              },
+              "help": {
+                "text": "Use hybrid X25519MLKEM768 (TLS) or mlkem768x25519-sha256 (SSH).",
+                "markdown": "Use hybrid X25519MLKEM768 (TLS) or mlkem768x25519-sha256 (SSH)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "VULNERABLE"
+                ],
+                "security-severity": "6.0"
+              }
+            },
+            {
+              "id": "pqc/weakened/aes",
+              "name": "aes",
+              "shortDescription": {
+                "text": "WEAKENED: AES"
+              },
+              "fullDescription": {
+                "text": "AES with a key shorter than 256 bits loses half its security to Grover's algorithm"
+              },
+              "help": {
+                "text": "Use AES-256.",
+                "markdown": "Use AES-256."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "WEAKENED"
+                ],
+                "security-severity": "4.0"
+              }
+            },
+            {
+              "id": "pqc/weakened/sha1",
+              "name": "sha1",
+              "shortDescription": {
+                "text": "WEAKENED: HMAC-SHA1"
+              },
+              "fullDescription": {
+                "text": "HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin"
+              },
+              "help": {
+                "text": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).",
+                "markdown": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "WEAKENED"
+                ],
+                "security-severity": "4.0"
+              }
+            },
+            {
+              "id": "pqc/weakened/sha224",
+              "name": "sha224",
+              "shortDescription": {
+                "text": "WEAKENED: sha224"
+              },
+              "fullDescription": {
+                "text": "224-bit output leaves a thin margin against quantum search"
+              },
+              "help": {
+                "text": "Use SHA-384 or SHA-512.",
+                "markdown": "Use SHA-384 or SHA-512."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "WEAKENED"
+                ],
+                "security-severity": "4.0"
+              }
+            },
+            {
+              "id": "pqc/unknown/aes",
+              "name": "aes",
+              "shortDescription": {
+                "text": "UNKNOWN: AES"
+              },
+              "fullDescription": {
+                "text": "AES key size could not be determined"
+              },
+              "help": {
+                "text": "Use AES-256.",
+                "markdown": "Use AES-256."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "post-quantum",
+                  "UNKNOWN"
+                ],
+                "security-severity": "2.0"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (file.certificate.public_key) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/certs/legacy-api.pem"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "c82ef93ff96b44f2c8252d7de38a9856"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "PEM block 1 (CERTIFICATE)"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (file.certificate.signature) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/certs/legacy-api.pem"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "cb5fee78e367de7df3c5fbf16cbe4e6e"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "PEM block 1 (CERTIFICATE)"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/3des",
+          "level": "error",
+          "message": {
+            "text": "DESede (code.cipher) is BROKEN: 64-bit block size (Sweet32); disallowed by NIST since 2024"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "a2cc1b64fc6b37d5ae135962e98bb2b9"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Cipher.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/ecb",
+          "level": "error",
+          "message": {
+            "text": "ECB (code.cipher) is BROKEN: ECB mode leaks patterns in the plaintext"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "2ec9f2b709961d317af20630a7d46e4f"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Cipher.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/ecb",
+          "level": "error",
+          "message": {
+            "text": "ECB (code.cipher) is BROKEN: ECB mode leaks patterns in the plaintext"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "2ec9f2b709961d317af20630a7d46e4f"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Cipher.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/md5",
+          "level": "error",
+          "message": {
+            "text": "MD5 (code.hash) is BROKEN: MD5 collisions are practical"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "2f4c3adfb4e17fdf5b74127e9ae3a0e9"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "MessageDigest.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (code.key_generation) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "a5810d27c4642507a358d24312987256"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "KeyPairGenerator.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/sha1",
+          "level": "error",
+          "message": {
+            "text": "SHA1 (code.signature) is BROKEN: SHA-1 collisions are practical (SHAttered, 2017)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "e0dda75ccb8429574fa929b2a51c3cdf"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Signature.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/tls1.1",
+          "level": "error",
+          "message": {
+            "text": "TLSv1.1 (code.tls_config) is BROKEN: TLS 1.1 is deprecated (RFC 8996)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 23
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "57721da0500b51aca702b1ed8ef38098"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "SSLContext.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/ecb",
+          "level": "error",
+          "message": {
+            "text": "ECB (code.cipher) is BROKEN: ECB mode leaks patterns in the plaintext"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "f53f15be7956331fb9c6070f0f340e37"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "CipherMode.ECB"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/3des",
+          "level": "error",
+          "message": {
+            "text": "TripleDES (code.cipher) is BROKEN: 64-bit block size (Sweet32); disallowed by NIST since 2024"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "3cb8e8da3449b4538b22328e2701529f"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "System.Security.Cryptography cipher"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/md5",
+          "level": "error",
+          "message": {
+            "text": "MD5 (code.hash) is BROKEN: MD5 collisions are practical"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "45ed8de80242a88965cc3576bbd49a7f"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "System.Security.Cryptography hash"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (code.key_generation) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "31cd3c778186d06edcd216969716ddbf"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "System.Security.Cryptography.RSA"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/tls1.1",
+          "level": "error",
+          "message": {
+            "text": "TLSv1.1 (code.tls_config) is BROKEN: TLS 1.1 is deprecated (RFC 8996)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "ade89673b22e59422e672d04ea5dd9b5"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "SslProtocols"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/3des",
+          "level": "error",
+          "message": {
+            "text": "3DES (code.cipher) is BROKEN: 64-bit block size (Sweet32); disallowed by NIST since 2024"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 33
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "b3c0c7a76e1bec6e7238a5799eff4b8f"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Crypto.Cipher.DES3.new"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/ecb",
+          "level": "error",
+          "message": {
+            "text": "ECB (code.cipher) is BROKEN: ECB mode leaks patterns in the plaintext"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 23
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "bf0cb96da1015b9c40a503e9041eb880"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "cryptography.hazmat.primitives.ciphers.modes.ECB"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/ecb",
+          "level": "error",
+          "message": {
+            "text": "ECB (code.cipher) is BROKEN: ECB mode leaks patterns in the plaintext"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 32
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "bf0cb96da1015b9c40a503e9041eb880"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "Crypto.Cipher.AES.MODE_ECB"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/md5",
+          "level": "error",
+          "message": {
+            "text": "MD5 (code.hash) is BROKEN: MD5 collisions are practical"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "efc0570ea49d4f92db357a98b4713b79"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "hashlib.md5"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/sha1",
+          "level": "error",
+          "message": {
+            "text": "SHA1 (code.hash) is BROKEN: SHA-1 collisions are practical (SHAttered, 2017)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "c929860b83eb3f662353905b1cf460dc"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "cryptography.hazmat.primitives.hashes.SHA1"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (code.key_generation) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 18
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "24c989e1a713ac743072551f4b37de12"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/tls1.0",
+          "level": "error",
+          "message": {
+            "text": "TLSv1.0 (code.tls_config) is BROKEN: TLS 1.0 is deprecated (RFC 8996)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "b45d50b6a5f726dd76484448bb101fe8"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "ssl.PROTOCOL_TLSv1"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/tls1.1",
+          "level": "error",
+          "message": {
+            "text": "TLSv1.1 (code.tls_config) is BROKEN: TLS 1.1 is deprecated (RFC 8996)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 30
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "af64f618bb35f2fd2091598c51cbd786"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "ssl.TLSVersion.TLSv1_1"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/md5",
+          "level": "error",
+          "message": {
+            "text": "MD5 (code.hash) is BROKEN: MD5 collisions are practical"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 16
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "19b850f477c55b72ddc132c71e8aff9c"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "crypto/md5"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (code.key_generation) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "91cb6fa0a16ff4b7a4bc6aaaebb4073b"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "rsa.GenerateKey"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/tls1.0",
+          "level": "error",
+          "message": {
+            "text": "TLSv1.0 (code.tls_config) is BROKEN: TLS 1.0 is deprecated (RFC 8996)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "a07aba1e0bfd0d6f159ce7b9c05999bc"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "tls.Config version"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/3des",
+          "level": "error",
+          "message": {
+            "text": "des-ede3 (code.cipher) is BROKEN: 64-bit block size (Sweet32); disallowed by NIST since 2024"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "fd0af66ecd4c080ed4f021b5fb323f34"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "openssl::symm::Cipher"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/sha1",
+          "level": "error",
+          "message": {
+            "text": "sha1 (code.hash) is BROKEN: SHA-1 collisions are practical (SHAttered, 2017)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "260f352ca71056a3f109cae4f680bef9"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "openssl::hash::MessageDigest"
+          }
+        },
+        {
+          "ruleId": "pqc/broken/rsa",
+          "level": "error",
+          "message": {
+            "text": "RSA 1024-bit (code.key_generation) is BROKEN: RSA key shorter than 2048 bits is weak even without a quantum computer"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 8
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "e3921fb8a1ceff22901593d31596fb20"
+          },
+          "properties": {
+            "risk": "BROKEN",
+            "evidence": "openssl::rsa::Rsa::generate"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ec",
+          "level": "warning",
+          "message": {
+            "text": "EC secp256r1 (file.certificate.public_key) is VULNERABLE: Elliptic-curve cryptography is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/certs/web.pem"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "6538bfc5c27ed98b0d5d5e80493914d2"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "PEM block 1 (CERTIFICATE)"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdsa",
+          "level": "warning",
+          "message": {
+            "text": "ECDSA secp256r1 (file.certificate.signature) is VULNERABLE: ECDSA is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/certs/web.pem"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "035cbe8881cd6af45b59bdb096ab9ec6"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "PEM block 1 (CERTIFICATE)"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ed25519",
+          "level": "warning",
+          "message": {
+            "text": "Ed25519 (file.ssh_public_key) is VULNERABLE: Ed25519 is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/deploy/id_ed25519.pub"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "2bcc6f96bc22a02222a69203bbd816b5"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "line 1, SSH public key (ssh-ed25519)"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdh",
+          "level": "warning",
+          "message": {
+            "text": "ECDH (code.key_exchange) is VULNERABLE: Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 18
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "25e91673e3e745fac7f77e1511f59847"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "KeyAgreement.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ec",
+          "level": "warning",
+          "message": {
+            "text": "EC (code.key_generation) is VULNERABLE: Elliptic-curve cryptography is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "0ef655e5c6fb5c6ab4a303cce52de188"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "KeyPairGenerator.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ec",
+          "level": "warning",
+          "message": {
+            "text": "EC secp256r1 (code.key_generation) is VULNERABLE: Elliptic-curve cryptography is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "d694c1a333e53c102c96734f2b43bf78"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "ECGenParameterSpec"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/rsa",
+          "level": "warning",
+          "message": {
+            "text": "RSA (code.signature) is VULNERABLE: RSA is broken by Shor's algorithm at every key size"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "2fd7af41fe2f246108577a5f7847fb3b"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "Signature.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdh",
+          "level": "warning",
+          "message": {
+            "text": "ECDH secp256r1 (code.key_exchange) is VULNERABLE: Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "b69c2b9d807e6ea646f7460f01b141e4"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "System.Security.Cryptography.ECDiffieHellman"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdsa",
+          "level": "warning",
+          "message": {
+            "text": "ECDSA secp384r1 (code.key_generation) is VULNERABLE: ECDSA is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "4afe841516bee3b870d01ef786ba8e68"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "System.Security.Cryptography.ECDsa"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ec",
+          "level": "warning",
+          "message": {
+            "text": "EC secp384r1 (code.key_generation) is VULNERABLE: Elliptic-curve cryptography is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 20
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "5494360928f8152bc8100f0accaee42a"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "cryptography.hazmat.primitives.asymmetric.ec.generate_private_key"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ed25519",
+          "level": "warning",
+          "message": {
+            "text": "Ed25519 (code.key_generation) is VULNERABLE: Ed25519 is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "6774927e054f0cf54506c232fbc18b0a"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey.generate"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/rsa",
+          "level": "warning",
+          "message": {
+            "text": "RSA (code.key_generation) is VULNERABLE: RSA is broken by Shor's algorithm at every key size"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "1af7fb3a3aae6b91a610ce0d990a53c0"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/rsa",
+          "level": "warning",
+          "message": {
+            "text": "RSA 2048-bit (code.key_generation) is VULNERABLE: RSA is broken by Shor's algorithm at every key size"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 31
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "e2a0436194ee39478e88f8c075d2c158"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "Crypto.PublicKey.RSA.generate"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdh",
+          "level": "warning",
+          "message": {
+            "text": "ECDH secp256r1 (code.key_exchange) is VULNERABLE: Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 20
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "64fae41f69d711235af7c71986b0dcbd"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "tls.Config CurvePreferences"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/x25519",
+          "level": "warning",
+          "message": {
+            "text": "X25519 (code.key_exchange) is VULNERABLE: X25519 on its own is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "154b98885b6e91ebd589a5764d89d4d6"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "crypto/ecdh.X25519"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdsa",
+          "level": "warning",
+          "message": {
+            "text": "ECDSA secp256r1 (code.key_generation) is VULNERABLE: ECDSA is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/server.go"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "a8b9064b7fe443dfe6d8e7ce86f4c29d"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "ecdsa.GenerateKey"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ec",
+          "level": "warning",
+          "message": {
+            "text": "EC secp256r1 (code.key_generation) is VULNERABLE: Elliptic-curve cryptography is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "3faf6ec0e55aa3702e249b7c498e0e11"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "openssl::ec::EcGroup::from_curve_name"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/ecdsa",
+          "level": "warning",
+          "message": {
+            "text": "ECDSA secp256r1 (code.key_generation) is VULNERABLE: ECDSA is broken by Shor's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "5a29faa7bb9c2af52f59c22f45a3de36"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "RustCrypto p256/p384/p521 ecdsa"
+          }
+        },
+        {
+          "ruleId": "pqc/vulnerable/rsa",
+          "level": "warning",
+          "message": {
+            "text": "RSA 3072-bit (code.key_generation) is VULNERABLE: RSA is broken by Shor's algorithm at every key size"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/signer.rs"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "8ad06971c69fdb6a47a7a905c188719a"
+          },
+          "properties": {
+            "risk": "VULNERABLE",
+            "evidence": "rsa::RsaPrivateKey::new"
+          }
+        },
+        {
+          "ruleId": "pqc/weakened/aes",
+          "level": "warning",
+          "message": {
+            "text": "AES 128-bit (code.key_generation) is WEAKENED: AES with a key shorter than 256 bits loses half its security to Grover's algorithm"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "00838db325635cf35cd1c9f28ea93101"
+          },
+          "properties": {
+            "risk": "WEAKENED",
+            "evidence": "KeyGenerator.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/weakened/sha1",
+          "level": "warning",
+          "message": {
+            "text": "HMAC-SHA1 (code.mac) is WEAKENED: HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Payments.cs"
+                },
+                "region": {
+                  "startLine": 13
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "9dac8e332e82ed6726e5dc3c4174adcc"
+          },
+          "properties": {
+            "risk": "WEAKENED",
+            "evidence": "System.Security.Cryptography HMAC"
+          }
+        },
+        {
+          "ruleId": "pqc/weakened/sha224",
+          "level": "warning",
+          "message": {
+            "text": "sha224 (code.hash) is WEAKENED: 224-bit output leaves a thin margin against quantum search"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 25
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "836db2b8fdc005c38b7e7aa285120577"
+          },
+          "properties": {
+            "risk": "WEAKENED",
+            "evidence": "hashlib.new"
+          }
+        },
+        {
+          "ruleId": "pqc/weakened/sha1",
+          "level": "warning",
+          "message": {
+            "text": "HMAC-SHA1 (code.mac) is WEAKENED: HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/crypto_utils.py"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "4c358999a1246e666f3cd05064a48b97"
+          },
+          "properties": {
+            "risk": "WEAKENED",
+            "evidence": "hmac.new"
+          }
+        },
+        {
+          "ruleId": "pqc/unknown/aes",
+          "level": "note",
+          "message": {
+            "text": "AES (code.cipher) is UNKNOWN: AES key size could not be determined"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "4c9cc55747551220dff4559ccd58f924"
+          },
+          "properties": {
+            "risk": "UNKNOWN",
+            "evidence": "Cipher.getInstance"
+          }
+        },
+        {
+          "ruleId": "pqc/unknown/aes",
+          "level": "note",
+          "message": {
+            "text": "AES (code.cipher) is UNKNOWN: AES key size could not be determined"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example-repo/src/Legacy.java"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "pqcScan/v1": "4c9cc55747551220dff4559ccd58f924"
+          },
+          "properties": {
+            "risk": "UNKNOWN",
+            "evidence": "Cipher.getInstance"
+          }
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "startTimeUtc": "2026-11-06T20:10:46.661525Z",
+          "endTimeUtc": "2026-11-06T20:10:46.678745Z"
+        }
+      ]
+    }
+  ]
+}

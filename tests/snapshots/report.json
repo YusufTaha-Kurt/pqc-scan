@@ -1,0 +1,203 @@
+{
+  "schema_version": "1",
+  "tool_version": "0.0.0",
+  "started_at": "2026-01-01T12:00:00Z",
+  "finished_at": "2026-01-01T12:00:01.500000Z",
+  "scanners": [
+    "sample"
+  ],
+  "config": {
+    "timeout": 5.0,
+    "concurrency": 10,
+    "follow_symlinks": false,
+    "max_file_size": 1048576,
+    "exclude": [
+      ".git",
+      ".hg",
+      ".svn",
+      ".venv",
+      "venv",
+      "node_modules",
+      "__pycache__",
+      ".mypy_cache",
+      ".ruff_cache",
+      ".pytest_cache",
+      ".tox",
+      "dist",
+      "build"
+    ],
+    "mosca": null,
+    "mosca_rules": []
+  },
+  "assets": [
+    {
+      "id": "file:///repo/certs/legacy.pem",
+      "kind": "certificate",
+      "location": "certs/legacy.pem",
+      "details": {}
+    },
+    {
+      "id": "file:///repo/certs/web.pem",
+      "kind": "certificate",
+      "location": "certs/web.pem",
+      "details": {}
+    },
+    {
+      "id": "file:///repo/keys/[bold]odd[/bold].key",
+      "kind": "private_key",
+      "location": "keys/[bold]odd[/bold].key",
+      "details": {}
+    },
+    {
+      "id": "file:///repo/keys/pq.pem",
+      "kind": "public_key",
+      "location": "keys/pq.pem",
+      "details": {}
+    }
+  ],
+  "findings": [
+    {
+      "asset": {
+        "id": "file:///repo/certs/legacy.pem",
+        "kind": "certificate",
+        "location": "certs/legacy.pem",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "RSA",
+        "primitive": "signature",
+        "key_size": 1024,
+        "curve": null
+      },
+      "usage": "file.certificate.public_key",
+      "scanner": "sample",
+      "evidence": {
+        "line": 1,
+        "detail": "sample"
+      },
+      "confidence": "high",
+      "id": "e6fa86febd776ce5",
+      "risk": "BROKEN",
+      "algorithm_id": "rsa",
+      "reason": "RSA key shorter than 2048 bits is weak even without a quantum computer",
+      "recommendation": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///repo/certs/legacy.pem",
+        "kind": "certificate",
+        "location": "certs/legacy.pem",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "sha1",
+        "primitive": "hash",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "file.certificate.signature_hash",
+      "scanner": "sample",
+      "evidence": {
+        "line": 1,
+        "detail": "sample"
+      },
+      "confidence": "high",
+      "id": "42d532b26bb9d655",
+      "risk": "BROKEN",
+      "algorithm_id": "sha1",
+      "reason": "SHA-1 collisions are practical (SHAttered, 2017)",
+      "recommendation": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///repo/certs/web.pem",
+        "kind": "certificate",
+        "location": "certs/web.pem",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "EC",
+        "primitive": "signature",
+        "key_size": 256,
+        "curve": "secp256r1"
+      },
+      "usage": "file.certificate.public_key",
+      "scanner": "sample",
+      "evidence": {
+        "line": null,
+        "detail": "sample"
+      },
+      "confidence": "high",
+      "id": "025b8c8caaafa43e",
+      "risk": "VULNERABLE",
+      "algorithm_id": "ec",
+      "reason": "Elliptic-curve cryptography is broken by Shor's algorithm",
+      "recommendation": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition).",
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///repo/keys/[bold]odd[/bold].key",
+        "kind": "private_key",
+        "location": "keys/[bold]odd[/bold].key",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "encrypted private key",
+        "primitive": "signature",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "file.private_key",
+      "scanner": "sample",
+      "evidence": {
+        "line": null,
+        "detail": "sample"
+      },
+      "confidence": "high",
+      "id": "4c75e6b2aff35667",
+      "risk": "UNKNOWN",
+      "algorithm_id": null,
+      "reason": "'encrypted private key' is not in the rule set; review manually",
+      "recommendation": null,
+      "mosca": null
+    },
+    {
+      "asset": {
+        "id": "file:///repo/keys/pq.pem",
+        "kind": "public_key",
+        "location": "keys/pq.pem",
+        "details": {}
+      },
+      "algorithm": {
+        "raw_name": "ML-KEM-768",
+        "primitive": "kem",
+        "key_size": null,
+        "curve": null
+      },
+      "usage": "file.public_key",
+      "scanner": "sample",
+      "evidence": {
+        "line": null,
+        "detail": "sample"
+      },
+      "confidence": "high",
+      "id": "a84d68cd281a7537",
+      "risk": "PQ_SAFE",
+      "algorithm_id": "ml-kem",
+      "reason": "ML-KEM is a NIST post-quantum KEM standard (FIPS 203)",
+      "recommendation": null,
+      "mosca": null
+    }
+  ],
+  "errors": [
+    {
+      "target": "unreachable",
+      "scanner": "sample",
+      "kind": "invalid_target",
+      "message": "path does not exist"
+    }
+  ]
+}

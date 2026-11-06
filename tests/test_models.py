@@ -122,3 +122,12 @@ def test_empty_result_has_no_worst_risk() -> None:
         tool_version="0", started_at=now, finished_at=now, scanners=[], config=ScanConfig()
     )
     assert result.worst_risk() is None
+
+
+def test_mosca_score_round_trips_through_json() -> None:
+    from pqc_scan.models import MoscaScore
+
+    score = MoscaScore(x=10, y=5, z=12)
+    dumped = score.model_dump_json()
+    assert '"margin":3.0' in dumped
+    assert MoscaScore.model_validate_json(dumped) == score

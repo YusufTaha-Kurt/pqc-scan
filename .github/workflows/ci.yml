@@ -42,3 +42,49 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest -q --cov=pqc_scan --cov-report=term-missing
+
+  docker:
+    name: Container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t pqc-scan:ci .
+      - run: docker run --rm pqc-scan:ci --version
+      - run: docker run --rm -v "$PWD/tests/fixtures/code:/scan:ro" pqc-scan:ci scan code /scan --format cbom
+
+  action:
+    name: GitHub Action (self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pqc
+        uses: ./
+        with:
+          path: tests/fixtures/code
+          fail-on: ""
+      - run: test "${{ steps.pqc.outputs.worst-risk }}" = "BROKEN"
+
+  interop:
+    name: Interop (real OpenSSL 3.5 and OpenSSH 10 servers)
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    steps:
+      - name: Install servers
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates git openssh-server openssl python3 python3-venv
+      - uses: actions/checkout@v4
+      - run: python3 -m venv /venv && /venv/bin/pip install -e ".[dev]"
+      - name: Scan local servers
+        run: |
+          mkdir -p /run/sshd && ssh-keygen -A && /usr/sbin/sshd -p 2222
+          mkdir -p /tmp/certs
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=localhost" \
+            -keyout /tmp/certs/key.pem -out /tmp/certs/cert.pem
+          python3 tests/interop/tls_server.py /tmp/certs/cert.pem /tmp/certs/key.pem 8443 &
+          sleep 2
+          PQC_INTEROP_TLS=127.0.0.1:8443 PQC_INTEROP_SSH=127.0.0.1:2222 \
+            /venv/bin/pytest -q tests/interop -rs
