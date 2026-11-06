@@ -14,18 +14,25 @@ import sys
 from collections.abc import Sequence
 from enum import IntEnum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, TypedDict
 
 import typer
 from pydantic import ValidationError
 from rich.console import Console
 
-from pqc_scan import __version__
+from pqc_scan import __version__, mosca
 from pqc_scan.diff import build as build_diff
 from pqc_scan.diff import diff
 from pqc_scan.diff import render_console as render_diff_console
 from pqc_scan.engine import ScanJob, run_scan
-from pqc_scan.models import DEFAULT_EXCLUDES, MoscaInputs, RiskClass, ScanConfig, ScanResult
+from pqc_scan.models import (
+    DEFAULT_EXCLUDES,
+    MoscaInputs,
+    MoscaRule,
+    RiskClass,
+    ScanConfig,
+    ScanResult,
+)
 from pqc_scan.reporters import ReportFormat, console, missing_dependency, render
 from pqc_scan.scanners.base import Scanner
 from pqc_scan.scanners.code import CodeScanner
@@ -155,6 +162,14 @@ FollowSymlinksOption = Annotated[
 TimeoutOption = Annotated[
     float, typer.Option("--timeout", min=0.1, help="Seconds per network operation.")
 ]
+MoscaFileOption = Annotated[
+    Path | None,
+    typer.Option(
+        "--mosca-file",
+        dir_okay=False,
+        help="YAML file with Mosca values per asset (glob on location or id).",
+    ),
+]
 
 
 # --- helpers ------------------------------------------------------------------
@@ -183,17 +198,28 @@ def collect_targets(arguments: Sequence[str] | None, targets_file: Path | None) 
     return list(dict.fromkeys(targets))
 
 
-def mosca_inputs(x: float | None, y: float | None, z: float | None) -> MoscaInputs | None:
-    """All three Mosca values, or none of them (decision D-7)."""
+class MoscaSettings(TypedDict):
+    mosca: MoscaInputs | None
+    mosca_rules: tuple[MoscaRule, ...]
+
+
+def mosca_settings(
+    x: float | None, y: float | None, z: float | None, mapping: Path | None = None
+) -> MoscaSettings:
+    """Global Mosca values and per-asset rules (decision D-7: nothing is assumed).
+
+    Without a mapping file, all three flags must be given together.
+    """
     given = [value is not None for value in (x, y, z)]
-    if not any(given):
-        return None
-    if not all(given):
+    if mapping is None and any(given) and not all(given):
         raise typer.BadParameter(
             "--mosca-x, --mosca-y and --mosca-z must be given together", param_hint="--mosca-*"
         )
-    assert x is not None and y is not None and z is not None  # noqa: S101 - narrowing only
-    return MoscaInputs(x=x, y=y, z=z)
+    try:
+        default, rules = mosca.resolve((x, y, z), mapping)
+    except mosca.MoscaFileError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--mosca-file") from exc
+    return {"mosca": default, "mosca_rules": rules}
 
 
 def _check_format(fmt: ReportFormat) -> None:
@@ -280,14 +306,14 @@ def _local_config(
     follow_symlinks: bool,
     max_file_size: int,
     exclude: list[str] | None,
-    mosca: MoscaInputs | None,
+    mosca: MoscaSettings,
 ) -> ScanConfig:
     return ScanConfig(
         concurrency=concurrency,
         follow_symlinks=follow_symlinks,
         max_file_size=max_file_size,
         exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
-        mosca=mosca,
+        **mosca,
     )
 
 
@@ -305,12 +331,13 @@ def scan_files(
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
     mosca_z: MoscaZOption = None,
+    mosca_file: MoscaFileOption = None,
 ) -> None:
     """Find certificates and keys (PEM, DER, OpenSSH) in local files."""
     _check_format(fmt)
     targets = collect_targets(paths, targets_file)
-    mosca = mosca_inputs(mosca_x, mosca_y, mosca_z)
-    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca)
+    mosca_cfg = mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file)
+    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca_cfg)
     _run(FilesScanner(), targets, config, fmt, out, fail_on)
 
 
@@ -328,14 +355,15 @@ def scan_code(
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
     mosca_z: MoscaZOption = None,
+    mosca_file: MoscaFileOption = None,
 ) -> None:
     """Find cryptography API usage in source code (Python, Java/Kotlin,
     JavaScript/TypeScript, Go). Reports file, line and API name only.
     """
     _check_format(fmt)
     targets = collect_targets(paths, targets_file)
-    mosca = mosca_inputs(mosca_x, mosca_y, mosca_z)
-    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca)
+    mosca_cfg = mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file)
+    config = _local_config(concurrency, follow_symlinks, max_file_size, exclude, mosca_cfg)
     _run(CodeScanner(), targets, config, fmt, out, fail_on)
 
 
@@ -357,6 +385,7 @@ def scan_tls(
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
     mosca_z: MoscaZOption = None,
+    mosca_file: MoscaFileOption = None,
 ) -> None:
     """Probe TLS endpoints: versions, cipher suites, key-exchange groups
     (including hybrid post-quantum groups) and certificates.
@@ -369,7 +398,7 @@ def scan_tls(
     config = ScanConfig(
         timeout=timeout,
         concurrency=concurrency,
-        mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
+        **mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file),
     )
     _run(TLSScanner(), targets, config, fmt, out, fail_on)
 
@@ -392,6 +421,7 @@ def scan_ssh(
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
     mosca_z: MoscaZOption = None,
+    mosca_file: MoscaFileOption = None,
 ) -> None:
     """Read the algorithms an SSH server offers (key exchange, host keys,
     ciphers, MACs). One connection per server; no login is attempted.
@@ -399,7 +429,9 @@ def scan_ssh(
     _check_format(fmt)
     targets = collect_targets(hosts, targets_file)
     config = ScanConfig(
-        timeout=timeout, concurrency=concurrency, mosca=mosca_inputs(mosca_x, mosca_y, mosca_z)
+        timeout=timeout,
+        concurrency=concurrency,
+        **mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file),
     )
     _run(SSHScanner(), targets, config, fmt, out, fail_on)
 
@@ -437,6 +469,7 @@ def scan_all(
     mosca_x: MoscaXOption = None,
     mosca_y: MoscaYOption = None,
     mosca_z: MoscaZOption = None,
+    mosca_file: MoscaFileOption = None,
 ) -> None:
     """Run every scanner in one go and produce a single report:
     TLS and SSH endpoints, plus files and source code under --path.
@@ -454,7 +487,7 @@ def scan_all(
         follow_symlinks=follow_symlinks,
         max_file_size=max_file_size,
         exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
-        mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
+        **mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file),
     )
     jobs = [ScanJob(TLSScanner(), t) for t in dict.fromkeys(tls)]
     jobs += [ScanJob(SSHScanner(), t) for t in dict.fromkeys(ssh)]

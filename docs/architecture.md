@@ -374,8 +374,22 @@ Mosca's inequality: if `x + y > z`, data is at risk.
 
 `MoscaScore = {x, y, z, margin = (x + y) - z, at_risk = margin > 0}`.
 Computed only for `BROKEN`, `VULNERABLE`, `WEAKENED` and `UNKNOWN`
-findings. Inputs come from CLI flags (global) and, later, from a per-asset
-mapping file.
+findings. Inputs come from CLI flags (global) and from a per-asset mapping
+file (`--mosca-file`):
+
+```yaml
+default: {x: 5, y: 3}          # z from --mosca-z or here
+assets:
+  - match: "tls://*.bank.example:*"   # glob on asset id or location
+    x: 25
+  - match: "src/payments/*"
+    x: 10
+    y: 5
+```
+
+Command-line values override `default`; each rule's missing values are taken
+from the defaults; a rule that still lacks a value is a usage error. The first
+matching rule wins (`ScanConfig.mosca_rules`), otherwise the global values.
 
 ## 8. CLI (`cli.py`) **[D-8]**
 

@@ -228,6 +228,15 @@ class MoscaInputs(_Model):
     z: float = Field(ge=0)
 
 
+class MoscaRule(_Model):
+    """Mosca values for assets whose id or location matches a glob pattern."""
+
+    match: str = Field(min_length=1, description="Glob on asset id or location")
+    x: float = Field(ge=0)
+    y: float = Field(ge=0)
+    z: float = Field(ge=0)
+
+
 class ScanConfig(_Model):
     """Options shared by all scanners. Defaults are deliberately conservative."""
 
@@ -237,6 +246,7 @@ class ScanConfig(_Model):
     max_file_size: int = Field(default=1024 * 1024, gt=0, description="Bytes")
     exclude: tuple[str, ...] = DEFAULT_EXCLUDES
     mosca: MoscaInputs | None = None
+    mosca_rules: tuple[MoscaRule, ...] = ()
 
 
 class ScanResult(_Model):
