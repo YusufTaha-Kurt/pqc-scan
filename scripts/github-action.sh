@@ -47,6 +47,7 @@ esac
 report="$out_dir/pqc-scan-report.$ext"
 pqc-scan report "$head_json" --format "$format" --out "$report"
 cp "$head_json" "$out_dir/pqc-scan.json"
+pqc-scan report "$head_json" --format sarif --out "$out_dir/pqc-scan.sarif"
 
 {
   echo "## pqc-scan"
@@ -62,6 +63,7 @@ print(max(risks, key=order.index) if risks else "")' "$head_json")
 {
   echo "report=$report"
   echo "json=$out_dir/pqc-scan.json"
+  echo "sarif=$out_dir/pqc-scan.sarif"
   echo "worst-risk=$worst"
 } >> "$outputs"
 

@@ -33,6 +33,11 @@ inputs:
   upload-artifact:
     description: Upload the report as a workflow artifact named pqc-scan-report.
     default: "true"
+  upload-sarif:
+    description: >-
+      Upload findings to GitHub code scanning (Security tab). Needs
+      "permissions: security-events: write" in the calling workflow.
+    default: "false"
 
 outputs:
   report:
@@ -44,6 +49,9 @@ outputs:
   worst-risk:
     description: Worst risk class found (empty if no cryptography was found).
     value: ${{ steps.scan.outputs.worst-risk }}
+  sarif:
+    description: Path of the SARIF file.
+    value: ${{ steps.scan.outputs.sarif }}
 
 runs:
   using: composite
@@ -70,6 +78,12 @@ runs:
         PQC_ONLY_NEW: ${{ inputs.only-new }}
         PQC_FORMAT: ${{ inputs.format }}
         PQC_OUTPUT_DIR: pqc-scan-report
+    - name: Upload to code scanning
+      if: always() && inputs.upload-sarif == 'true' && steps.scan.outputs.sarif != ''
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif }}
+        category: pqc-scan
     - name: Upload report
       if: always() && inputs.upload-artifact == 'true'
       uses: actions/upload-artifact@v4

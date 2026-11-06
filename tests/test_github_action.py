@@ -85,6 +85,13 @@ def test_push_event_fails_on_broken(repo: Path) -> None:
     assert {f["asset"]["location"] for f in data["findings"]} == {"legacy.py"}
     outputs = (repo.parent / "runner" / "output.txt").read_text()
     assert "worst-risk=BROKEN" in outputs
+    sarif = json.loads((report_dir / "pqc-scan.sarif").read_text())
+    assert (
+        sarif["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["artifactLocation"][
+            "uri"
+        ]
+        == "legacy.py"
+    )
     assert "## pqc-scan" in (repo.parent / "runner" / "summary.md").read_text()
 
 

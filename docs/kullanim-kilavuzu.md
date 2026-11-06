@@ -71,6 +71,7 @@ cümleyle söyler. Daha ayrıntılı örnekler: [geçiş rehberi](migration-guid
 pqc-scan scan all --path ./proje --format html --out rapor.html   # tarayıcıda aç
 pqc-scan scan all --path ./proje --format json --out rapor.json   # sonra tekrar kullanmak için
 pqc-scan scan all --path ./proje --format cbom --out cbom.json    # standart envanter (CycloneDX)
+pqc-scan scan all --path ./proje --format sarif --out sonuc.sarif # güvenlik panoları (GitHub Code scanning)
 ```
 
 HTML raporda risk sınıfına göre süzme ve arama kutusu vardır. Kaydedilmiş
@@ -145,7 +146,10 @@ jobs:
           fail-on: BROKEN
 ```
 
-Her değişiklikte tarama yapılır, rapor "Artifacts" bölümüne konur. Bir pull
+Her değişiklikte tarama yapılır, rapor "Artifacts" bölümüne konur.
+Bulguları deponun **Security → Code scanning** sekmesinde görmek için
+`with:` altına `upload-sarif: true` ekle ve iş akışının en üstüne
+`permissions: {contents: read, security-events: write}` yaz. Bir pull
 request **yeni** bir `BROKEN` sorun eklerse kontrol kırmızı olur; projede
 zaten var olan eski sorunlar PR'ı engellemez. İki raporu elle karşılaştırmak
 için:

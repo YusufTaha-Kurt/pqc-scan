@@ -14,6 +14,7 @@ class ReportFormat(StrEnum):
     JSON = "json"
     HTML = "html"
     CBOM = "cbom"
+    SARIF = "sarif"
 
 
 class UnsupportedFormatError(ValueError):
@@ -47,6 +48,10 @@ def render(result: ScanResult, fmt: ReportFormat) -> str:
         from pqc_scan.reporters import html_report
 
         return html_report.render(result)
+    if fmt is ReportFormat.SARIF:
+        from pqc_scan.reporters import sarif
+
+        return sarif.render(result)
     from pqc_scan.reporters import cbom
 
     return cbom.render(result)

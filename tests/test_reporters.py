@@ -378,3 +378,47 @@ def test_reports_never_contain_private_key_material(crypto_tree: CryptoTree) -> 
     leaked = [line for line in crypto_tree.secret_lines if line.decode() in output]
     assert leaked == []
     assert "BEGIN" not in output
+
+
+# --- sarif -----------------------------------------------------------------------
+
+
+def test_sarif_structure(tmp_path: Path) -> None:
+    from pqc_scan.reporters import sarif
+
+    result = sample_result()
+    doc = sarif.build(result, base=Path("/repo"))
+    assert doc["version"] == "2.1.0"
+    run = doc["runs"][0]
+    assert run["tool"]["driver"]["name"] == "pqc-scan"
+    results = run["results"]
+    # Only UNKNOWN or worse: the PQ_SAFE ML-KEM key is not an alert.
+    assert {r["properties"]["risk"] for r in results} == {"BROKEN", "VULNERABLE", "UNKNOWN"}
+    levels = {r["properties"]["risk"]: r["level"] for r in results}
+    assert levels == {"BROKEN": "error", "VULNERABLE": "warning", "UNKNOWN": "note"}
+    first = results[0]["locations"][0]["physicalLocation"]
+    assert first["artifactLocation"]["uri"] == "certs/legacy.pem"
+    assert first["region"] == {"startLine": 1}
+    rule_ids = {rule["id"] for rule in run["tool"]["driver"]["rules"]}
+    assert {r["ruleId"] for r in results} <= rule_ids
+    assert all(r["partialFingerprints"]["pqcScan/v1"] for r in results)
+    assert run["invocations"][0]["executionSuccessful"] is False  # the sample has an error
+    json.loads(render(result, ReportFormat.SARIF))
+
+
+def test_sarif_endpoint_and_outside_paths() -> None:
+    from pqc_scan.reporters import sarif
+
+    base = sample_result()
+    endpoint = Asset(
+        id="tls://example.test:443", kind=AssetKind.TLS_ENDPOINT, location="example.test:443"
+    )
+    outside = Asset(id="file:///elsewhere/k.pem", kind=AssetKind.PRIVATE_KEY, location="k.pem")
+    findings = [
+        base.findings[0].model_copy(update={"asset": endpoint}),
+        base.findings[1].model_copy(update={"asset": outside}),
+    ]
+    doc = sarif.build(base.model_copy(update={"findings": findings}), base=Path("/repo"))
+    locations = [r["locations"][0] for r in doc["runs"][0]["results"]]
+    assert locations[0] == {"logicalLocations": [{"name": "example.test:443", "kind": "resource"}]}
+    assert locations[1]["physicalLocation"]["artifactLocation"]["uri"] == "k.pem"

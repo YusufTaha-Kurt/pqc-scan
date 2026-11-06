@@ -438,6 +438,7 @@ own or have written permission to test.
 | -------------- | ---------------------------------------------------------- |
 | `console`      | `rich` output: header, summary counts per risk class, findings table sorted worst first (location:line, usage, algorithm, optional Mosca column, reason), errors table, worst-risk verdict. Colours only on a terminal; scanned data is never interpreted as markup |
 | `json_report`  | `ScanResult.model_dump_json(indent=2)`; JSON Schema committed as `docs/schema/scan-result.schema.json` (a test keeps it in sync) |
+| `sarif`        | SARIF 2.1.0: findings `UNKNOWN` or worse as results (BROKEN → error, VULNERABLE/WEAKENED → warning, UNKNOWN → note), one rule per algorithm, file + line locations relative to the working directory, logical locations for endpoints, stable `partialFingerprints`. No extra dependency |
 | `html_report`  | Single self-contained file rendered from `templates/report.html.j2` (no external assets) |
 | `cbom`         | CycloneDX **1.6** BOM: each distinct algorithm → `cryptographic-asset` component (`assetType: algorithm`, `algorithmProperties`), each certificate → `assetType: certificate`; assets link to algorithms through `dependencies` |
 

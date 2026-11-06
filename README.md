@@ -79,7 +79,7 @@ Every command takes the same output options:
 
 | Option | Purpose |
 | --- | --- |
-| `--format console\|json\|html\|cbom` | Terminal table (default), machine-readable JSON, one-file HTML page, CycloneDX 1.6 CBOM |
+| `--format console\|json\|html\|cbom\|sarif` | Terminal table (default), machine-readable JSON, one-file HTML page, CycloneDX 1.6 CBOM, SARIF 2.1.0 for code-scanning dashboards |
 | `--out FILE` | Write to a file instead of the terminal |
 | `--fail-on CLASS` | Exit with code 1 if a finding is at least this severe (for CI) |
 | `--targets FILE` | Read targets from a file (`scan all`: `tls://…`, `ssh://…`, `path:DIR`) |
@@ -142,7 +142,9 @@ jobs:
 The action writes a job summary, uploads the report as an artifact
 (`format: html|json|cbom`) and exposes `worst-risk` as an output. Inputs:
 `path`, `tls`, `ssh`, `exclude`, `fail-on`, `only-new`, `format`,
-`python-version`, `upload-artifact`.
+`python-version`, `upload-artifact`, `upload-sarif` (shows findings in the
+repository's *Security → Code scanning* tab; the workflow needs
+`permissions: security-events: write`).
 
 ## Documentation
 

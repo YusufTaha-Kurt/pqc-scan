@@ -106,6 +106,7 @@ verirse) yalnızca `algorithms.yaml` güncellenir; tarayıcılara dokunulmaz.
 | `json` | Kaydetmek, karşılaştırmak (`diff`), başka araçlara vermek. Şeması: `docs/schema/` |
 | `html` | Tek dosyalık sayfa; dışarıdan hiçbir şey yüklemez; süzme ve arama var |
 | `cbom` | CycloneDX 1.6 standart envanteri; resmi şemaya karşı doğrulanıyor |
+| `sarif` | GitHub'ın "Code scanning" ekranı gibi güvenlik panolarının okuduğu standart; yalnızca aksiyon gerektiren bulgular (UNKNOWN ve daha kötüsü) |
 
 Her bulgu için bir **öneri** de üretilir; ayrıntılı yapılandırma örnekleri
 [geçiş rehberinde](migration-guide.md).
