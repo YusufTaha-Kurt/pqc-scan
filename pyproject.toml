@@ -13,7 +13,7 @@ requires-python = ">=3.11"
 authors = [{ name = "Yusuf Taha Kurt" }]
 keywords = ["post-quantum", "pqc", "cryptography", "cbom", "tls", "ssh", "security"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
@@ -90,6 +90,8 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]  # assert is fine in tests
+# Teaching notebooks: math-style names (N, Q), asserts as checks, seeded PRNGs.
+"docs/learn/*.ipynb" = ["S101", "S311", "N803", "N806", "E501", "B905"]
 
 # --- mypy ---------------------------------------------------------------
 
