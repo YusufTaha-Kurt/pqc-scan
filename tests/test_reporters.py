@@ -422,3 +422,21 @@ def test_sarif_endpoint_and_outside_paths() -> None:
     locations = [r["locations"][0] for r in doc["runs"][0]["results"]]
     assert locations[0] == {"logicalLocations": [{"name": "example.test:443", "kind": "resource"}]}
     assert locations[1]["physicalLocation"]["artifactLocation"]["uri"] == "k.pem"
+
+
+def test_cbom_certificate_details(crypto_tree: CryptoTree) -> None:
+    from pqc_scan.reporters import cbom
+
+    result = run_scan(
+        [ScanJob(FilesScanner(), str(crypto_tree.root / "certs" / "rsa1024.pem"))], ScanConfig()
+    )
+    data = _validate_cbom(cbom.render(result))
+    cert = next(
+        c
+        for c in data["components"]
+        if c.get("cryptoProperties", {}).get("assetType") == "certificate"
+    )
+    props = cert["cryptoProperties"]["certificateProperties"]
+    assert props["subjectName"] == "CN=pqc-scan test"
+    assert props["issuerName"] == "CN=pqc-scan test"
+    assert props["notValidBefore"] < props["notValidAfter"]

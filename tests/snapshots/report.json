@@ -33,22 +33,26 @@
     {
       "id": "file:///repo/certs/legacy.pem",
       "kind": "certificate",
-      "location": "certs/legacy.pem"
+      "location": "certs/legacy.pem",
+      "details": {}
     },
     {
       "id": "file:///repo/certs/web.pem",
       "kind": "certificate",
-      "location": "certs/web.pem"
+      "location": "certs/web.pem",
+      "details": {}
     },
     {
       "id": "file:///repo/keys/[bold]odd[/bold].key",
       "kind": "private_key",
-      "location": "keys/[bold]odd[/bold].key"
+      "location": "keys/[bold]odd[/bold].key",
+      "details": {}
     },
     {
       "id": "file:///repo/keys/pq.pem",
       "kind": "public_key",
-      "location": "keys/pq.pem"
+      "location": "keys/pq.pem",
+      "details": {}
     }
   ],
   "findings": [
@@ -56,7 +60,8 @@
       "asset": {
         "id": "file:///repo/certs/legacy.pem",
         "kind": "certificate",
-        "location": "certs/legacy.pem"
+        "location": "certs/legacy.pem",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "RSA",
@@ -82,7 +87,8 @@
       "asset": {
         "id": "file:///repo/certs/legacy.pem",
         "kind": "certificate",
-        "location": "certs/legacy.pem"
+        "location": "certs/legacy.pem",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "sha1",
@@ -108,7 +114,8 @@
       "asset": {
         "id": "file:///repo/certs/web.pem",
         "kind": "certificate",
-        "location": "certs/web.pem"
+        "location": "certs/web.pem",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "EC",
@@ -134,7 +141,8 @@
       "asset": {
         "id": "file:///repo/keys/[bold]odd[/bold].key",
         "kind": "private_key",
-        "location": "keys/[bold]odd[/bold].key"
+        "location": "keys/[bold]odd[/bold].key",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "encrypted private key",
@@ -160,7 +168,8 @@
       "asset": {
         "id": "file:///repo/keys/pq.pem",
         "kind": "public_key",
-        "location": "keys/pq.pem"
+        "location": "keys/pq.pem",
+        "details": {}
       },
       "algorithm": {
         "raw_name": "ML-KEM-768",

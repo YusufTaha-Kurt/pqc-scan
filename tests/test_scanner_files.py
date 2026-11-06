@@ -468,3 +468,13 @@ def test_fifo_target_is_invalid(tmp_path: Path) -> None:
     with pytest.raises(ScanTargetError) as info:
         scan(tmp_path / "pipe")
     assert info.value.kind == ErrorKind.INVALID_TARGET
+
+
+def test_certificate_details_on_asset(observations: list[Observation]) -> None:
+    obs = by_location(observations, "certs/rsa1024.pem")["file.certificate.public_key"]
+    details = obs.asset.details
+    assert details["subject"] == "CN=pqc-scan test" == details["issuer"]
+    assert details["not_before"] < details["not_after"]
+    assert details["serial"]
+    key = by_location(observations, "keys/ec-p256.key")["file.private_key"]
+    assert key.asset.details == {}

@@ -50,6 +50,14 @@
       "additionalProperties": false,
       "description": "Something that uses cryptography: an endpoint, a file, a source file.",
       "properties": {
+        "details": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Public metadata, e.g. a certificate's subject, issuer and validity",
+          "title": "Details",
+          "type": "object"
+        },
         "id": {
           "description": "Stable URI-like id, e.g. tls://host:443 or file:///abs/path",
           "minLength": 1,

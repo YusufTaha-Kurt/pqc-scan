@@ -48,6 +48,7 @@ from pqc_scan.scanners.base import Scanner, ScanTargetError
 from pqc_scan.scanners.certs import (
     PARSE_ERRORS,
     Triple,
+    certificate_details,
     certificate_observations,
     csr_observations,
     key_algorithm,
@@ -165,11 +166,14 @@ class _Item:
     line: int | None
     detail: str
     observations: list[Triple] = field(default_factory=list)
+    details: dict[str, str] = field(default_factory=dict)
 
 
 def _certificate_item(cert: x509.Certificate, anchor: str, line: int | None, detail: str) -> _Item:
     observations = certificate_observations(cert, "file.certificate")
-    return _Item(AssetKind.CERTIFICATE, anchor, line, detail, observations)
+    return _Item(
+        AssetKind.CERTIFICATE, anchor, line, detail, observations, certificate_details(cert)
+    )
 
 
 def _csr_item(
@@ -412,7 +416,7 @@ class FilesScanner(Scanner):
         for item in items:
             # Only disambiguate with an anchor when the file holds several items.
             asset_id = f"{uri}#{item.anchor}" if len(items) > 1 and item.anchor else uri
-            asset = Asset(id=asset_id, kind=item.kind, location=location)
+            asset = Asset(id=asset_id, kind=item.kind, location=location, details=item.details)
             evidence = Evidence(line=item.line, detail=item.detail)
             result += [
                 Observation(

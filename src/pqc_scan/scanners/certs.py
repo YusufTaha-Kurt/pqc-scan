@@ -240,3 +240,22 @@ def csr_observations(csr: x509.CertificateSigningRequest, prefix: str) -> list[T
         prefix, csr.signature_algorithm_oid.dotted_string, _hash_name(csr), signer_key
     )
     return found
+
+
+def certificate_details(cert: x509.Certificate) -> dict[str, str]:
+    """Public, non-secret metadata of a certificate (subject, issuer, validity)."""
+    details: dict[str, str] = {}
+    try:
+        details["subject"] = cert.subject.rfc4514_string()
+        details["issuer"] = cert.issuer.rfc4514_string()
+    except PARSE_ERRORS:
+        pass
+    for key, attribute in (
+        ("not_before", "not_valid_before_utc"),
+        ("not_after", "not_valid_after_utc"),
+    ):
+        value = getattr(cert, attribute, None)
+        if value is not None:
+            details[key] = value.isoformat()
+    details["serial"] = format(cert.serial_number, "x")
+    return details

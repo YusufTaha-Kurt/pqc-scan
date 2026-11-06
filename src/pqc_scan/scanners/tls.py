@@ -35,7 +35,7 @@ from pqc_scan.models import (
     ScanConfig,
 )
 from pqc_scan.scanners.base import Scanner, ScanTargetError
-from pqc_scan.scanners.certs import PARSE_ERRORS, certificate_observations
+from pqc_scan.scanners.certs import PARSE_ERRORS, certificate_details, certificate_observations
 from pqc_scan.scanners.tls_names import (
     VERSION_NAMES,
     group_algorithm,
@@ -191,7 +191,10 @@ class TLSScanner(Scanner):
             except PARSE_ERRORS:
                 continue
             asset = Asset(
-                id=f"tls://{location}#cert-{index}", kind=AssetKind.CERTIFICATE, location=location
+                id=f"tls://{location}#cert-{index}",
+                kind=AssetKind.CERTIFICATE,
+                location=location,
+                details=certificate_details(cert),
             )
             detail = "leaf certificate" if index == 0 else f"chain certificate {index}"
             for usage, algorithm, confidence in certificate_observations(cert, "tls.certificate"):

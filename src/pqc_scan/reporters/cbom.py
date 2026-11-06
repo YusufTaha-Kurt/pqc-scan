@@ -22,6 +22,7 @@ import hashlib
 import re
 import uuid
 from collections import defaultdict
+from datetime import datetime
 from typing import Final
 
 from cyclonedx.model import Property, XsUri
@@ -142,6 +143,10 @@ def _algorithm_component(finding: Finding, ref: str) -> Component:
     )
 
 
+def _timestamp(value: str | None) -> datetime | None:
+    return datetime.fromisoformat(value) if value else None
+
+
 def _asset_component(
     asset: Asset, ref: str, findings: list[Finding], algorithm_refs: dict[str, BomRef]
 ) -> Component | Service:
@@ -164,6 +169,10 @@ def _asset_component(
         crypto = CryptoProperties(
             asset_type=CryptoAssetType.CERTIFICATE,
             certificate_properties=CertificateProperties(
+                subject_name=asset.details.get("subject"),
+                issuer_name=asset.details.get("issuer"),
+                not_valid_before=_timestamp(asset.details.get("not_before")),
+                not_valid_after=_timestamp(asset.details.get("not_after")),
                 signature_algorithm_ref=ref_for(".signature"),
                 subject_public_key_ref=ref_for(".public_key"),
                 certificate_format="X.509",

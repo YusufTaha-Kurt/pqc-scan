@@ -117,6 +117,10 @@ class Asset(_Model):
     )
     kind: AssetKind
     location: str = Field(description="Human readable location (host:port or path)")
+    details: dict[str, str] = Field(
+        default_factory=dict,
+        description="Public metadata, e.g. a certificate's subject, issuer and validity",
+    )
 
 
 class Evidence(_Model):

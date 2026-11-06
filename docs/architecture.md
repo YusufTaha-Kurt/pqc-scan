@@ -103,6 +103,7 @@ An algorithm exactly as a scanner observed it. Canonicalisation is
 | Field      | Type        | Notes                                                       |
 | ---------- | ----------- | ----------------------------------------------------------- |
 | `id`       | `str`       | Stable URI-like id, used for de-duplication and CBOM `bom-ref`: `tls://host:443`, `ssh://host:22`, `file:///abs/path`, `code:///abs/path` |
+| `details`  | `dict[str, str]` | Public metadata; certificates: `subject`, `issuer`, `not_before`, `not_after`, `serial` (used by the CBOM) |
 | `kind`     | `AssetKind` | `tls_endpoint`, `ssh_endpoint`, `certificate`, `certificate_request`, `private_key`, `public_key`, `source_file` |
 | `location` | `str`       | Human readable (host:port or relative path)                 |
 

@@ -413,6 +413,8 @@ def test_fake_server_findings(fake_server: Any) -> None:
 
     endpoint = f"tls://127.0.0.1:{server.port}"
     assert {a.id for a in result.assets} == {endpoint, f"{endpoint}#cert-0"}
+    cert_asset = next(a for a in result.assets if a.id.endswith("#cert-0"))
+    assert cert_asset.details["subject"] == "CN=fake.example"
     hybrid = next(f for f in result.findings if f.algorithm.raw_name == "X25519MLKEM768")
     assert hybrid.evidence.detail == "TLSv1.3: X25519MLKEM768 (selected #1)"
     ciphers = {f.evidence.detail for f in result.findings if f.algorithm.raw_name == "AES_256_GCM"}
