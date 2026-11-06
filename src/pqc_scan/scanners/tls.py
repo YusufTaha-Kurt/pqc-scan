@@ -48,8 +48,8 @@ from pqc_scan.scanners.tls_probe import TLSProber, TLSReport
 DEFAULT_PORT = 443
 
 
-def parse_target(target: str) -> tuple[str, int]:
-    """Split ``host``, ``host:port``, ``[v6]:port`` or ``https://host/…``."""
+def parse_target(target: str, default_port: int = DEFAULT_PORT) -> tuple[str, int]:
+    """Split ``host``, ``host:port``, ``[v6]:port`` or ``scheme://host/…``."""
     text = target.strip()
     if "://" in text:
         text = text.split("://", 1)[1]
@@ -68,7 +68,7 @@ def parse_target(target: str) -> tuple[str, int]:
     if not host:
         raise ScanTargetError(ErrorKind.INVALID_TARGET, "missing host")
     if not port_text:
-        return host, DEFAULT_PORT
+        return host, default_port
     if not port_text.isdigit() or not 0 < int(port_text) < 65536:
         raise ScanTargetError(ErrorKind.INVALID_TARGET, f"invalid port {port_text!r}")
     return host, int(port_text)
@@ -82,7 +82,7 @@ def _is_ip(host: str) -> bool:
     return True
 
 
-def _display(host: str, port: int) -> str:
+def display_endpoint(host: str, port: int) -> str:
     return f"[{host}]:{port}" if ":" in host else f"{host}:{port}"
 
 
@@ -128,7 +128,7 @@ class TLSScanner(Scanner):
         certificates = report.certificates
         if not certificates:
             certificates = fetch_certificates(host, port, config.timeout, server_name)
-        return self._observations(_display(host, port), report, certificates)
+        return self._observations(display_endpoint(host, port), report, certificates)
 
     def _observations(
         self, location: str, report: TLSReport, certificates: list[bytes]

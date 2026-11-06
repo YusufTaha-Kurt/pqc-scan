@@ -50,7 +50,16 @@ def test_version() -> None:
 
 
 @pytest.mark.parametrize(
-    "command", [[], ["scan"], ["scan", "files"], ["scan", "tls"], ["scan", "code"]]
+    "command",
+    [
+        [],
+        ["scan"],
+        ["scan", "files"],
+        ["scan", "tls"],
+        ["scan", "code"],
+        ["scan", "ssh"],
+        ["scan", "all"],
+    ],
 )
 def test_help_contains_authorization_warning(command: list[str]) -> None:
     result = invoke(*command, "--help")
@@ -279,3 +288,53 @@ def test_scan_code_fail_on() -> None:
     report = ScanResult.model_validate_json(result.stdout)
     assert report.scanners == ["code"]
     assert {f.asset.location for f in report.findings} >= {"Sample.java", "sample.go"}
+
+
+# --- scan ssh / scan all ---------------------------------------------------------
+
+
+def test_scan_ssh(local_server: Any) -> None:
+    from test_scanner_ssh import ssh_handler
+
+    server = local_server(ssh_handler())
+    result = invoke("scan", "ssh", f"127.0.0.1:{server.port}", "-f", "json", "--timeout", "1")
+    assert result.exit_code == ExitCode.OK
+    report = ScanResult.model_validate_json(result.stdout)
+    assert report.worst_risk() == RiskClass.BROKEN  # ssh-rsa host key
+
+
+def test_split_all_targets() -> None:
+    from pqc_scan.cli import split_all_targets
+
+    lines = ["ssh://git.example:2222", "tls://a.example", "https://b.example", "c.example:8443",
+             "path:./repo", "file:/srv/certs"]  # fmt: skip
+    assert split_all_targets(lines) == (
+        ["a.example", "b.example", "c.example:8443"],
+        ["git.example:2222"],
+        ["./repo", "/srv/certs"],
+    )
+
+
+def test_scan_all_combines_scanners(
+    local_server: Any, crypto_tree: CryptoTree, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    from test_scanner_ssh import ssh_handler
+
+    ssh = local_server(ssh_handler())
+    code_dir = str(Path(__file__).parent / "fixtures" / "code")
+    targets = tmp_path_factory.mktemp("all") / "targets.txt"
+    targets.write_text(f"ssh://127.0.0.1:{ssh.port}\npath:{code_dir}\n")
+    result = invoke(
+        "scan", "all", "--targets", str(targets), "--path", str(crypto_tree.root),
+        "-f", "json", "--timeout", "1",
+    )  # fmt: skip
+    assert result.exit_code == ExitCode.OK
+    report = ScanResult.model_validate_json(result.stdout)
+    assert report.scanners == ["ssh", "files", "code"]
+    assert {f.scanner for f in report.findings} == {"ssh", "files", "code"}
+
+
+def test_scan_all_without_targets() -> None:
+    result = invoke("scan", "all")
+    assert result.exit_code == ExitCode.USAGE
+    assert "no targets given" in flat(result.output)

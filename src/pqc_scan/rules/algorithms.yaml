@@ -117,7 +117,7 @@ algorithms:
 
   - id: ecdsa
     name: ECDSA
-    aliases: [ECDSA, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521]
+    aliases: [ECDSA, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521, sk-ecdsa-sha2-nistp256@openssh.com]
     primitives: [signature]
     default: VULNERABLE
     reason: ECDSA is broken by Shor's algorithm
@@ -178,7 +178,7 @@ algorithms:
 
   - id: ed25519
     name: Ed25519
-    aliases: [Ed25519, ssh-ed25519, EdDSA]
+    aliases: [Ed25519, ssh-ed25519, EdDSA, sk-ssh-ed25519@openssh.com]
     primitives: [signature]
     default: VULNERABLE
     reason: Ed25519 is broken by Shor's algorithm
@@ -447,6 +447,14 @@ algorithms:
     default: PQ_SAFE  # TODO: doğrula — same reasoning as AES-256
     reason: 256-bit key keeps about 128-bit security under Grover's algorithm
 
+  - id: cast128
+    name: CAST-128 (CAST5)
+    aliases: [CAST5, CAST128, cast128-cbc]
+    primitives: [block_cipher]
+    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32), like Blowfish
+    reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
+    recommendation: Use AES-256-GCM or ChaCha20-Poly1305.
+
   - id: null-cipher
     name: No encryption
     aliases: ["NULL", none]
@@ -458,9 +466,24 @@ algorithms:
   # Hash functions and MACs
   # ------------------------------------------------------------------
 
+  - id: umac-64
+    name: UMAC-64
+    aliases: [umac-64@openssh.com, umac-64-etm@openssh.com, UMAC-64]
+    primitives: [mac]
+    default: WEAKENED  # TODO: doğrula — 64-bit tag leaves a thin forgery margin
+    reason: A 64-bit authentication tag leaves a thin margin, especially under quantum search
+    recommendation: Use umac-128-etm@openssh.com or hmac-sha2-256-etm@openssh.com.
+
+  - id: umac-128
+    name: UMAC-128
+    aliases: [umac-128@openssh.com, umac-128-etm@openssh.com, UMAC-128]
+    primitives: [mac]
+    default: PQ_SAFE  # TODO: doğrula — 128-bit tag
+    reason: UMAC with a 128-bit tag keeps a comfortable margin
+
   - id: md5
     name: MD5
-    aliases: [MD5, hmac-md5, hmac-md5-96, HMAC-MD5]
+    aliases: [MD5, hmac-md5, hmac-md5-96, HMAC-MD5, hmac-md5-etm@openssh.com, hmac-md5-96-etm@openssh.com]
     primitives: [hash, mac]
     default: BROKEN
     reason: MD5 collisions are practical
@@ -476,7 +499,7 @@ algorithms:
 
   - id: sha1
     name: SHA-1
-    aliases: [SHA1, SHA, hmac-sha1, hmac-sha1-96, HMAC-SHA1, hmac-sha1-etm@openssh.com]
+    aliases: [SHA1, SHA, hmac-sha1, hmac-sha1-96, HMAC-SHA1, hmac-sha1-etm@openssh.com, hmac-sha1-96-etm@openssh.com]
     primitives: [hash, mac]
     default: BROKEN
     reason: SHA-1 collisions are practical (SHAttered, 2017)
@@ -563,6 +586,21 @@ algorithms:
     default: BROKEN
     reason: SSL 3.0 is insecure (POODLE) and prohibited (RFC 7568)
     recommendation: Disable it; use TLS 1.3.
+
+  - id: sshv1
+    name: SSH protocol 1
+    aliases: [SSHv1, SSH-1, SSH1]
+    primitives: [protocol]
+    default: BROKEN
+    reason: SSH protocol version 1 has known design flaws and was removed from OpenSSH in 7.6
+    recommendation: Disable SSH-1; use SSH-2 with mlkem768x25519-sha256.
+
+  - id: sshv2
+    name: SSH protocol 2
+    aliases: [SSHv2, SSH-2, SSH2]
+    primitives: [protocol]
+    default: PQ_SAFE  # TODO: doğrula — like TLS 1.3, safety depends on the negotiated algorithms, reported separately
+    reason: SSH-2 supports post-quantum key exchange; algorithms are classified separately
 
   - id: tls1.0
     name: TLS 1.0

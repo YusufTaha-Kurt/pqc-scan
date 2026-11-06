@@ -27,6 +27,7 @@ from pqc_scan.reporters import IMPLEMENTED_FORMATS, ReportFormat, console, rende
 from pqc_scan.scanners.base import Scanner
 from pqc_scan.scanners.code import CodeScanner
 from pqc_scan.scanners.files import FilesScanner
+from pqc_scan.scanners.ssh import SSHScanner
 from pqc_scan.scanners.tls import TLSScanner
 
 AUTHORIZATION_WARNING = (
@@ -232,10 +233,39 @@ def _run(
     out: Path | None,
     fail_on: RiskClass | None,
 ) -> None:
-    jobs = [ScanJob(scanner, target) for target in targets]
+    _run_jobs([ScanJob(scanner, target) for target in targets], config, fmt, out, fail_on)
+
+
+def _run_jobs(
+    jobs: list[ScanJob],
+    config: ScanConfig,
+    fmt: ReportFormat,
+    out: Path | None,
+    fail_on: RiskClass | None,
+) -> None:
     result = run_scan(jobs, config)
     emit(result, fmt, out)
     raise typer.Exit(exit_code(result, len(jobs), fail_on))
+
+
+def split_all_targets(lines: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """Sort ``--targets`` lines of ``scan all`` into (tls, ssh, paths).
+
+    ``tls://host:port`` and ``ssh://host:port`` name endpoints, ``path:DIR``
+    or ``file:DIR`` a local directory; a bare ``host[:port]`` is a TLS endpoint.
+    """
+    tls, ssh, paths = [], [], []
+    for line in lines:
+        scheme, sep, rest = line.partition("://")
+        if sep and scheme.lower() == "ssh":
+            ssh.append(rest)
+        elif sep and scheme.lower() in ("tls", "https"):
+            tls.append(rest)
+        elif line.startswith(("path:", "file:")):
+            paths.append(line.split(":", 1)[1])
+        else:
+            tls.append(line)
+    return tls, ssh, paths
 
 
 # --- commands -----------------------------------------------------------------
@@ -338,6 +368,95 @@ def scan_tls(
         mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
     )
     _run(TLSScanner(), targets, config, fmt, out, fail_on)
+
+
+@scan_app.command("ssh", epilog=AUTHORIZATION_WARNING)
+def scan_ssh(
+    hosts: Annotated[
+        list[str] | None,
+        typer.Argument(
+            help="Servers as host, host:port or [IPv6]:port (default port 22).",
+            show_default=False,
+        ),
+    ] = None,
+    targets_file: TargetsOption = None,
+    fmt: FormatOption = ReportFormat.CONSOLE,
+    out: OutOption = None,
+    fail_on: FailOnOption = None,
+    timeout: TimeoutOption = _DEFAULTS.timeout,
+    concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
+    mosca_x: MoscaXOption = None,
+    mosca_y: MoscaYOption = None,
+    mosca_z: MoscaZOption = None,
+) -> None:
+    """Read the algorithms an SSH server offers (key exchange, host keys,
+    ciphers, MACs). One connection per server; no login is attempted.
+    """
+    _check_format(fmt)
+    targets = collect_targets(hosts, targets_file)
+    config = ScanConfig(
+        timeout=timeout, concurrency=concurrency, mosca=mosca_inputs(mosca_x, mosca_y, mosca_z)
+    )
+    _run(SSHScanner(), targets, config, fmt, out, fail_on)
+
+
+@scan_app.command("all", epilog=AUTHORIZATION_WARNING)
+def scan_all(
+    targets_file: Annotated[
+        Path | None,
+        typer.Option(
+            "--targets",
+            "-t",
+            dir_okay=False,
+            help="File with one target per line: tls://host:port, ssh://host:port, "
+            "path:DIR, or a bare host:port (TLS).",
+        ),
+    ] = None,
+    tls_hosts: Annotated[
+        list[str] | None, typer.Option("--tls", help="TLS endpoint (repeatable).")
+    ] = None,
+    ssh_hosts: Annotated[
+        list[str] | None, typer.Option("--ssh", help="SSH server (repeatable).")
+    ] = None,
+    paths: Annotated[
+        list[str] | None,
+        typer.Option("--path", "-p", help="Directory scanned for files and code (repeatable)."),
+    ] = None,
+    fmt: FormatOption = ReportFormat.CONSOLE,
+    out: OutOption = None,
+    fail_on: FailOnOption = None,
+    timeout: TimeoutOption = _DEFAULTS.timeout,
+    concurrency: ConcurrencyOption = _DEFAULTS.concurrency,
+    exclude: ExcludeOption = None,
+    max_file_size: MaxFileSizeOption = _DEFAULTS.max_file_size,
+    follow_symlinks: FollowSymlinksOption = False,
+    mosca_x: MoscaXOption = None,
+    mosca_y: MoscaYOption = None,
+    mosca_z: MoscaZOption = None,
+) -> None:
+    """Run every scanner in one go and produce a single report:
+    TLS and SSH endpoints, plus files and source code under --path.
+    """
+    _check_format(fmt)
+    tls, ssh, local = list(tls_hosts or []), list(ssh_hosts or []), list(paths or [])
+    if targets_file is not None:
+        more_tls, more_ssh, more_paths = split_all_targets(_read_targets_file(targets_file))
+        tls, ssh, local = tls + more_tls, ssh + more_ssh, local + more_paths
+    if not (tls or ssh or local):
+        raise typer.BadParameter("no targets given (use --tls, --ssh, --path or --targets)")
+    config = ScanConfig(
+        timeout=timeout,
+        concurrency=concurrency,
+        follow_symlinks=follow_symlinks,
+        max_file_size=max_file_size,
+        exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
+        mosca=mosca_inputs(mosca_x, mosca_y, mosca_z),
+    )
+    jobs = [ScanJob(TLSScanner(), t) for t in dict.fromkeys(tls)]
+    jobs += [ScanJob(SSHScanner(), t) for t in dict.fromkeys(ssh)]
+    for path in dict.fromkeys(local):
+        jobs += [ScanJob(FilesScanner(), path), ScanJob(CodeScanner(), path)]
+    _run_jobs(jobs, config, fmt, out, fail_on)
 
 
 @app.command("report")

@@ -276,6 +276,15 @@ parser is simpler and fully passive; `paramiko` would try to negotiate and fails
 on servers that only offer algorithms it does not support (e.g.
 `mlkem768x25519-sha256`).
 
+Details (`scanners/ssh.py`): the client sends only its identification string
+(`SSH-2.0-pqc_scan_<version>`); pre-banner lines are skipped (max 8 KiB);
+packet length is bounded (RFC 4253 §6.1). Pseudo-algorithms (`ext-info-*`,
+`kex-strict-*`) are dropped, `-cert-v01@openssh.com` host-key variants fold
+into their base algorithm. Usages: `ssh.protocol` (`SSHv1`/`SSHv2`, evidence =
+server software), `ssh.key_exchange`, `ssh.host_key`, `ssh.cipher`, `ssh.mac`
+(evidence = `server preference #n`). Asset `ssh://host:port`
+(`ssh_endpoint`). An SSH-1-only server yields just `SSHv1`.
+
 ### 5.4 `code`
 
 Implementation note **[D-12]**: no Semgrep (a 72 MB Linux/macOS-only wheel).
@@ -396,9 +405,10 @@ Common options for `scan`:
 arguments and through `--targets` are merged and de-duplicated. A missing
 Mosca value (only some of `--mosca-x/-y/-z`) is a usage error.
 
-Implementation status: `scan files`, `scan tls` (with `--timeout`) and
-`report` exist. `scan ssh`, `scan code` and `scan all` are added together
-with their scanners. Unimplemented
+All commands exist. `scan all` takes `--tls`, `--ssh`, `--path` (each
+repeatable) and `--targets FILE` whose lines are `tls://host:port`,
+`ssh://host:port`, `path:DIR` or a bare `host:port` (TLS); every path is
+scanned by both `files` and `code`. Unimplemented
 formats (`html`, `cbom`) are rejected before scanning with exit code 2.
 
 Exit codes: `0` success · `1` `--fail-on` threshold reached · `2` usage error
