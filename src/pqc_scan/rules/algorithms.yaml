@@ -13,7 +13,9 @@
 #   key_size_unknown: true   scanner could not determine the key size
 #   primitive: [<p>, ...]    observed primitive is one of these
 #
-# Entries marked "# TODO: doğrula" are judgement calls that still need review.
+# Entries marked "judgement call, approved (D-13)" were reviewed and accepted by
+# the maintainer on 2026-11-06. New uncertain entries are marked "# TODO: doğrula"
+# until they are reviewed.
 
 schema_version: 1
 
@@ -87,7 +89,7 @@ algorithms:
     name: diffie-hellman-group14-sha1
     aliases: [diffie-hellman-group14-sha1, diffie-hellman-group-exchange-sha1]
     primitives: [key_exchange]
-    default: VULNERABLE  # TODO: doğrula — SHA-1 in the KEX hash; BROKEN?
+    default: VULNERABLE  # judgement call, approved (D-13): SHA-1 in the KEX hash; BROKEN?
     reason: Diffie-Hellman key exchange (with SHA-1 exchange hash) is broken by Shor's algorithm
     recommendation: Use mlkem768x25519-sha256 or sntrup761x25519-sha512.
 
@@ -229,7 +231,7 @@ algorithms:
     name: X25519Kyber768Draft00
     aliases: [X25519Kyber768Draft00, X25519Kyber768]
     primitives: [key_exchange, kem]
-    default: HYBRID  # TODO: doğrula — pre-standard Kyber draft, being withdrawn by browsers
+    default: HYBRID  # judgement call, approved (D-13): pre-standard Kyber draft, being withdrawn by browsers
     reason: Hybrid using a pre-standard Kyber draft
     recommendation: Move to the standardised X25519MLKEM768.
 
@@ -270,7 +272,7 @@ algorithms:
     name: FN-DSA (Falcon)
     aliases: [FN-DSA, Falcon, Falcon-512, Falcon-1024]
     primitives: [signature]
-    default: PQ_SAFE  # TODO: doğrula — FIPS 206 not yet final
+    default: PQ_SAFE  # judgement call, approved (D-13): FIPS 206 not yet final
     reason: FN-DSA (Falcon) is selected by NIST for standardisation as FIPS 206
 
   - id: lms-xmss
@@ -304,7 +306,7 @@ algorithms:
     name: AES-192
     aliases: [AES192, AES_192_GCM, AES_192_CBC, aes192-ctr, aes192-cbc]
     primitives: [block_cipher, aead]
-    default: WEAKENED  # TODO: doğrula — ~96-bit security under Grover
+    default: WEAKENED  # judgement call, approved (D-13): ~96-bit security under Grover
     reason: Grover's algorithm reduces AES-192 to about 96-bit security
     recommendation: Use AES-256.
 
@@ -389,7 +391,7 @@ algorithms:
     name: Blowfish
     aliases: [Blowfish, BF, blowfish-cbc]
     primitives: [block_cipher]
-    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32)
+    default: BROKEN  # judgement call, approved (D-13): 64-bit block size (Sweet32)
     reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
     recommendation: Use AES-256-GCM.
 
@@ -405,7 +407,7 @@ algorithms:
     name: IDEA
     aliases: [IDEA, IDEA_CBC]
     primitives: [block_cipher]
-    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32); removed from TLS 1.2 (RFC 5469)
+    default: BROKEN  # judgement call, approved (D-13): 64-bit block size (Sweet32); removed from TLS 1.2 (RFC 5469)
     reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
     recommendation: Use AES-256-GCM.
 
@@ -413,7 +415,7 @@ algorithms:
     name: SEED
     aliases: [SEED, SEED_CBC]
     primitives: [block_cipher]
-    default: WEAKENED  # TODO: doğrula — 128-bit key, like AES-128 under Grover; little used
+    default: WEAKENED  # judgement call, approved (D-13): 128-bit key, like AES-128 under Grover; little used
     reason: 128-bit key leaves about 64-bit security under Grover's algorithm
     recommendation: Use AES-256-GCM.
 
@@ -421,7 +423,7 @@ algorithms:
     name: Camellia-128
     aliases: [CAMELLIA_128_CBC, CAMELLIA_128_GCM, Camellia128, camellia128-cbc]
     primitives: [block_cipher, aead]
-    default: WEAKENED  # TODO: doğrula — same reasoning as AES-128
+    default: WEAKENED  # judgement call, approved (D-13): same reasoning as AES-128
     reason: 128-bit key leaves about 64-bit security under Grover's algorithm
     recommendation: Use AES-256 or Camellia-256.
 
@@ -429,14 +431,14 @@ algorithms:
     name: Camellia-256
     aliases: [CAMELLIA_256_CBC, CAMELLIA_256_GCM, Camellia256, camellia256-cbc]
     primitives: [block_cipher, aead]
-    default: PQ_SAFE  # TODO: doğrula — same reasoning as AES-256
+    default: PQ_SAFE  # judgement call, approved (D-13): same reasoning as AES-256
     reason: 256-bit key keeps about 128-bit security under Grover's algorithm
 
   - id: aria-128
     name: ARIA-128
     aliases: [ARIA_128_GCM, ARIA_128_CBC, ARIA128]
     primitives: [block_cipher, aead]
-    default: WEAKENED  # TODO: doğrula — same reasoning as AES-128
+    default: WEAKENED  # judgement call, approved (D-13): same reasoning as AES-128
     reason: 128-bit key leaves about 64-bit security under Grover's algorithm
     recommendation: Use AES-256 or ARIA-256.
 
@@ -444,14 +446,14 @@ algorithms:
     name: ARIA-256
     aliases: [ARIA_256_GCM, ARIA_256_CBC, ARIA256]
     primitives: [block_cipher, aead]
-    default: PQ_SAFE  # TODO: doğrula — same reasoning as AES-256
+    default: PQ_SAFE  # judgement call, approved (D-13): same reasoning as AES-256
     reason: 256-bit key keeps about 128-bit security under Grover's algorithm
 
   - id: cast128
     name: CAST-128 (CAST5)
     aliases: [CAST5, CAST128, cast128-cbc]
     primitives: [block_cipher]
-    default: BROKEN  # TODO: doğrula — 64-bit block size (Sweet32), like Blowfish
+    default: BROKEN  # judgement call, approved (D-13): 64-bit block size (Sweet32), like Blowfish
     reason: 64-bit block size makes long-lived keys vulnerable (Sweet32)
     recommendation: Use AES-256-GCM or ChaCha20-Poly1305.
 
@@ -470,7 +472,7 @@ algorithms:
     name: UMAC-64
     aliases: [umac-64@openssh.com, umac-64-etm@openssh.com, UMAC-64]
     primitives: [mac]
-    default: WEAKENED  # TODO: doğrula — 64-bit tag leaves a thin forgery margin
+    default: WEAKENED  # judgement call, approved (D-13): 64-bit tag leaves a thin forgery margin
     reason: A 64-bit authentication tag leaves a thin margin, especially under quantum search
     recommendation: Use umac-128-etm@openssh.com or hmac-sha2-256-etm@openssh.com.
 
@@ -478,7 +480,7 @@ algorithms:
     name: UMAC-128
     aliases: [umac-128@openssh.com, umac-128-etm@openssh.com, UMAC-128]
     primitives: [mac]
-    default: PQ_SAFE  # TODO: doğrula — 128-bit tag
+    default: PQ_SAFE  # judgement call, approved (D-13): 128-bit tag
     reason: UMAC with a 128-bit tag keeps a comfortable margin
 
   - id: md5
@@ -506,7 +508,7 @@ algorithms:
     recommendation: Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).
     rules:
       - when: { primitive: [mac] }
-        risk: WEAKENED  # TODO: doğrula — HMAC-SHA1 is not broken by collisions
+        risk: WEAKENED  # judgement call, approved (D-13): HMAC-SHA1 is not broken by collisions
         reason: HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin
 
   - id: sha224
@@ -521,7 +523,7 @@ algorithms:
     name: SHA3-224
     aliases: [SHA3-224]
     primitives: [hash]
-    default: WEAKENED  # TODO: doğrula
+    default: WEAKENED  # judgement call, approved (D-13)
     reason: 224-bit output leaves a thin margin against quantum search
     recommendation: Use SHA3-384 or SHA3-512.
 
@@ -536,7 +538,7 @@ algorithms:
       - hmac-sha2-256-etm@openssh.com
       - HMAC-SHA256
     primitives: [hash, mac]
-    default: PQ_SAFE  # TODO: doğrula (decision D-9)
+    default: PQ_SAFE  # judgement call, approved (D-9, D-13)
     reason: SHA-256 keeps about 128-bit preimage security under Grover's algorithm
 
   - id: sha384
@@ -599,7 +601,7 @@ algorithms:
     name: SSH protocol 2
     aliases: [SSHv2, SSH-2, SSH2]
     primitives: [protocol]
-    default: PQ_SAFE  # TODO: doğrula — like TLS 1.3, safety depends on the negotiated algorithms, reported separately
+    default: PQ_SAFE  # judgement call, approved (D-13): like TLS 1.3, safety depends on the negotiated algorithms, reported separately
     reason: SSH-2 supports post-quantum key exchange; algorithms are classified separately
 
   - id: tls1.0
@@ -622,7 +624,7 @@ algorithms:
     name: TLS 1.2
     aliases: [TLSv1.2, TLS 1.2]
     primitives: [protocol]
-    default: VULNERABLE  # TODO: doğrula — protocol itself is sound, but cannot negotiate standardised PQ key exchange
+    default: VULNERABLE  # judgement call, approved (D-13): protocol itself is sound, but cannot negotiate standardised PQ key exchange
     reason: TLS 1.2 cannot negotiate the standardised hybrid post-quantum key exchange
     recommendation: Enable TLS 1.3 with X25519MLKEM768.
 
@@ -630,5 +632,5 @@ algorithms:
     name: TLS 1.3
     aliases: [TLSv1.3, TLS 1.3]
     primitives: [protocol]
-    default: PQ_SAFE  # TODO: doğrula — safety depends on the negotiated group, reported separately
+    default: PQ_SAFE  # judgement call, approved (D-13): safety depends on the negotiated group, reported separately
     reason: TLS 1.3 supports post-quantum key exchange; groups and certificates are classified separately

@@ -49,7 +49,7 @@ Sınıflandırma kuralları tek bir yerde, veri olarak tutulur (`src/pqc_scan/ru
 Sınıflandırma ilkeleri (karar: D-3, D-9):
 - **Önem sırası:** `BROKEN` > `VULNERABLE` > `WEAKENED` > `UNKNOWN` > `HYBRID` > `PQ_SAFE`. Kurallar varsayılan sınıfı geçersiz kılar; bir algoritmaya birden çok kural uyarsa **en kötü olan** kazanır (ör. RSA-1024 → `BROKEN`). Tanınmayan ad → `UNKNOWN`.
 - **Bağlam önemlidir:** Sınıf, algoritma adı + kullanım amacı (primitive: imza, hash, MAC, …) ile belirlenir. Ör. SHA-1 imzada `BROKEN`, HMAC içinde daha hafif sınıflandırılır.
-- 3DES → `BROKEN`, AES-128 → `WEAKENED`, SHA-256 → `PQ_SAFE` kararları alındı; YAML'da `# TODO: doğrula` notu korunur.
+- 3DES → `BROKEN`, AES-128 → `WEAKENED`, SHA-256 → `PQ_SAFE` kararları alındı. Tüm belirsiz sınıflandırmalar 2026-11-06'da kullanıcı tarafından onaylandı (karar: D-13); YAML'da `judgement call, approved (D-13)` olarak işaretli. Yeni belirsiz eklemeler onaylanana kadar `# TODO: doğrula` ile işaretlenir.
 
 Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gizli kalma süresi, y = geçiş süresi, z = kuantum bilgisayarın hazır olmasına kalan süre. **Üçü de kullanıcıdan alınır; z için varsayılan yoktur** (araç bir kuantum takvimi iddia etmez). Üçü verilmezse skor hesaplanmaz. (karar: D-7)
 

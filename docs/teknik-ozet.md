@@ -50,7 +50,9 @@ verirse) yalnızca `algorithms.yaml` güncellenir; tarayıcılara dokunulmaz.
   olarak `VULNERABLE`, ama "anahtar < 2048 bit" kuralı `BROKEN` der → sonuç
   `BROKEN`.
 - **Bağlam önemlidir:** SHA-1 bir imzada `BROKEN`, HMAC içinde `WEAKENED`.
-- Emin olunmayan kararlar dosyada `# TODO: doğrula` notuyla işaretli.
+- Yoruma açık kararlar dosyada `judgement call, approved (D-13)` notuyla
+  işaretli; hepsi 2026-11-06'da onaylandı. Yeni eklenen belirsiz bir karar
+  onaylanana kadar `# TODO: doğrula` notu taşır.
 
 ## 4. Tarayıcılar
 
@@ -135,12 +137,12 @@ Her bulgu için bir **öneri** de üretilir; ayrıntılı yapılandırma örnekl
 | D-8 | Her komutta `--format` + `--out`; çıkış kodları 0/1/2/3 |
 | D-9 | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE |
 
-## 8. Doğrulanmayı bekleyen sınıflandırmalar
+## 8. Onaylanan yoruma açık sınıflandırmalar (D-13)
 
-Bunlar mantıklı bir varsayımla eklendi ama bir uzmanın onayı iyi olur
-(`algorithms.yaml` içinde `# TODO: doğrula`): TLS 1.2 → VULNERABLE,
-TLS 1.3 / SSH-2 → PQ_SAFE, SHA-256 → PQ_SAFE, AES-192 / SHA3-224 / HMAC-SHA1
-→ WEAKENED, Blowfish / IDEA / CAST-128 → BROKEN, SEED / Camellia-128 /
-ARIA-128 / UMAC-64 → WEAKENED, Camellia-256 / ARIA-256 / UMAC-128 → PQ_SAFE,
-diffie-hellman-group14-sha1 → VULNERABLE, FN-DSA → PQ_SAFE,
-X25519Kyber768Draft00 → HYBRID.
+Aşağıdakiler mantıklı bir varsayımla eklenmişti ve 2026-11-06'da onaylandı:
+TLS 1.2 → VULNERABLE, TLS 1.3 / SSH-2 → PQ_SAFE, SHA-256 → PQ_SAFE,
+AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish / IDEA / CAST-128 →
+BROKEN, SEED / Camellia-128 / ARIA-128 / UMAC-64 → WEAKENED, Camellia-256 /
+ARIA-256 / UMAC-128 → PQ_SAFE, diffie-hellman-group14-sha1 → VULNERABLE,
+FN-DSA → PQ_SAFE, X25519Kyber768Draft00 → HYBRID. Şu an onay bekleyen
+sınıflandırma yok.

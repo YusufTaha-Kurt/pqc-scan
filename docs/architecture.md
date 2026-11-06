@@ -342,7 +342,7 @@ algorithms:
     reason: "SHA-1 collisions are practical"
     rules:
       - when: { primitive: [mac] }
-        risk: WEAKENED   # TODO: doğrula
+        risk: WEAKENED   # judgement call, approved (D-13)
         reason: "HMAC-SHA1 is not affected by SHA-1 collisions"
 ```
 
