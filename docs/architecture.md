@@ -103,7 +103,8 @@ An algorithm exactly as a scanner observed it. Canonicalisation is
 | Field      | Type        | Notes                                                       |
 | ---------- | ----------- | ----------------------------------------------------------- |
 | `id`       | `str`       | Stable URI-like id, used for de-duplication and CBOM `bom-ref`: `tls://host:443`, `ssh://host:22`, `file:///abs/path`, `code:///abs/path` |
-| `kind`     | `AssetKind` | `tls_endpoint`, `ssh_endpoint`, `certificate`, `private_key`, `public_key`, `source_file` |
+| `details`  | `dict[str, str]` | Public metadata; certificates: `subject`, `issuer`, `not_before`, `not_after`, `serial` (used by the CBOM) |
+| `kind`     | `AssetKind` | `tls_endpoint`, `ssh_endpoint`, `certificate`, `certificate_request`, `private_key`, `public_key`, `source_file` |
 | `location` | `str`       | Human readable (host:port or relative path)                 |
 
 ### 3.5 `Observation` (scanner output) **[D-1]**
@@ -194,24 +195,76 @@ Walk a directory and parse:
   with `key_size=None` and a note.
 
 Output usages: `file.certificate.public_key`, `file.certificate.signature`,
-`file.private_key`, `file.public_key`, `file.ssh_public_key`.
+`file.certificate.signature_hash`, `file.csr.public_key`, `file.csr.signature`,
+`file.csr.signature_hash`, `file.private_key`, `file.public_key`,
+`file.ssh_public_key`.
+
+Details:
+
+- Detection is by content (`-----BEGIN `) first, then by file name/extension.
+- The signer's key size is only reported for certificates that verifiably sign
+  themselves (and for CSRs); for CA-issued certificates it is unknown.
+- Keys that the installed `cryptography` cannot load are named from their
+  public-key OID (ML-DSA, ML-KEM, SLH-DSA OIDs are known) with
+  `confidence: medium`; unknown OIDs are reported verbatim and classify as
+  `UNKNOWN`.
+- Encrypted PKCS#8 keys are reported as `encrypted private key` (`UNKNOWN`);
+  legacy encrypted PEM keys take their type from the PEM label.
+- A file with several items gets one asset per item: `file:///path#block-<n>`
+  (PEM) or `file:///path#line-<n>` (SSH key lists).
+- Unreadable, oversized, non-regular and malformed files are skipped silently;
+  only a missing or unusable root path is a `ScanError`.
 
 ### 5.2 `tls`
 
 Per `host:port`:
 
-- Supported protocol versions (SSLv2 … TLS 1.3).
+- Supported protocol versions (SSL 3.0 … TLS 1.3).
 - Accepted cipher suites per version.
 - Supported key-exchange groups, **including hybrid PQ groups**
   (`X25519MLKEM768`, `SecP256r1MLKEM768`, …).
 - Leaf and chain certificates: public key type/size, signature algorithm.
 
-Implementation note **[D-2]**: `sslyze` covers versions, cipher suites and
-certificates, but its bundled OpenSSL (via `nassl`) is not expected to offer
-ML-KEM hybrid groups. Detecting PQ groups therefore needs a small, dedicated
-probe that sends a hand-built TLS 1.3 ClientHello advertising one group at a
-time and reads the `ServerHello` / `HelloRetryRequest`. This probe never
-completes the handshake.
+Implementation note **[D-2, D-11]**: no third-party TLS library. `sslyze`
+was evaluated and rejected: its bundled OpenSSL (via `nassl`) cannot offer
+ML-KEM hybrid groups, it pins `cryptography<47` and ships native binaries.
+Instead a small pure-Python probe (`scanners/tls_probe.py`) sends hand-built
+ClientHello messages and reads the server's plaintext answer
+(`ServerHello`, `HelloRetryRequest`, and for TLS ≤ 1.2 `Certificate` and
+`ServerKeyExchange`), then closes the connection without completing the
+handshake. The certificate of a TLS 1.3-only server, which is encrypted, is
+fetched with one ordinary handshake through the standard `ssl` module (no
+application data is sent). SSL 2.0 is not probed.
+
+Probe details:
+
+- **Versions:** one ClientHello per version; supported only if the server
+  answers with exactly that version.
+- **Cipher suites / groups:** offer a list, record the server's choice,
+  remove it and repeat until the server refuses. The resulting order is the
+  order of selection.
+- **TLS 1.3 groups:** the ClientHello carries an empty `key_share`, which
+  obliges the server to name its group in a HelloRetryRequest. No key shares
+  (and no ML-KEM implementation) are needed on the client side.
+- **TLS ≤ 1.2 groups and DHE size:** read from `ServerKeyExchange`
+  (named curve, or the length of the DH prime), at the highest legacy
+  version only. Certificates are read from the plaintext `Certificate`
+  message at the same version.
+- Budget: at most 200 connections per endpoint (typically 20–40); each socket
+  operation honours `--timeout`. Only the first connection's failure is a
+  target error (refused, DNS, timeout); later failures count as "not
+  supported". No TLS answer at all → `ScanError(kind=parse)`.
+
+Output usages: `tls.protocol`, `tls.cipher_suite.key_exchange`,
+`tls.cipher_suite.authentication`, `tls.cipher_suite.cipher`,
+`tls.cipher_suite.mac` (CBC/stream suites only), `tls.key_exchange_group`,
+`tls.dh_parameters`, `tls.certificate.public_key`,
+`tls.certificate.signature`, `tls.certificate.signature_hash`.
+Cipher suite components are reported once per version and component; the
+evidence lists the suites that use them (e.g.
+`TLSv1.2: TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, …`). Assets:
+`tls://host:port` (`tls_endpoint`) and `tls://host:port#cert-<n>`
+(`certificate`, leaf = 0). PSK and SRP suites are not probed.
 
 ### 5.3 `ssh`
 
@@ -224,12 +277,40 @@ parser is simpler and fully passive; `paramiko` would try to negotiate and fails
 on servers that only offer algorithms it does not support (e.g.
 `mlkem768x25519-sha256`).
 
+Details (`scanners/ssh.py`): the client sends only its identification string
+(`SSH-2.0-pqc_scan_<version>`); pre-banner lines are skipped (max 8 KiB);
+packet length is bounded (RFC 4253 §6.1). Pseudo-algorithms (`ext-info-*`,
+`kex-strict-*`) are dropped, `-cert-v01@openssh.com` host-key variants fold
+into their base algorithm. Usages: `ssh.protocol` (`SSHv1`/`SSHv2`, evidence =
+server software), `ssh.key_exchange`, `ssh.host_key`, `ssh.cipher`, `ssh.mac`
+(evidence = `server preference #n`). Asset `ssh://host:port`
+(`ssh_endpoint`). An SSH-1-only server yields just `SSHv1`.
+
 ### 5.4 `code`
 
-- Semgrep rules in `rules/semgrep/` for Python and Java (v0.1), JS/TS and Go
-  (v0.2). Each rule's metadata names the canonical algorithm and primitive so
-  the scanner can build an `Observation` without interpreting messages.
-- A Python-AST fallback for Python files when Semgrep is unavailable **[D-6]**.
+Implementation note **[D-12]**: no Semgrep (a 72 MB Linux/macOS-only wheel).
+Two built-in engines read the same data file, `rules/code_rules.yaml`:
+
+- **Python:** `ast` parse; imports and aliases are resolved (`from x import y
+  as z`, `Cryptodome.` → `Crypto.`), so calls are matched by fully qualified
+  name (`python_calls`) and constants by attribute (`python_attributes`, e.g.
+  `ssl.PROTOCOL_TLSv1`, `AES.MODE_ECB`). Literal arguments give key sizes and
+  curves; a non-literal size lowers confidence to `medium`; a non-literal
+  algorithm name is not reported. Files that do not parse are skipped.
+- **Java/Kotlin, JavaScript/TypeScript, Go, C#, Rust:** comments are blanked out (string
+  literals and line numbers kept) and regular-expression `patterns` are
+  matched. Named groups give `algorithm`, `key_size`, `curve`;
+  `key_size_after` / `curve_after` look ahead (next 8 lines, or to the end of
+  the statement) for values set separately, e.g. `kpg.initialize(2048)`.
+- **Transforms** turn API strings into algorithms: `SHA256withECDSA` → ECDSA +
+  SHA256, `AES/ECB/PKCS5Padding` → AES + ECB (a bare Java cipher name implies
+  ECB), `aes-128-cbc` → AES-128, JOSE names (`RS256`, `HS256`, `none`), TLS
+  version constants, WebCrypto names.
+- Usages: `code.key_generation`, `code.signature`, `code.cipher`, `code.hash`,
+  `code.mac`, `code.kdf`, `code.key_exchange`, `code.tls_config`. Asset:
+  `file:///abs/path` (`source_file`).
+- Known limits: no data-flow analysis (a name chosen at run time is not
+  seen), regex rules may match inside strings that look like code.
 - Detects: RSA/EC/DH/DSA key generation and usage, weak hashes (MD5, SHA-1),
   weak ciphers (DES, 3DES, RC4, ECB mode), hard-coded key sizes.
 - Evidence contains file path and line number only (and at most the matched
@@ -262,7 +343,7 @@ algorithms:
     reason: "SHA-1 collisions are practical"
     rules:
       - when: { primitive: [mac] }
-        risk: WEAKENED   # TODO: doğrula
+        risk: WEAKENED   # judgement call, approved (D-13)
         reason: "HMAC-SHA1 is not affected by SHA-1 collisions"
 ```
 
@@ -294,8 +375,22 @@ Mosca's inequality: if `x + y > z`, data is at risk.
 
 `MoscaScore = {x, y, z, margin = (x + y) - z, at_risk = margin > 0}`.
 Computed only for `BROKEN`, `VULNERABLE`, `WEAKENED` and `UNKNOWN`
-findings. Inputs come from CLI flags (global) and, later, from a per-asset
-mapping file.
+findings. Inputs come from CLI flags (global) and from a per-asset mapping
+file (`--mosca-file`):
+
+```yaml
+default: {x: 5, y: 3}          # z from --mosca-z or here
+assets:
+  - match: "tls://*.bank.example:*"   # glob on asset id or location
+    x: 25
+  - match: "src/payments/*"
+    x: 10
+    y: 5
+```
+
+Command-line values override `default`; each rule's missing values are taken
+from the defaults; a rule that still lacks a value is a usage error. The first
+matching rule wins (`ScanConfig.mosca_rules`), otherwise the global values.
 
 ## 8. CLI (`cli.py`) **[D-8]**
 
@@ -320,8 +415,20 @@ Common options for `scan`:
 | `--mosca-x/-y/-z YEARS`    | none      | All three needed to compute scores        |
 | `--exclude GLOB`           | —         | Repeatable, for `code`/`files`            |
 
+`scan files` also takes `--max-file-size BYTES` and `--follow-symlinks`.
+`--exclude` patterns are added to the default exclude list. Targets given as
+arguments and through `--targets` are merged and de-duplicated. A missing
+Mosca value (only some of `--mosca-x/-y/-z`) is a usage error.
+
+All commands exist. `scan all` takes `--tls`, `--ssh`, `--path` (each
+repeatable) and `--targets FILE` whose lines are `tls://host:port`,
+`ssh://host:port`, `path:DIR` or a bare `host:port` (TLS); every path is
+scanned by both `files` and `code`. Unimplemented
+formats (`html`, `cbom`) are rejected before scanning with exit code 2.
+
 Exit codes: `0` success · `1` `--fail-on` threshold reached · `2` usage error
-· `3` every target failed.
+· `3` every target failed. Precedence: if every target failed, the result is
+`3` (there are no findings to compare with `--fail-on`).
 
 `--help` and the README carry the authorisation warning: scan only systems you
 own or have written permission to test.
@@ -330,12 +437,39 @@ own or have written permission to test.
 
 | Reporter       | Output                                                     |
 | -------------- | ---------------------------------------------------------- |
-| `console`      | `rich` table grouped by asset, coloured by risk, summary counts, errors section |
-| `json_report`  | `ScanResult.model_dump_json(indent=2)`; JSON Schema exported to `schemas/scan-result.schema.json` |
+| `console`      | `rich` output: header, summary counts per risk class, findings table sorted worst first (location:line, usage, algorithm, optional Mosca column, reason), errors table, worst-risk verdict. Colours only on a terminal; scanned data is never interpreted as markup |
+| `json_report`  | `ScanResult.model_dump_json(indent=2)`; JSON Schema committed as `docs/schema/scan-result.schema.json` (a test keeps it in sync) |
+| `sarif`        | SARIF 2.1.0: findings `UNKNOWN` or worse as results (BROKEN → error, VULNERABLE/WEAKENED → warning, UNKNOWN → note), one rule per algorithm, file + line locations relative to the working directory, logical locations for endpoints, stable `partialFingerprints`. No extra dependency |
 | `html_report`  | Single self-contained file rendered from `templates/report.html.j2` (no external assets) |
 | `cbom`         | CycloneDX **1.6** BOM: each distinct algorithm → `cryptographic-asset` component (`assetType: algorithm`, `algorithmProperties`), each certificate → `assetType: certificate`; assets link to algorithms through `dependencies` |
 
-`html_report` and `cbom` are v0.2 items.
+`html` and `cbom` need the optional `[report]` extra (Jinja2,
+cyclonedx-python-lib). Without it `reporters.render()` raises
+`UnsupportedFormatError`, which the CLI reports before scanning (exit code 2).
+The HTML page is autoescaped and loads nothing external; the CBOM is
+validated against the official CycloneDX 1.6 schema in the tests. Console and
+HTML reports end with a *Recommendations* section built from the rule set's
+`recommendation` texts (`reporters/common.py`).
+
+`pqc-scan diff BASE.json HEAD.json` (`diff.py`) lists new and resolved
+findings. Findings are matched on scanner, location, usage and algorithm
+(name, primitive, size, curve) — not line numbers or absolute paths — so
+moved code or another checkout directory produce no noise.
+
+## 9b. Distribution
+
+- `action.yml` + `scripts/github-action.sh`: composite GitHub Action. Inputs
+  reach the script only through environment variables. On pull requests with
+  `only-new: true` it scans the base branch in a temporary `git worktree` and
+  fails only on new findings (`pqc-scan diff`).
+- `Dockerfile`: multi-stage build, `[report]` extras, non-root user,
+  `ENTRYPOINT ["pqc-scan"]`, working directory `/scan`.
+- `.github/workflows/release.yml`: on `v*` tags — tests, tag/version check,
+  PyPI trusted publishing, image push to `ghcr.io`.
+
+Console and JSON output are covered by snapshot tests (`tests/snapshots/`);
+run `PQC_UPDATE_SNAPSHOTS=1 pytest` after an intentional change and review
+the diff.
 
 ## 10. Testing strategy
 
@@ -356,5 +490,5 @@ own or have written permission to test.
   `pqc-scan = "pqc_scan.cli:app"`.
 - `rules/**/*.yaml` and `templates/*.j2` shipped as package data and loaded via
   `importlib.resources`.
-- Optional extras: `[tls]` (sslyze), `[code]` (semgrep), `[report]` (jinja2,
+- Optional extras: `[report]` (jinja2,
   cyclonedx-python-lib), `[dev]`, `[all]` **[D-6]**.

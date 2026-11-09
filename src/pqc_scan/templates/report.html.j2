@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pqc-scan {{ result.tool_version }}">
+<title>pqc-scan report</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1d2129; --muted: #5b6270; --line: #e3e6ea; --card: #f6f7f9;
+    --broken: #b42318; --vulnerable: #d92d20; --weakened: #b54708; --unknown: #7a5af8;
+    --hybrid: #0e7090; --pq_safe: #067647;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --fg: #e6e8eb; --muted: #9aa1ad; --line: #2a2f37; --card: #171a20;
+      --broken: #ff6b5f; --vulnerable: #f97066; --weakened: #fdb022; --unknown: #a48afb;
+      --hybrid: #22ccee; --pq_safe: #47cd89;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; }
+  .meta, .note { color: var(--muted); font-size: 13px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card .count { font-size: 28px; font-weight: 650; }
+  .card .label { font-weight: 600; font-size: 13px; letter-spacing: .02em; }
+  .card .hint { color: var(--muted); font-size: 12px; }
+  .risk { font-weight: 650; font-size: 12px; letter-spacing: .02em; white-space: nowrap; }
+  {% for risk in risks %}.r-{{ risk.value | lower }} { color: var(--{{ risk.value | lower }}); }
+  {% endfor %}
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--card); font-weight: 600; position: sticky; top: 0; }
+  tr:last-child td { border-bottom: 0; }
+  td.loc, td.usage { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .filters button { border: 1px solid var(--line); background: var(--card); color: var(--fg);
+                    border-radius: 999px; padding: 4px 12px; cursor: pointer; font: inherit; font-size: 13px; }
+  .filters button[aria-pressed="false"] { opacity: .45; }
+  .filters input { flex: 1 1 220px; min-width: 0; padding: 6px 10px; border-radius: 8px;
+                   border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; }
+  .verdict { margin-top: 16px; font-size: 16px; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>pqc-scan report</h1>
+  <div class="meta">
+    pqc-scan {{ result.tool_version }} · scanners: {{ result.scanners | join(", ") or "-" }} ·
+    {{ result.findings | length }} findings on {{ result.assets | length }} assets ·
+    {{ result.started_at.strftime("%Y-%m-%d %H:%M:%S UTC") }} ({{ "%.1f" | format(duration) }}s)
+  </div>
+  <div class="verdict">
+    {% if worst %}Worst risk: <span class="risk r-{{ worst.value | lower }}">{{ worst.value }}</span>
+    {% else %}No cryptography found.{% endif %}
+  </div>
+
+  <div class="cards">
+    {% for risk, count in summary.items() %}
+    <div class="card">
+      <div class="label r-{{ risk.value | lower }}">{{ risk.value }}</div>
+      <div class="count">{{ count }}</div>
+      <div class="hint">{{ meanings[risk] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if advice %}
+  <h2>Recommendations</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Risk</th><th>What to do</th><th>Applies to</th></tr></thead>
+    <tbody>
+    {% for item in advice %}
+      <tr>
+        <td><span class="risk r-{{ item.risk.value | lower }}">{{ item.risk.value }}</span></td>
+        <td>{{ item.text }}</td>
+        <td>{{ item.algorithms | join(", ") }} ({{ item.count }})</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+
+  {% if result.findings %}
+  <h2>Findings</h2>
+  <div class="filters" role="group" aria-label="Filter findings">
+    {% for risk, count in summary.items() if count %}
+    <button type="button" data-risk="{{ risk.value }}" aria-pressed="true">
+      <span class="r-{{ risk.value | lower }}">{{ risk.value }}</span> {{ count }}</button>
+    {% endfor %}
+    <input type="search" id="q" placeholder="Search location, algorithm, usage…" aria-label="Search findings">
+  </div>
+  <div class="table-wrap"><table id="findings">
+    <thead><tr><th>Risk</th><th>Location</th><th>Usage</th><th>Algorithm</th>
+      {% if with_mosca %}<th>Mosca</th>{% endif %}<th>Reason</th></tr></thead>
+    <tbody>
+    {% for f in result.findings %}
+      <tr data-risk="{{ f.risk.value }}">
+        <td><span class="risk r-{{ f.risk.value | lower }}">{{ f.risk.value }}</span></td>
+        <td class="loc">{{ f.asset.location }}{% if f.evidence.line %}:{{ f.evidence.line }}{% endif %}
+          {% if f.evidence.detail %}<div class="note">{{ f.evidence.detail }}</div>{% endif %}</td>
+        <td class="usage">{{ f.usage }}</td>
+        <td>{{ describe(f.algorithm) }}</td>
+        {% if with_mosca %}<td>{% if f.mosca %}{{ "at risk" if f.mosca.at_risk else "ok" }} ({{ "%+.1f" | format(f.mosca.margin) }}y){% else %}-{% endif %}</td>{% endif %}
+        <td>{{ f.reason }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+
+  {% if result.errors %}
+  <h2>Errors</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Scanner</th><th>Target</th><th>Kind</th><th>Message</th></tr></thead>
+    <tbody>
+    {% for e in result.errors %}
+      <tr><td>{{ e.scanner }}</td><td class="loc">{{ e.target }}</td><td>{{ e.kind.value }}</td><td>{{ e.message }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+
+  <footer>
+    Generated by pqc-scan. Only scan systems you own or have written permission to test.
+    Private key contents and source lines are never included in this report.
+  </footer>
+</main>
+<script>
+(function () {
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#findings tbody tr"));
+  var buttons = Array.prototype.slice.call(document.querySelectorAll(".filters button"));
+  var search = document.getElementById("q");
+  if (!rows.length) return;
+  function apply() {
+    var on = {};
+    buttons.forEach(function (b) { on[b.dataset.risk] = b.getAttribute("aria-pressed") === "true"; });
+    var q = (search.value || "").toLowerCase();
+    rows.forEach(function (r) {
+      var visible = on[r.dataset.risk] !== false && (!q || r.textContent.toLowerCase().indexOf(q) !== -1);
+      r.hidden = !visible;
+    });
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      apply();
+    });
+  });
+  search.addEventListener("input", apply);
+})();
+</script>
+</body>
+</html>

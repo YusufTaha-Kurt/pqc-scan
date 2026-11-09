@@ -13,7 +13,7 @@ requires-python = ">=3.11"
 authors = [{ name = "Yusuf Taha Kurt" }]
 keywords = ["post-quantum", "pqc", "cryptography", "cbom", "tls", "ssh", "security"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Environment :: Console",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
@@ -35,11 +35,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tls = ["sslyze>=6.0"]
-code = ["semgrep>=1.80"]
-report = ["jinja2>=3.1", "cyclonedx-python-lib>=8.0"]
-all = ["pqc-scan[tls,code,report]"]
+report = ["jinja2>=3.1", "cyclonedx-python-lib>=11.0"]
+all = ["pqc-scan[report]"]
 dev = [
+    "cyclonedx-python-lib>=11.0",
+    "jinja2>=3.1",
+    "jsonschema>=4.18",
     "mypy>=1.10",
     "pre-commit>=3.7",
     "pytest>=8.0",
@@ -70,6 +71,8 @@ include = ["src/pqc_scan", "tests", "LICENSE", "README.md"]
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# Sample code with deliberately weak cryptography, scanned by the tests.
+extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
 select = [
@@ -87,6 +90,8 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]  # assert is fine in tests
+# Teaching notebooks: math-style names (N, Q), asserts as checks, seeded PRNGs.
+"docs/learn/*.ipynb" = ["S101", "S311", "N803", "N806", "E501", "B905"]
 
 # --- mypy ---------------------------------------------------------------
 

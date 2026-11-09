@@ -1,0 +1,48 @@
+pqc-scan 0.0.0 · scanners: sample · 5 findings on 4 assets · 1.5s
+
+Summary                                                                         
+ Risk       ┃ Findings ┃ Meaning                                                
+━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │        2 │ Weak today, even without a quantum computer            
+ VULNERABLE │        1 │ Broken by a quantum computer (Shor)                    
+ WEAKENED   │        0 │ Security margin reduced by a quantum computer (Grover) 
+ UNKNOWN    │        1 │ Not in the rule set; review manually                   
+ HYBRID     │        0 │ Classical + post-quantum combined                      
+ PQ_SAFE    │        1 │ Considered quantum-resistant                           
+
+Findings                                                                                                                
+ Risk       ┃ Location               ┃ Usage                           ┃ Algorithm             ┃ Reason                 
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ certs/legacy.pem:1     │ file.certificate.public_key     │ RSA 1024-bit          │ RSA key shorter than   
+            │                        │                                 │                       │ 2048 bits is weak even 
+            │                        │                                 │                       │ without a quantum      
+            │                        │                                 │                       │ computer               
+ BROKEN     │ certs/legacy.pem:1     │ file.certificate.signature_hash │ sha1                  │ SHA-1 collisions are   
+            │                        │                                 │                       │ practical (SHAttered,  
+            │                        │                                 │                       │ 2017)                  
+ VULNERABLE │ certs/web.pem          │ file.certificate.public_key     │ EC secp256r1          │ Elliptic-curve         
+            │                        │                                 │                       │ cryptography is broken 
+            │                        │                                 │                       │ by Shor's algorithm    
+ UNKNOWN    │ keys/[bold]odd[/bold]. │ file.private_key                │ encrypted private key │ 'encrypted private     
+            │ key                    │                                 │                       │ key' is not in the     
+            │                        │                                 │                       │ rule set; review       
+            │                        │                                 │                       │ manually               
+ PQ_SAFE    │ keys/pq.pem            │ file.public_key                 │ ML-KEM-768            │ ML-KEM is a NIST       
+            │                        │                                 │                       │ post-quantum KEM       
+            │                        │                                 │                       │ standard (FIPS 203)    
+
+Recommendations                                                                                                         
+ Risk       ┃ What to do                                                                     ┃ Applies to               
+━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BROKEN     │ Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS      │ RSA 1024-bit (1 finding) 
+            │ 203).                                                                          │                          
+ BROKEN     │ Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs).                      │ sha1 (1 finding)         
+ VULNERABLE │ Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during         │ EC secp256r1 (1 finding) 
+            │ transition).                                                                   │                          
+
+Errors                                                        
+ Scanner ┃ Target      ┃ Kind           ┃ Message             
+━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━
+ sample  │ unreachable │ invalid_target │ path does not exist 
+
+Worst risk: BROKEN

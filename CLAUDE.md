@@ -26,7 +26,7 @@ Referans standartlar:
 | --- | --- | --- |
 | `tls` | `host:port` listesi | Sertifika anahtar tipi/boyutu, imza algoritması, TLS sürümleri, şifre takımları, anahtar değişim grupları (hibrit PQ grupları dahil, ör. X25519MLKEM768) |
 | `ssh` | `host:port` listesi | Host key algoritmaları, KEX algoritmaları (ör. `sntrup761x25519`, `mlkem768x25519` desteği var mı) |
-| `code` | Yerel klasör / repo | Kaynak koddaki kripto API kullanımı (Python, Java, JavaScript/TypeScript, Go) — RSA/ECDSA/ECDH/DH çağrıları, zayıf hash'ler, sabit kodlanmış anahtar boyutları |
+| `code` | Yerel klasör / repo | Kaynak koddaki kripto API kullanımı (Python, Java/Kotlin, JavaScript/TypeScript, Go, C#, Rust) — RSA/ECDSA/ECDH/DH çağrıları, zayıf hash'ler, sabit kodlanmış anahtar boyutları |
 | `files` | Yerel klasör | Repo içindeki PEM/DER sertifika ve anahtar dosyaları, `.pub` SSH anahtarları |
 
 Kapsam dışı (şimdilik): aktif saldırı, zafiyet istismarı, kimlik doğrulama gerektiren tarama, ikili (binary) analiz.
@@ -49,7 +49,7 @@ Sınıflandırma kuralları tek bir yerde, veri olarak tutulur (`src/pqc_scan/ru
 Sınıflandırma ilkeleri (karar: D-3, D-9):
 - **Önem sırası:** `BROKEN` > `VULNERABLE` > `WEAKENED` > `UNKNOWN` > `HYBRID` > `PQ_SAFE`. Kurallar varsayılan sınıfı geçersiz kılar; bir algoritmaya birden çok kural uyarsa **en kötü olan** kazanır (ör. RSA-1024 → `BROKEN`). Tanınmayan ad → `UNKNOWN`.
 - **Bağlam önemlidir:** Sınıf, algoritma adı + kullanım amacı (primitive: imza, hash, MAC, …) ile belirlenir. Ör. SHA-1 imzada `BROKEN`, HMAC içinde daha hafif sınıflandırılır.
-- 3DES → `BROKEN`, AES-128 → `WEAKENED`, SHA-256 → `PQ_SAFE` kararları alındı; YAML'da `# TODO: doğrula` notu korunur.
+- 3DES → `BROKEN`, AES-128 → `WEAKENED`, SHA-256 → `PQ_SAFE` kararları alındı. Tüm belirsiz sınıflandırmalar 2026-11-06'da kullanıcı tarafından onaylandı (karar: D-13); YAML'da `judgement call, approved (D-13)` olarak işaretli. Yeni belirsiz eklemeler onaylanana kadar `# TODO: doğrula` ile işaretlenir.
 
 Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gizli kalma süresi, y = geçiş süresi, z = kuantum bilgisayarın hazır olmasına kalan süre. **Üçü de kullanıcıdan alınır; z için varsayılan yoktur** (araç bir kuantum takvimi iddia etmez). Üçü verilmezse skor hesaplanmaz. (karar: D-7)
 
@@ -57,14 +57,13 @@ Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gi
 
 - Python 3.11+
 - CLI: `typer` · terminal çıktısı: `rich` · veri modelleri: `pydantic` v2
-- TLS: `sslyze` · sertifika/anahtar ayrıştırma: `cryptography`
-- TLS PQ grupları: kendi minimal TLS 1.3 ClientHello sorgumuz (sslyze hibrit grupları göremez; karar: D-2)
+- TLS: ek bağımlılık yok — kendi saf Python ClientHello sorgumuz (sürümler, şifre takımları, hibrit PQ grupları dahil anahtar değişim grupları) + sertifika için standart `ssl` modülü; sertifika/anahtar ayrıştırma: `cryptography` (karar: D-2, D-11 — sslyze kullanılmaz)
 - SSH: ek bağımlılık yok — ham soketle sunucunun KEXINIT mesajı okunur, oturum açılmaz (karar: D-5, paramiko kullanılmaz)
-- Kod tarama: Semgrep kuralları (`rules/semgrep/`) + basit dosyalar için Python AST
+- Kod tarama: ek bağımlılık yok — Python için AST, Java/Kotlin, JS/TS, Go, C# ve Rust için desen kuralları; hepsi `rules/code_rules.yaml` içinde veri olarak (karar: D-12 — Semgrep kullanılmaz)
 - Rapor: JSON, HTML (`jinja2`), CycloneDX CBOM (`cyclonedx-python-lib`)
 - Geliştirme: `pytest`, `ruff` (lint + format), `mypy` (strict), `pre-commit`
 - Paketleme: `pyproject.toml` (hatchling), `src/` düzeni
-- Ağır bağımlılıklar opsiyonel extra'dır: `[tls]` (sslyze), `[code]` (semgrep), `[report]` (jinja2, cyclonedx), `[dev]`, `[all]`. Semgrep yoksa Python dosyaları için AST yedeği çalışır. (karar: D-6)
+- Ağır bağımlılıklar opsiyonel extra'dır: `[report]` (jinja2), `[dev]`, `[all]`. (karar: D-6, D-11, D-12)
 - Eşzamanlılık: `concurrent.futures.ThreadPoolExecutor` (karar: D-4)
 
 Yeni bir bağımlılık eklemeden önce gerekçesini PR açıklamasında belirt.
@@ -83,6 +82,10 @@ pqc-scan/
 ├── .github/workflows/ci.yml
 ├── docs/
 │   ├── architecture.md      # sistem tanımı (İngilizce)
+│   ├── migration-guide.md   # geçiş rehberi (İngilizce)
+│   ├── learn/               # Grover, Shor, BB84 not defterleri
+│   ├── kullanim-kilavuzu.md # kullanım kılavuzu (Türkçe)
+│   ├── teknik-ozet.md       # teknik özet (Türkçe)
 │   └── kuantum-rehberi.md   # öğretici terimler belgesi (Türkçe)
 ├── src/pqc_scan/
 │   ├── __init__.py
@@ -104,7 +107,7 @@ pqc-scan/
 │   │   └── cbom.py
 │   ├── rules/
 │   │   ├── algorithms.yaml
-│   │   └── semgrep/*.yaml
+│   │   └── code_rules.yaml
 │   └── templates/report.html.j2
 ├── tests/
 │   ├── fixtures/            # test için üretilmiş sertifikalar, anahtarlar, örnek kodlar
@@ -121,7 +124,7 @@ pqc-scan/
 - Raporlayıcılar yalnızca `ScanResult` modelini tüketir.
 - Ağ taramaları için zaman aşımı ve eşzamanlılık sınırı her zaman yapılandırılabilir olsun; varsayılanlar ihtiyatlı olsun (ör. 5 sn zaman aşımı, en fazla 10 eşzamanlı bağlantı).
 - Hata olan bir hedef taramanın tamamını durdurmaz; hata `ScanResult.errors` içine yazılır.
-- CLI çıktısı her komutta aynı iki seçenekle belirlenir: `--format {console,json,html,cbom}` ve `--out PATH`. Çıkış kodları: `0` başarılı · `1` `--fail-on` eşiği aşıldı · `2` kullanım hatası · `3` tüm hedefler hata verdi. (karar: D-8)
+- CLI çıktısı her komutta aynı iki seçenekle belirlenir: `--format {console,json,html,cbom,sarif}` ve `--out PATH`. Çıkış kodları: `0` başarılı · `1` `--fail-on` eşiği aşıldı · `2` kullanım hatası · `3` tüm hedefler hata verdi. (karar: D-8)
 
 ## 7. Güvenlik ve etik kurallar
 
@@ -153,7 +156,7 @@ mypy src
 pytest -q --cov=pqc_scan
 
 # Kullanım örnekleri
-pqc-scan scan tls example.com:443 --format json --out report.json
+pqc-scan scan tls example.com:443 --format json --out report.json --timeout 5
 pqc-scan scan code ./my-repo --format html --out report.html
 pqc-scan scan all --targets targets.txt --path ./my-repo --format cbom --out cbom.json
 pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılırsa çıkış kodu 1
@@ -165,24 +168,25 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] Repo iskeleti, `pyproject.toml`, CI (ruff + mypy + pytest)
 - [x] `models.py` ve `classify.py` + `algorithms.yaml` (testleriyle)
 - [x] Tarama motoru (`engine.py`) ve `Scanner` arayüzü
-- [ ] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
-- [ ] `tls` tarayıcısı
-- [ ] `code` tarayıcısı (Semgrep kuralları: Python ve Java ile başla)
-- [ ] Konsol ve JSON raporlayıcı
-- [ ] README: kurulum, kullanım, demo GIF, etik uyarı
+- [x] `files` tarayıcısı (en kolay; çekirdeği test etmek için ilk bu)
+- [x] `tls` tarayıcısı
+- [x] `code` tarayıcısı (Python AST + Java/Kotlin, JS/TS, Go, C#, Rust desen kuralları)
+- [x] Konsol ve JSON raporlayıcı
+- [x] README: kurulum, kullanım, demo GIF, etik uyarı
 
 **v0.2**
-- [ ] `ssh` tarayıcısı
-- [ ] HTML rapor ve CycloneDX CBOM çıktısı
-- [ ] Mosca öncelik skoru
-- [ ] JavaScript/TypeScript ve Go kod kuralları
-- [ ] PyPI yayını
+- [x] `ssh` tarayıcısı
+- [x] HTML rapor ve CycloneDX CBOM çıktısı
+- [x] Mosca öncelik skoru
+- [x] JavaScript/TypeScript ve Go kod kuralları
+- [~] PyPI yayını (iş akışı hazır; ilk yayın için PyPI/GitHub kurulumu kullanıcıda)
 
 **v0.3 ve sonrası**
-- [ ] GitHub Action olarak kullanım (PR'larda kripto değişikliği uyarısı)
-- [ ] Docker imajı
-- [ ] "Öğren" bölümü: BB84 ve Shor/Grover açıklamalı not defterleri
-- [ ] Bulunan zayıflıklar için geçiş önerileri (hibrit TLS yapılandırma örnekleri)
+- [x] GitHub Action olarak kullanım (PR'larda kripto değişikliği uyarısı)
+- [x] Docker imajı
+- [x] "Öğren" bölümü: BB84 ve Shor/Grover açıklamalı not defterleri
+- [x] Bulunan zayıflıklar için geçiş önerileri (hibrit TLS yapılandırma örnekleri)
+- [x] SARIF çıktısı (GitHub code scanning), C#/Rust kuralları, gerçek OpenSSL 3.5 / OpenSSH 10 interop testleri, CBOM sertifika ayrıntıları
 
 ## 11. Claude Code için çalışma şekli
 

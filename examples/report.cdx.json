@@ -1,0 +1,1075 @@
+{
+  "components": [
+    {
+      "bom-ref": "crypto/aes-aead",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "ae"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "AES",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "AES key size could not be determined"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use AES-256."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "UNKNOWN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/aes-block-cipher",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "AES",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "AES key size could not be determined"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use AES-256."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "UNKNOWN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/aes-block-cipher-128",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "parameterSetIdentifier": "128",
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "AES-128",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "AES with a key shorter than 256 bits loses half its security to Grover's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use AES-256."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "WEAKENED"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/3des-block-cipher",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "DESede",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "64-bit block size (Sweet32); disallowed by NIST since 2024"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use AES-256-GCM."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ec-signature",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "EC",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Elliptic-curve cryptography is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ec-signature-256-secp256r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp256r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "256",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "EC secp256r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Elliptic-curve cryptography is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ec-signature-384-secp384r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp384r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "384",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "EC secp384r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Elliptic-curve cryptography is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA and key exchange to ML-KEM (hybrid during transition)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ecb-block-cipher",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "block-cipher"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECB",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "ECB mode leaks patterns in the plaintext"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use an AEAD mode such as AES-256-GCM."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ecdh-key-exchange",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "key-agree"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECDH",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ecdh-key-exchange-256-secp256r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp256r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "256",
+          "primitive": "key-agree"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECDH secp256r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Elliptic-curve Diffie-Hellman is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use hybrid X25519MLKEM768 or SecP256r1MLKEM768 (TLS 1.3)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ecdsa-signature-256-secp256r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp256r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "256",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECDSA secp256r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "ECDSA is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ecdsa-signature-384-secp384r1",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "curve": "secp384r1",
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "384",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ECDSA secp384r1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "ECDSA is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ed25519-signature",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "Ed25519",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Ed25519 is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Plan migration to ML-DSA (FIPS 204) or SLH-DSA (FIPS 205)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/sha1-mac",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "mac"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "HMAC-SHA1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "HMAC-SHA1 is not affected by SHA-1 collisions but has a small security margin"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "WEAKENED"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/sha256-mac",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 2,
+          "primitive": "mac"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "HMAC-SHA256",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "SHA-256 keeps about 128-bit preimage security under Grover's algorithm"
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "PQ_SAFE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/md5-hash",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "hash"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "MD5",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "MD5 collisions are practical"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use SHA-384, SHA-512 or SHA3."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/ml-kem-kem",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 3,
+          "primitive": "kem"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "ML-KEM-768",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "ML-KEM is a NIST post-quantum KEM standard (FIPS 203)"
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "PQ_SAFE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/rsa-signature",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "RSA is broken by Shor's algorithm at every key size"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/rsa-signature-1024",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "1024",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA-1024",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "RSA key shorter than 2048 bits is weak even without a quantum computer"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/rsa-signature-2048",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "2048",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA-2048",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "RSA is broken by Shor's algorithm at every key size"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/rsa-signature-3072",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "parameterSetIdentifier": "3072",
+          "primitive": "signature"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "RSA-3072",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "RSA is broken by Shor's algorithm at every key size"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Migrate signatures to ML-DSA (FIPS 204) and key transport to ML-KEM (FIPS 203)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/sha1-hash",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "hash"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "SHA1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "SHA-1 collisions are practical (SHAttered, 2017)"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use SHA-384 or SHA-512 (HMAC-SHA-256 or better for MACs)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/tls1-0-protocol",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": {
+          "type": "tls",
+          "version": "1.0"
+        }
+      },
+      "name": "TLSv1.0",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "TLS 1.0 is deprecated (RFC 8996)"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Disable it; use TLS 1.3."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/tls1-1-protocol",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": {
+          "type": "tls",
+          "version": "1.1"
+        }
+      },
+      "name": "TLSv1.1",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "TLS 1.1 is deprecated (RFC 8996)"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Disable it; use TLS 1.3."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/x25519-key-exchange",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 0,
+          "primitive": "key-agree"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "X25519",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "X25519 on its own is broken by Shor's algorithm"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use hybrid X25519MLKEM768 (TLS) or mlkem768x25519-sha256 (SSH)."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/x25519-mlkem768-key-exchange",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "key-agree"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "X25519MLKEM768",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "Hybrid of X25519 and ML-KEM-768; secure while either component holds"
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "HYBRID"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "asset/0",
+      "cryptoProperties": {
+        "assetType": "certificate",
+        "certificateProperties": {
+          "certificateFormat": "X.509",
+          "issuerName": "CN=legacy-api.example",
+          "notValidAfter": "2026-12-06T19:11:10+00:00",
+          "notValidBefore": "2026-11-05T19:11:10+00:00",
+          "signatureAlgorithmRef": "crypto/rsa-signature-1024",
+          "subjectName": "CN=legacy-api.example",
+          "subjectPublicKeyRef": "crypto/rsa-signature-1024"
+        }
+      },
+      "name": "certs/legacy-api.pem",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "certs/legacy-api.pem"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "asset/1",
+      "cryptoProperties": {
+        "assetType": "certificate",
+        "certificateProperties": {
+          "certificateFormat": "X.509",
+          "issuerName": "CN=www.example",
+          "notValidAfter": "2026-12-06T19:11:10+00:00",
+          "notValidBefore": "2026-11-05T19:11:10+00:00",
+          "signatureAlgorithmRef": "crypto/ecdsa-signature-256-secp256r1",
+          "subjectName": "CN=www.example",
+          "subjectPublicKeyRef": "crypto/ec-signature-256-secp256r1"
+        }
+      },
+      "name": "certs/web.pem",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "certs/web.pem"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "asset/2",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "algorithmRef": "crypto/ed25519-signature",
+          "type": "public-key"
+        }
+      },
+      "name": "deploy/id_ed25519.pub",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "deploy/id_ed25519.pub"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "VULNERABLE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/sha224-hash",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "primitive": "hash"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "sha224",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "224-bit output leaves a thin margin against quantum search"
+        },
+        {
+          "name": "pqc-scan:recommendation",
+          "value": "Use SHA-384 or SHA-512."
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "WEAKENED"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "crypto/sha256-hash",
+      "cryptoProperties": {
+        "algorithmProperties": {
+          "nistQuantumSecurityLevel": 2,
+          "primitive": "hash"
+        },
+        "assetType": "algorithm"
+      },
+      "name": "sha256",
+      "properties": [
+        {
+          "name": "pqc-scan:reason",
+          "value": "SHA-256 keeps about 128-bit preimage security under Grover's algorithm"
+        },
+        {
+          "name": "pqc-scan:risk",
+          "value": "PQ_SAFE"
+        }
+      ],
+      "type": "cryptographic-asset"
+    },
+    {
+      "bom-ref": "asset/3",
+      "name": "src/Legacy.java",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/Legacy.java"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/4",
+      "name": "src/Payments.cs",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/Payments.cs"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/5",
+      "name": "src/crypto_utils.py",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/crypto_utils.py"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/6",
+      "name": "src/server.go",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/server.go"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    },
+    {
+      "bom-ref": "asset/7",
+      "name": "src/signer.rs",
+      "properties": [
+        {
+          "name": "pqc-scan:location",
+          "value": "src/signer.rs"
+        },
+        {
+          "name": "pqc-scan:worst-risk",
+          "value": "BROKEN"
+        }
+      ],
+      "type": "file"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "crypto/rsa-signature-1024",
+        "crypto/sha256-hash"
+      ],
+      "ref": "asset/0"
+    },
+    {
+      "dependsOn": [
+        "crypto/ec-signature-256-secp256r1",
+        "crypto/ecdsa-signature-256-secp256r1",
+        "crypto/sha256-hash"
+      ],
+      "ref": "asset/1"
+    },
+    {
+      "dependsOn": [
+        "crypto/ed25519-signature"
+      ],
+      "ref": "asset/2"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
+        "crypto/aes-aead",
+        "crypto/aes-block-cipher",
+        "crypto/aes-block-cipher-128",
+        "crypto/ec-signature",
+        "crypto/ec-signature-256-secp256r1",
+        "crypto/ecb-block-cipher",
+        "crypto/ecdh-key-exchange",
+        "crypto/md5-hash",
+        "crypto/ml-kem-kem",
+        "crypto/rsa-signature",
+        "crypto/rsa-signature-1024",
+        "crypto/sha1-hash",
+        "crypto/tls1-1-protocol"
+      ],
+      "ref": "asset/3"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
+        "crypto/ecb-block-cipher",
+        "crypto/ecdh-key-exchange-256-secp256r1",
+        "crypto/ecdsa-signature-384-secp384r1",
+        "crypto/md5-hash",
+        "crypto/ml-kem-kem",
+        "crypto/rsa-signature-1024",
+        "crypto/sha1-mac",
+        "crypto/tls1-1-protocol"
+      ],
+      "ref": "asset/4"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
+        "crypto/ec-signature-384-secp384r1",
+        "crypto/ecb-block-cipher",
+        "crypto/ed25519-signature",
+        "crypto/md5-hash",
+        "crypto/rsa-signature",
+        "crypto/rsa-signature-1024",
+        "crypto/rsa-signature-2048",
+        "crypto/sha1-hash",
+        "crypto/sha1-mac",
+        "crypto/sha224-hash",
+        "crypto/sha256-mac",
+        "crypto/tls1-0-protocol",
+        "crypto/tls1-1-protocol"
+      ],
+      "ref": "asset/5"
+    },
+    {
+      "dependsOn": [
+        "crypto/ecdh-key-exchange-256-secp256r1",
+        "crypto/ecdsa-signature-256-secp256r1",
+        "crypto/md5-hash",
+        "crypto/rsa-signature-1024",
+        "crypto/tls1-0-protocol",
+        "crypto/x25519-key-exchange",
+        "crypto/x25519-mlkem768-key-exchange"
+      ],
+      "ref": "asset/6"
+    },
+    {
+      "dependsOn": [
+        "crypto/3des-block-cipher",
+        "crypto/ec-signature-256-secp256r1",
+        "crypto/ecdsa-signature-256-secp256r1",
+        "crypto/ml-kem-kem",
+        "crypto/rsa-signature-1024",
+        "crypto/rsa-signature-3072",
+        "crypto/sha1-hash"
+      ],
+      "ref": "asset/7"
+    },
+    {
+      "ref": "crypto/3des-block-cipher"
+    },
+    {
+      "ref": "crypto/aes-aead"
+    },
+    {
+      "ref": "crypto/aes-block-cipher"
+    },
+    {
+      "ref": "crypto/aes-block-cipher-128"
+    },
+    {
+      "ref": "crypto/ec-signature"
+    },
+    {
+      "ref": "crypto/ec-signature-256-secp256r1"
+    },
+    {
+      "ref": "crypto/ec-signature-384-secp384r1"
+    },
+    {
+      "ref": "crypto/ecb-block-cipher"
+    },
+    {
+      "ref": "crypto/ecdh-key-exchange"
+    },
+    {
+      "ref": "crypto/ecdh-key-exchange-256-secp256r1"
+    },
+    {
+      "ref": "crypto/ecdsa-signature-256-secp256r1"
+    },
+    {
+      "ref": "crypto/ecdsa-signature-384-secp384r1"
+    },
+    {
+      "ref": "crypto/ed25519-signature"
+    },
+    {
+      "ref": "crypto/md5-hash"
+    },
+    {
+      "ref": "crypto/ml-kem-kem"
+    },
+    {
+      "ref": "crypto/rsa-signature"
+    },
+    {
+      "ref": "crypto/rsa-signature-1024"
+    },
+    {
+      "ref": "crypto/rsa-signature-2048"
+    },
+    {
+      "ref": "crypto/rsa-signature-3072"
+    },
+    {
+      "ref": "crypto/sha1-hash"
+    },
+    {
+      "ref": "crypto/sha1-mac"
+    },
+    {
+      "ref": "crypto/sha224-hash"
+    },
+    {
+      "ref": "crypto/sha256-hash"
+    },
+    {
+      "ref": "crypto/sha256-mac"
+    },
+    {
+      "ref": "crypto/tls1-0-protocol"
+    },
+    {
+      "ref": "crypto/tls1-1-protocol"
+    },
+    {
+      "ref": "crypto/x25519-key-exchange"
+    },
+    {
+      "ref": "crypto/x25519-mlkem768-key-exchange"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2026-11-06T20:10:45.678193+00:00",
+    "tools": {
+      "components": [
+        {
+          "name": "pqc-scan",
+          "type": "application",
+          "version": "0.3.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:7938873f-491f-11d6-db48-95542982a866",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6"
+}

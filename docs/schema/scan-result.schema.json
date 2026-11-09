@@ -1,0 +1,546 @@
+{
+  "$defs": {
+    "Algorithm": {
+      "additionalProperties": false,
+      "description": "An algorithm exactly as a scanner observed it.",
+      "properties": {
+        "curve": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Curve"
+        },
+        "key_size": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bits",
+          "title": "Key Size"
+        },
+        "primitive": {
+          "$ref": "#/$defs/Primitive"
+        },
+        "raw_name": {
+          "minLength": 1,
+          "title": "Raw Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw_name",
+        "primitive"
+      ],
+      "title": "Algorithm",
+      "type": "object"
+    },
+    "Asset": {
+      "additionalProperties": false,
+      "description": "Something that uses cryptography: an endpoint, a file, a source file.",
+      "properties": {
+        "details": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Public metadata, e.g. a certificate's subject, issuer and validity",
+          "title": "Details",
+          "type": "object"
+        },
+        "id": {
+          "description": "Stable URI-like id, e.g. tls://host:443 or file:///abs/path",
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AssetKind"
+        },
+        "location": {
+          "description": "Human readable location (host:port or path)",
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "location"
+      ],
+      "title": "Asset",
+      "type": "object"
+    },
+    "AssetKind": {
+      "enum": [
+        "tls_endpoint",
+        "ssh_endpoint",
+        "certificate",
+        "certificate_request",
+        "private_key",
+        "public_key",
+        "source_file"
+      ],
+      "title": "AssetKind",
+      "type": "string"
+    },
+    "Confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "ErrorKind": {
+      "enum": [
+        "timeout",
+        "connection_refused",
+        "dns",
+        "parse",
+        "permission",
+        "invalid_target",
+        "internal"
+      ],
+      "title": "ErrorKind",
+      "type": "string"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "description": "Where an observation came from. Must never contain secret material.",
+      "properties": {
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line"
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "description": "A classified observation.",
+      "properties": {
+        "algorithm": {
+          "$ref": "#/$defs/Algorithm"
+        },
+        "algorithm_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Canonical id from algorithms.yaml; None if unknown",
+          "title": "Algorithm Id"
+        },
+        "asset": {
+          "$ref": "#/$defs/Asset"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence",
+          "default": "high"
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence",
+          "default": {
+            "detail": "",
+            "line": null
+          }
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "mosca": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoscaScore"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recommendation"
+        },
+        "risk": {
+          "$ref": "#/$defs/RiskClass"
+        },
+        "scanner": {
+          "minLength": 1,
+          "title": "Scanner",
+          "type": "string"
+        },
+        "usage": {
+          "description": "Dotted context, e.g. tls.key_exchange or file.certificate.signature",
+          "minLength": 1,
+          "title": "Usage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset",
+        "algorithm",
+        "usage",
+        "scanner",
+        "id",
+        "risk",
+        "reason"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "MoscaInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "minimum": 0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "MoscaInputs",
+      "type": "object"
+    },
+    "MoscaRule": {
+      "additionalProperties": false,
+      "description": "Mosca values for assets whose id or location matches a glob pattern.",
+      "properties": {
+        "match": {
+          "description": "Glob on asset id or location",
+          "minLength": 1,
+          "title": "Match",
+          "type": "string"
+        },
+        "x": {
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "minimum": 0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "match",
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "MoscaRule",
+      "type": "object"
+    },
+    "MoscaScore": {
+      "additionalProperties": false,
+      "description": "Mosca's inequality: data is at risk when x + y > z (all in years).",
+      "properties": {
+        "at_risk": {
+          "readOnly": true,
+          "title": "At Risk",
+          "type": "boolean"
+        },
+        "margin": {
+          "readOnly": true,
+          "title": "Margin",
+          "type": "number"
+        },
+        "x": {
+          "description": "Years the data must stay confidential",
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "Years needed to migrate",
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "description": "Years until a cryptographically relevant QC",
+          "minimum": 0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z",
+        "margin",
+        "at_risk"
+      ],
+      "title": "MoscaScore",
+      "type": "object"
+    },
+    "Primitive": {
+      "description": "What an algorithm is used for. Classification can depend on it.",
+      "enum": [
+        "key_exchange",
+        "kem",
+        "signature",
+        "public_key_encryption",
+        "block_cipher",
+        "stream_cipher",
+        "aead",
+        "hash",
+        "mac",
+        "kdf",
+        "protocol"
+      ],
+      "title": "Primitive",
+      "type": "string"
+    },
+    "RiskClass": {
+      "description": "Quantum risk of an algorithm, from most to least severe.",
+      "enum": [
+        "BROKEN",
+        "VULNERABLE",
+        "WEAKENED",
+        "UNKNOWN",
+        "HYBRID",
+        "PQ_SAFE"
+      ],
+      "title": "RiskClass",
+      "type": "string"
+    },
+    "ScanConfig": {
+      "additionalProperties": false,
+      "description": "Options shared by all scanners. Defaults are deliberately conservative.",
+      "properties": {
+        "concurrency": {
+          "default": 10,
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Concurrency",
+          "type": "integer"
+        },
+        "exclude": {
+          "default": [
+            ".git",
+            ".hg",
+            ".svn",
+            ".venv",
+            "venv",
+            "node_modules",
+            "__pycache__",
+            ".mypy_cache",
+            ".ruff_cache",
+            ".pytest_cache",
+            ".tox",
+            "dist",
+            "build"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        },
+        "follow_symlinks": {
+          "default": false,
+          "title": "Follow Symlinks",
+          "type": "boolean"
+        },
+        "max_file_size": {
+          "default": 1048576,
+          "description": "Bytes",
+          "exclusiveMinimum": 0,
+          "title": "Max File Size",
+          "type": "integer"
+        },
+        "mosca": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoscaInputs"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mosca_rules": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MoscaRule"
+          },
+          "title": "Mosca Rules",
+          "type": "array"
+        },
+        "timeout": {
+          "default": 5.0,
+          "description": "Seconds per network operation",
+          "exclusiveMinimum": 0,
+          "title": "Timeout",
+          "type": "number"
+        }
+      },
+      "title": "ScanConfig",
+      "type": "object"
+    },
+    "ScanError": {
+      "additionalProperties": false,
+      "description": "A target that could not be scanned. Never aborts the whole run.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ErrorKind"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "scanner": {
+          "title": "Scanner",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "scanner",
+        "kind",
+        "message"
+      ],
+      "title": "ScanError",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/YusufTaha-Kurt/pqc-scan/docs/schema/scan-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Everything a run produced. The only input reporters receive.",
+  "properties": {
+    "assets": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Asset"
+      },
+      "title": "Assets",
+      "type": "array"
+    },
+    "config": {
+      "$ref": "#/$defs/ScanConfig"
+    },
+    "errors": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ScanError"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "findings": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "finished_at": {
+      "format": "date-time",
+      "title": "Finished At",
+      "type": "string"
+    },
+    "scanners": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Scanners",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "tool_version": {
+      "title": "Tool Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool_version",
+    "started_at",
+    "finished_at",
+    "scanners",
+    "config"
+  ],
+  "title": "ScanResult",
+  "type": "object"
+}

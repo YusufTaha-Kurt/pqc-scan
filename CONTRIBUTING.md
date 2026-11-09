@@ -37,6 +37,8 @@ See [`docs/architecture.md`](docs/architecture.md). In short:
 
 - Scanners implement `Scanner` and return `list[Observation]`; they know nothing
   about risk classes or report formats.
+- Source-code API rules live in `src/pqc_scan/rules/code_rules.yaml` (add a
+  fixture line under `tests/fixtures/code/` for every new rule).
 - Risk classification lives only in `src/pqc_scan/rules/algorithms.yaml` and
   `classify.py`. If you are unsure how to classify an algorithm, add it with a
   `# TODO: doğrula` ("verify") comment — the marker is kept as-is so it stays
