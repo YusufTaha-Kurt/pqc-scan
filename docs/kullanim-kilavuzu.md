@@ -19,11 +19,12 @@ algoritma, ne kadar riskli ve ne yapmalı.
 Bilgisayarında Python 3.11 veya daha yenisi olmalı. Terminali açıp:
 
 ```bash
-pip install "pqc-scan[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"
+pip install "pqc-readiness-scanner[report]"
 ```
 
-PyPI'ye yayınlandıktan sonra kısaca `pip install "pqc-scan[report]"`
-yeterli olacak. Kurulduğunu kontrol et:
+Paketin PyPI'deki adı `pqc-readiness-scanner`, terminalde yazılan komut ise
+`pqc-scan`. PyPI'deki ilk yayından önce GitHub'dan kurmak için:
+`pip install "pqc-readiness-scanner[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"`. Kurulduğunu kontrol et:
 
 ```bash
 pqc-scan --version
@@ -175,13 +176,32 @@ pqc-scan diff eski.json yeni.json
 - **"encrypted private key" → `UNKNOWN`:** Parolalı bir anahtar dosyası;
   araç parolayı denemez, bu yüzden tipini göremez. Elle kontrol et.
 - **Test klasörleri gürültü yapıyor:** `--exclude tests/fixtures` ile atla.
-- **HTML/CBOM için "needs extra packages":** `pip install "pqc-scan[report]"`.
+- **HTML/CBOM için "needs extra packages":** `pip install "pqc-readiness-scanner[report]"`.
 
 ## 11. Yayınlama (proje sahibi için, bir kerelik)
 
-1. PyPI'de hesap aç → "Publishing" → **trusted publisher** ekle: depo
-   `YusufTaha-Kurt/pqc-scan`, iş akışı `release.yml`, ortam `pypi`.
-2. GitHub'da depo → Settings → Environments → `pypi` adında ortam oluştur.
-3. Değişiklikleri `master`'a birleştir, sonra sürüm etiketini gönder:
-   `git tag v0.3.0 && git push origin v0.3.0`.
-   Testler geçerse paket PyPI'ye, Docker imajı `ghcr.io`'ya otomatik yüklenir.
+Paketin PyPI adı **`pqc-readiness-scanner`** (`pqc-scan` adı PyPI'de başka bir
+projeye ait). Şifre veya token gerekmez: PyPI'ye "bu GitHub deposundan gelen
+yayına güven" denir (trusted publishing).
+
+1. **PyPI:** https://pypi.org hesabında iki adımlı doğrulamayı aç →
+   *Your account → Publishing* → "Add a new pending publisher" → **GitHub**:
+   - PyPI Project Name: `pqc-readiness-scanner`
+   - Owner: `YusufTaha-Kurt`
+   - Repository name: `pqc-scan`
+   - Workflow name: `release.yml`
+   - Environment name: `pypi`
+2. **GitHub ortamı:** depo → *Settings → Environments → New environment* →
+   `pypi`. İstersen "Required reviewers"a kendini ekle (her yayında onay ister).
+3. **Yayın:** depo → *Releases → Draft a new release* → "Choose a tag"a
+   `v0.3.0` yazıp *Create new tag* (hedef: `master`) → *Publish release*.
+   Bu, *Actions* sekmesindeki "Release" işini başlatır: testler, etiket/sürüm
+   kontrolü, PyPI yüklemesi ve `ghcr.io/yusuftaha-kurt/pqc-scan` Docker imajı.
+4. **Kontrol:** https://pypi.org/project/pqc-readiness-scanner/ açılıyorsa
+   tamam. Docker imajı ilk seferde gizli oluşur; herkese açmak için GitHub
+   profilinde *Packages → pqc-scan → Package settings → Change visibility →
+   Public*.
+
+Sonraki sürümlerde: `src/pqc_scan/__init__.py` içindeki sürümü ve
+`CHANGELOG.md`'yi güncelle, birleştir, aynı sürüm numarasıyla yeni bir
+release oluştur (ör. `v0.3.1`).

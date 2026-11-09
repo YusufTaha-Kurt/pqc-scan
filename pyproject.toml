@@ -3,7 +3,9 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pqc-scan"
+# Distribution name on PyPI ("pqc-scan" belongs to another project, decision D-14).
+# The command stays `pqc-scan` and the import package `pqc_scan`.
+name = "pqc-readiness-scanner"
 dynamic = ["version"]
 description = "Find quantum-vulnerable cryptography in endpoints and code, and plan your post-quantum migration."
 readme = "README.md"
@@ -36,7 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 report = ["jinja2>=3.1", "cyclonedx-python-lib>=11.0"]
-all = ["pqc-scan[report]"]
+all = ["pqc-readiness-scanner[report]"]
 dev = [
     "cyclonedx-python-lib>=11.0",
     "jinja2>=3.1",

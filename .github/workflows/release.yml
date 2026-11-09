@@ -1,8 +1,9 @@
 # Publish a release when a version tag (v1.2.3) is pushed.
 #
 # One-time setup by the maintainer (see docs/kullanim-kilavuzu.md):
-#   * PyPI: add a "trusted publisher" for this repository and the workflow
-#     file release.yml, environment "pypi" (no API token needed).
+#   * PyPI: add a "trusted publisher" for the project pqc-readiness-scanner,
+#     this repository, workflow file release.yml, environment "pypi"
+#     (no API token needed).
 #   * GitHub: create the environment "pypi" (Settings → Environments).
 name: Release
 
@@ -38,7 +39,9 @@ jobs:
     name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
-    environment: pypi
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pqc-readiness-scanner/
     permissions:
       id-token: write  # trusted publishing
     steps:

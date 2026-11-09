@@ -32,7 +32,10 @@ def missing_dependency(fmt: ReportFormat) -> str | None:
     module = _OPTIONAL.get(fmt)
     if module is None or importlib.util.find_spec(module) is not None:
         return None
-    return f"the '{fmt.value}' format needs extra packages: pip install 'pqc-scan[report]'"
+    return (
+        f"the '{fmt.value}' format needs extra packages: "
+        "pip install 'pqc-readiness-scanner[report]'"
+    )
 
 
 def render(result: ScanResult, fmt: ReportFormat) -> str:

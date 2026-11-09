@@ -62,7 +62,7 @@ Opsiyonel öncelik skoru: **Mosca teoremi** (x + y > z → risk). x = verinin gi
 - Kod tarama: ek bağımlılık yok — Python için AST, Java/Kotlin, JS/TS, Go, C# ve Rust için desen kuralları; hepsi `rules/code_rules.yaml` içinde veri olarak (karar: D-12 — Semgrep kullanılmaz)
 - Rapor: JSON, HTML (`jinja2`), CycloneDX CBOM (`cyclonedx-python-lib`)
 - Geliştirme: `pytest`, `ruff` (lint + format), `mypy` (strict), `pre-commit`
-- Paketleme: `pyproject.toml` (hatchling), `src/` düzeni
+- Paketleme: `pyproject.toml` (hatchling), `src/` düzeni. PyPI dağıtım adı `pqc-readiness-scanner` (`pqc-scan` PyPI'de başka projeye ait); komut `pqc-scan`, modül `pqc_scan` (karar: D-14)
 - Ağır bağımlılıklar opsiyonel extra'dır: `[report]` (jinja2), `[dev]`, `[all]`. (karar: D-6, D-11, D-12)
 - Eşzamanlılık: `concurrent.futures.ThreadPoolExecutor` (karar: D-4)
 

@@ -237,7 +237,7 @@ def test_missing_optional_dependency(fmt: ReportFormat, monkeypatch: pytest.Monk
         "find_spec",
         lambda name: None if name in ("jinja2", "cyclonedx") else real(name),
     )
-    with pytest.raises(UnsupportedFormatError, match=r"pqc-scan\[report\]"):
+    with pytest.raises(UnsupportedFormatError, match=r"pqc-readiness-scanner\[report\]"):
         render(sample_result(), fmt)
 
 
