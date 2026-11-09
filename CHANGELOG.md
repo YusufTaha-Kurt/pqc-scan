@@ -6,7 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.3.0] — 2026-11-06
 
-First public release. It covers the whole v0.1–v0.3 roadmap.
+First public release, published on PyPI as `pqc-readiness-scanner` (the
+command is `pqc-scan`). It covers the whole v0.1–v0.3 roadmap.
 
 ### Scanners
 - `files`: PEM (multi-block), DER, CSRs, public/private keys, OpenSSH public

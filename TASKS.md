@@ -31,7 +31,8 @@ X25519MLKEM768 ilk tercih olarak bulundu); C# ve Rust kuralları; CBOM'da
 sertifika sahibi/düzenleyeni/geçerlilik tarihleri.
 
 **Yalnızca proje sahibinin yapabileceği tek adım:** PyPI'de ilk yayın —
-PyPI hesabında trusted publisher ve GitHub'da `pypi` ortamı kurulumu, sonra
+PyPI hesabında `pqc-readiness-scanner` için trusted publisher ve GitHub'da
+`pypi` ortamı kurulumu, sonra
 `git tag v0.3.0 && git push origin v0.3.0` (`docs/kullanim-kilavuzu.md` §11).
 
 ### Bilinen notlar
@@ -148,7 +149,7 @@ ve lisans dosyaları henüz yok. Varsayılan branch `master`.
 
 ## Kararlar
 
-D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te, D-12 ve D-13 2026-11-06'da onaylandı ve `CLAUDE.md` ile
+D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te, D-12 ve D-13 2026-11-06'da, D-14 2026-11-09'da onaylandı ve `CLAUDE.md` ile
 `docs/architecture.md`'ye işlendi.
 
 | #    | Konu | Karar |
@@ -163,6 +164,7 @@ D-1 … D-10 2026-11-04'te, D-11 2026-11-05'te, D-12 ve D-13 2026-11-06'da onayl
 | D-8  | CLI çıktı seçenekleri | `--format {console,json,html,cbom}` + `--out PATH`; çıkış kodları 0/1/2/3 |
 | D-9  | Belirsiz sınıflar | 3DES → BROKEN, AES-128 → WEAKENED, SHA-256 → PQ_SAFE (YAML'da `# TODO: doğrula`) |
 | D-10 | Varsayılan branch | `master` kalır |
+| D-14 | PyPI paket adı | `pqc-readiness-scanner` (`pqc-scan` PyPI'de başka projeye ait); komut `pqc-scan` ve modül `pqc_scan` aynı kalır (2026-11-09) |
 | D-13 | Yoruma açık sınıflandırmalar | Kullanıcı tüm `# TODO: doğrula` kararlarını onayladı (2026-11-06); YAML'da `judgement call, approved (D-13)` olarak işaretli |
 | D-12 | Kod tarama motoru | Semgrep kullanılmaz (72 MB, yalnızca Linux/macOS tekerleği). Python için `ast`, Java/Kotlin, JS/TS, Go için yorumları silinmiş kaynakta düzenli ifade kuralları; kurallar `rules/code_rules.yaml` (2026-11-06). `[code]` extra'sı kaldırıldı |
 | D-11 | TLS için sslyze | sslyze kullanılmaz; sürüm, cipher suite, grup ve sertifika kendi saf Python probumuzla (+ TLS 1.3 sertifikası için `ssl`). `[tls]` extra'sı kaldırıldı (2026-11-05, seçenek B) |

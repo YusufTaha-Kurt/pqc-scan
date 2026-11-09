@@ -51,10 +51,12 @@ All classification lives in one data file,
 ## Installation
 
 ```bash
-pip install "pqc-scan[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"
+pip install "pqc-readiness-scanner[report]"
 ```
 
-(`pip install "pqc-scan[report]"` once it is published on PyPI.) Python 3.11+.
+Before the first PyPI release, install from GitHub instead:
+`pip install "pqc-readiness-scanner[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"`.
+The package is called `pqc-readiness-scanner` on PyPI; the command is `pqc-scan`. Python 3.11+.
 The `[report]` extra adds the HTML and CBOM formats.
 
 Or with Docker:
