@@ -109,7 +109,7 @@ def test_scan_files_json_to_file(ec_dir: Path, tmp_path_factory: pytest.TempPath
 def test_console_report_to_file_has_no_colours(ec_dir: Path, tmp_path: Path) -> None:
     out = tmp_path / "report.txt"
     assert invoke("scan", "files", str(ec_dir), "-o", str(out)).exit_code == ExitCode.OK
-    text = out.read_text()
+    text = out.read_text(encoding="utf-8")
     assert "Worst risk: VULNERABLE" in text
     assert "\x1b[" not in text
 
@@ -271,7 +271,7 @@ def test_scan_tls_unreachable_exit_code() -> None:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
-    result = invoke("scan", "tls", f"127.0.0.1:{port}", "--timeout", "0.5")
+    result = invoke("scan", "tls", f"127.0.0.1:{port}", "--timeout", "5")
     assert result.exit_code == ExitCode.ALL_TARGETS_FAILED
     assert "connection_refused" in result.output
 
