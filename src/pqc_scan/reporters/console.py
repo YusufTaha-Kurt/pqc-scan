@@ -126,6 +126,10 @@ def _errors(errors: list[ScanError]) -> Table:
 def _verdict(result: ScanResult) -> Text:
     worst = result.worst_risk()
     if worst is None:
+        if result.errors:
+            return Text(
+                "No cryptography found; some targets failed. See errors above.", style="bold"
+            )
         return Text("No cryptography found.", style="bold")
     text = Text("Worst risk: ", style="bold")
     text.append_text(risk_text(worst))
@@ -154,6 +158,8 @@ def print_report(result: ScanResult, console: Console) -> None:
 def render(result: ScanResult, width: int = 120) -> str:
     """The report as plain text without colours, e.g. for ``--out report.txt``."""
     buffer = io.StringIO()
-    console = Console(file=buffer, width=width, color_system=None, force_terminal=False)
+    console = Console(
+        file=buffer, width=width, color_system=None, force_terminal=False, legacy_windows=False
+    )
     print_report(result, console)
     return buffer.getvalue()

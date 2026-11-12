@@ -494,7 +494,7 @@ def unused_port() -> int:
 
 
 def test_connection_refused() -> None:
-    result = run_scan([ScanJob(TLSScanner(), f"127.0.0.1:{unused_port()}")], FAST)
+    result = run_scan([ScanJob(TLSScanner(), f"127.0.0.1:{unused_port()}")], ScanConfig(timeout=5))
     assert [e.kind for e in result.errors] == [ErrorKind.CONNECTION_REFUSED]
 
 

@@ -15,7 +15,17 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-06
+**Son güncelleme:** 2026-11-13
+
+**Güvenilirlik doğrulaması:** Windows/Python 3.12'de 345 test geçti (8'i
+platform veya sunucu gereksinimi nedeniyle atlandı); Linux/Python 3.12'de
+gerçek yerel OpenSSL 3.5 ve OpenSSH sunucuları dahil 353 test geçti.
+Linux/Python 3.11 ve 3.13'te 351 test geçti; iki gerçek sunucu testi bu
+iki sürümde çalıştırılmadı (3.12'de doğrulandı).
+Docker imajı oluşturuldu ve örnek kod taramasıyla doğrulandı. Windows test
+matrisi CI'a eklendi; GitHub Actions üzerinde bu değişikliğin sonucu henüz
+doğrulanmadı. Hatalı hedeflerde boş raporun yanıltıcı özeti düzeltildi;
+Bash betiklerinin Windows checkout'unda LF satır sonu kullanması sağlandı.
 
 **Yol haritasının tamamı (v0.1–v0.3) ve ek fikirlerin hepsi bitti.** Sürüm
 0.3.0. 349 test (+2 gerçek sunucu testi CI'da), kapsama %97. Komutlar:

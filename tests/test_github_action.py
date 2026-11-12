@@ -15,8 +15,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "github-action.sh"
 
-pytestmark = pytest.mark.skipif(
-    shutil.which("bash") is None or shutil.which("git") is None, reason="needs bash and git"
+requires_posix = pytest.mark.skipif(
+    sys.platform == "win32" or shutil.which("bash") is None or shutil.which("git") is None,
+    reason="the shell test harness requires a POSIX environment",
 )
 
 
@@ -76,6 +77,7 @@ def run_action(repo: Path, **env: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+@requires_posix
 def test_push_event_fails_on_broken(repo: Path) -> None:
     result = run_action(repo, PQC_FAIL_ON="BROKEN", GITHUB_EVENT_NAME="push")
     assert result.returncode == 1, result.stderr
@@ -95,6 +97,7 @@ def test_push_event_fails_on_broken(repo: Path) -> None:
     assert "## pqc-scan" in (repo.parent / "runner" / "summary.md").read_text()
 
 
+@requires_posix
 def test_pull_request_only_new_findings(repo: Path) -> None:
     env = {"PQC_FAIL_ON": "BROKEN", "GITHUB_EVENT_NAME": "pull_request", "GITHUB_BASE_REF": "main"}
     result = run_action(repo, **env)
@@ -108,12 +111,14 @@ def test_pull_request_only_new_findings(repo: Path) -> None:
     assert run_action(repo, **env).returncode == 0
 
 
+@requires_posix
 def test_no_fail_on_and_cbom(repo: Path) -> None:
     result = run_action(repo, PQC_FAIL_ON="", PQC_FORMAT="cbom")
     assert result.returncode == 0, result.stderr
     assert (repo / "pqc-scan-report" / "pqc-scan-report.cdx.json").exists()
 
 
+@requires_posix
 def test_bad_format(repo: Path) -> None:
     assert run_action(repo, PQC_FORMAT="pdf").returncode == 2
 
@@ -123,3 +128,7 @@ def test_action_metadata_passes_inputs_through_env() -> None:
     scan = next(step for step in action["runs"]["steps"] if step.get("id") == "scan")
     assert "${{" not in scan["run"]  # inputs are never interpolated into the shell
     assert set(action["inputs"]) >= {"path", "tls", "ssh", "fail-on", "only-new", "format"}
+
+
+def test_action_script_uses_unix_line_endings() -> None:
+    assert b"\r\n" not in SCRIPT.read_bytes()

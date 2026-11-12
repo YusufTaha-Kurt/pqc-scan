@@ -307,6 +307,7 @@ def test_missing_target() -> None:
     assert info.value.kind == ErrorKind.INVALID_TARGET
 
 
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes require os.mkfifo")
 def test_fifo_is_skipped(tmp_path: Path) -> None:
     os.mkfifo(tmp_path / "pipe.pem")
     assert scan(tmp_path) == []
@@ -463,6 +464,7 @@ def test_malformed_ssh_and_openssh_inputs_are_skipped(tmp_path: Path) -> None:
     assert scan(tmp_path) == []
 
 
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes require os.mkfifo")
 def test_fifo_target_is_invalid(tmp_path: Path) -> None:
     os.mkfifo(tmp_path / "pipe")
     with pytest.raises(ScanTargetError) as info:

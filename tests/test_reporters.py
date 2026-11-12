@@ -160,6 +160,13 @@ def test_console_empty_result() -> None:
     assert "Errors" not in text
 
 
+def test_console_failed_scan_does_not_imply_success() -> None:
+    result = run_scan([ScanJob(SampleScanner(), "unreachable")], ScanConfig())
+    text = console.render(result)
+    assert "some targets failed" in text
+    assert "Errors" in text
+
+
 def test_console_does_not_interpret_markup_in_data() -> None:
     text = console.render(sample_result(), width=200)
     assert "keys/[bold]odd[/bold].key" in text
