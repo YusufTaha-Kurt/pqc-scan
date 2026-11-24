@@ -132,3 +132,20 @@ def test_action_metadata_passes_inputs_through_env() -> None:
 
 def test_action_script_uses_unix_line_endings() -> None:
     assert b"\r\n" not in SCRIPT.read_bytes()
+
+
+@requires_posix
+@pytest.mark.parametrize("threshold", ["BROKEN", ""])
+def test_failed_scan_keeps_report_and_status(repo: Path, threshold: str) -> None:
+    result = run_action(repo, PQC_PATH="missing", PQC_FAIL_ON=threshold, PQC_SCAN_LANG="tr")
+    assert result.returncode == 3, result.stderr
+    assert (repo / "pqc-scan-report/pqc-scan.sarif").exists()
+    assert 'lang="tr"' in (repo / "pqc-scan-report/pqc-scan-report.html").read_text()
+
+
+@requires_posix
+def test_empty_path_skips_checkout(repo: Path) -> None:
+    result = run_action(repo, PQC_PATH="", PQC_TLS="127.0.0.1:1")
+    assert result.returncode == 3, result.stderr
+    report = json.loads((repo / "pqc-scan-report/pqc-scan.json").read_text())
+    assert report["scanners"] == ["tls"]

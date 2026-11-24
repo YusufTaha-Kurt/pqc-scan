@@ -65,7 +65,7 @@ path = "src/pqc_scan/__init__.py"
 packages = ["src/pqc_scan"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/pqc_scan", "tests", "LICENSE", "README.md"]
+include = ["src/pqc_scan", "tests", "LICENSE", "README.md", "README.tr.md", "docs", "scripts", "action.yml"]
 
 # --- ruff ---------------------------------------------------------------
 
@@ -77,6 +77,7 @@ src = ["src", "tests"]
 extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
+allowed-confusables = ["ı"]  # Turkish dotless i
 select = [
     "B",    # bugbear
     "E",    # pycodestyle errors

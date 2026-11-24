@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import ClassVar
 
-from pqc_scan.models import ErrorKind, Observation, ScanConfig
+from pqc_scan.models import ErrorKind, FileCoverage, Observation, ScanConfig
 
 
 class ScanTargetError(Exception):
@@ -21,6 +22,26 @@ class ScanTargetError(Exception):
         self.message = message
 
 
+@dataclass
+class FileAudit:
+    scanner: str
+    target: str
+    inspected: int = 0
+    oversized: list[str] = field(default_factory=list)
+    unreadable: list[str] = field(default_factory=list)
+    unparsed: list[str] = field(default_factory=list)
+
+    def summary(self) -> FileCoverage:
+        return FileCoverage(
+            scanner=self.scanner,
+            target=self.target,
+            inspected=self.inspected,
+            oversized=self.oversized,
+            unreadable=self.unreadable,
+            unparsed=self.unparsed,
+        )
+
+
 class Scanner(ABC):
     """Base class for scanners.
 
@@ -31,6 +52,11 @@ class Scanner(ABC):
 
     name: ClassVar[str]
 
+    def scan_with_coverage(
+        self, target: str, config: ScanConfig
+    ) -> tuple[list[Observation], FileCoverage | None]:
+        return self.scan(target, config), None
+
     @abstractmethod
     def scan(self, target: str, config: ScanConfig) -> list[Observation]:
         """Scan one target.
@@ -39,3 +65,19 @@ class Scanner(ABC):
         (unreachable host, unreadable path, ...). Network scanners must honour
         ``config.timeout`` on every socket operation.
         """
+
+
+class FileTreeScanner(Scanner):
+    def scan(self, target: str, config: ScanConfig) -> list[Observation]:
+        return self.scan_with_coverage(target, config)[0]
+
+    def scan_with_coverage(
+        self, target: str, config: ScanConfig
+    ) -> tuple[list[Observation], FileCoverage]:
+        audit = FileAudit(self.name, target)
+        found = self.scan_tree(target, config, audit)
+        return found, audit.summary()
+
+    @abstractmethod
+    def scan_tree(self, target: str, config: ScanConfig, audit: FileAudit) -> list[Observation]:
+        """Inspect a local file tree and record its coverage."""

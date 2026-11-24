@@ -31,7 +31,7 @@ from pqc_scan.models import (
     Observation,
     ScanConfig,
 )
-from pqc_scan.scanners.base import Scanner, ScanTargetError
+from pqc_scan.scanners.base import FileAudit, FileTreeScanner, ScanTargetError
 from pqc_scan.scanners.code_rules import (
     ArgSpec,
     CodeRules,
@@ -71,9 +71,33 @@ Hit = tuple[int, str, Algorithm, str, Confidence]
 # --- Python (AST) -------------------------------------------------------------
 
 
-def _import_aliases(tree: ast.AST) -> dict[str, str]:
-    aliases: dict[str, str] = {}
-    for node in ast.walk(tree):
+Scope = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef | ast.Lambda
+
+
+def _scope_nodes(root: ast.AST) -> Iterator[ast.AST]:
+    pending: list[ast.AST]
+    if isinstance(root, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+        pending = list(reversed(root.body))
+    elif isinstance(root, ast.Lambda):
+        pending = [root.body]
+    else:
+        pending = list(ast.iter_child_nodes(root))
+    while pending:
+        node = pending.pop()
+        yield node
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            pending.extend([*node.decorator_list, node.args])
+        elif isinstance(node, ast.ClassDef):
+            pending.extend([*node.bases, *node.keywords, *node.decorator_list])
+        elif isinstance(node, ast.Lambda):
+            pending.append(node.args)
+        elif not isinstance(node, Scope):
+            pending.extend(reversed(list(ast.iter_child_nodes(node))))
+
+
+def _import_aliases(nodes: list[ast.AST], inherited: dict[str, str]) -> dict[str, str]:
+    aliases = inherited.copy()
+    for node in nodes:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.asname:
@@ -93,7 +117,7 @@ def _canonical(name: str) -> str:
 
 class _PythonFile:
     def __init__(self, tree: ast.AST, rules: CodeRules) -> None:
-        self.aliases = _import_aliases(tree)
+        self.aliases: dict[str, str] = {}
         self.calls = {rule.call: rule for rule in rules.python_calls}
         self.attributes = {rule.name: rule for rule in rules.python_attributes}
         self.tree = tree
@@ -139,7 +163,27 @@ class _PythonFile:
         return None
 
     def hits(self) -> Iterator[Hit]:
-        for node in ast.walk(self.tree):
+        yield from self._scope_hits(self.tree, {})
+
+    def _scope_hits(self, scope: ast.AST, inherited: dict[str, str]) -> Iterator[Hit]:
+        nodes = list(_scope_nodes(scope))
+        aliases = _import_aliases(nodes, inherited)
+        if isinstance(scope, ast.FunctionDef | ast.AsyncFunctionDef | ast.Lambda):
+            for arg in (
+                *scope.args.posonlyargs,
+                *scope.args.args,
+                *scope.args.kwonlyargs,
+                scope.args.vararg,
+                scope.args.kwarg,
+            ):
+                if arg is not None:
+                    aliases.pop(arg.arg, None)
+        for node in nodes:
+            self.aliases = aliases
+            if isinstance(node, Scope):
+                yield from self._scope_hits(
+                    node, inherited if isinstance(scope, ast.ClassDef) else aliases
+                )
             if isinstance(node, ast.Call):
                 name = self.qualname(node.func)
                 rule = self.calls.get(name) if name else None
@@ -290,7 +334,7 @@ def source_hits(path: Path, source: str, rules: CodeRules) -> list[Hit]:
 # --- scanner -------------------------------------------------------------------
 
 
-class CodeScanner(Scanner):
+class CodeScanner(FileTreeScanner):
     """Report cryptography APIs used in Python, Java/Kotlin, JS/TS, Go, C# and Rust code."""
 
     name = "code"
@@ -298,19 +342,30 @@ class CodeScanner(Scanner):
     def __init__(self, rules: CodeRules | None = None) -> None:
         self.rules = rules or default_rules()
 
-    def scan(self, target: str, config: ScanConfig) -> list[Observation]:
+    def scan_tree(self, target: str, config: ScanConfig, audit: FileAudit) -> list[Observation]:
         root = Path(target).expanduser()
         if not root.exists():
             raise ScanTargetError(ErrorKind.INVALID_TARGET, "path does not exist")
         base = root if root.is_dir() else root.parent
         observations: list[Observation] = []
-        for path in iter_files(root, config):
+        for path in iter_files(root, config, audit):
             if path.suffix.lower() not in LANGUAGES:
                 continue
-            data = read_candidate(path, config.max_file_size)
+            data = read_candidate(
+                path, config.max_file_size, audit, path.relative_to(base).as_posix()
+            )
             if data is None:
                 continue
-            hits = source_hits(path, data.decode("utf-8", errors="replace"), self.rules)
+            if path.suffix.lower() == ".py":
+                try:
+                    tree = ast.parse(data)
+                except (SyntaxError, ValueError):
+                    audit.unparsed.append(path.relative_to(base).as_posix())
+                    continue
+                hits = sorted(_PythonFile(tree, self.rules).hits(), key=lambda hit: hit[0])
+            else:
+                hits = source_hits(path, data.decode("utf-8", errors="replace"), self.rules)
+            audit.inspected += 1
             if not hits:
                 continue
             asset = Asset(

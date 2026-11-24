@@ -8,8 +8,9 @@
 # GitHub provides GITHUB_EVENT_NAME, GITHUB_BASE_REF, GITHUB_STEP_SUMMARY,
 # GITHUB_OUTPUT and RUNNER_TEMP.
 set -euo pipefail
+set -f  # pass exclude globs through to the scanner
 
-path="${PQC_PATH:-.}"
+path="${PQC_PATH-.}"
 fail_on="${PQC_FAIL_ON:-}"
 format="${PQC_FORMAT:-html}"
 out_dir="${PQC_OUTPUT_DIR:-pqc-scan-report}"
@@ -25,18 +26,27 @@ scan_args() {
   for host in ${PQC_TLS:-}; do args+=(--tls "$host"); done
   for host in ${PQC_SSH:-}; do args+=(--ssh "$host"); done
   for pattern in ${PQC_EXCLUDE:-}; do args+=(--exclude "$pattern"); done
+  if (( ${#args[@]} == 0 )); then return; fi
   printf '%s\0' "${args[@]}"
 }
 
 run_scan() {  # run_scan ROOT OUTPUT.json
   local -a args
   mapfile -d '' args < <(scan_args "$1")
-  # Exit code 3 (every target failed) is reported but does not abort here.
-  pqc-scan scan all "${args[@]}" --format json --out "$2" || [ $? -eq 3 ]
+  scan_status=0
+  pqc-scan scan all "${args[@]}" --format json --out "$2" || scan_status=$?
+  if (( scan_status != 0 && scan_status != 3 )); then return "$scan_status"; fi
 }
 
 head_json="$tmp/pqc-head.json"
 run_scan "$PWD" "$head_json"
+
+render_head() {
+  local status=0
+  pqc-scan report "$head_json" "$@" || status=$?
+  if (( status == 3 && scan_status == 3 )); then return 0; fi
+  return "$status"
+}
 
 case "$format" in
   json) ext=json ;;
@@ -45,14 +55,14 @@ case "$format" in
   *) echo "::error::unsupported format '$format' (json, html or cbom)"; exit 2 ;;
 esac
 report="$out_dir/pqc-scan-report.$ext"
-pqc-scan report "$head_json" --format "$format" --out "$report"
+render_head --format "$format" --out "$report"
 cp "$head_json" "$out_dir/pqc-scan.json"
-pqc-scan report "$head_json" --format sarif --out "$out_dir/pqc-scan.sarif"
+render_head --format sarif --out "$out_dir/pqc-scan.sarif"
 
 {
   echo "## pqc-scan"
   echo '```'
-  COLUMNS=120 pqc-scan report "$head_json"
+  COLUMNS=120 render_head
   echo '```'
 } >> "$summary"
 
@@ -67,6 +77,8 @@ print(max(risks, key=order.index) if risks else "")' "$head_json")
   echo "worst-risk=$worst"
 } >> "$outputs"
 
+if (( scan_status == 3 )); then exit 3; fi
+
 if [ -z "$fail_on" ]; then
   exit 0
 fi
@@ -79,8 +91,13 @@ if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ] && [ "${PQC_ONLY_NEW:-true}" = 
   base_json="$tmp/pqc-base.json"
   run_scan "$base_dir" "$base_json"
   git worktree remove --force "$base_dir"
+  if (( scan_status == 3 )); then exit 3; fi
   {
-    echo "### Changes compared with \`$GITHUB_BASE_REF\`"
+    if [[ "${PQC_SCAN_LANG:-en}" == tr ]]; then
+      echo "### \`$GITHUB_BASE_REF\` dalına göre değişiklikler"
+    else
+      echo "### Changes compared with \`$GITHUB_BASE_REF\`"
+    fi
     echo '```'
     COLUMNS=120 pqc-scan diff "$base_json" "$head_json" || true
     echo '```'

@@ -16,15 +16,14 @@ algoritma, ne kadar riskli ve ne yapmalı.
 
 ## 2. Kurulum (bir kere)
 
-Bilgisayarında Python 3.11 veya daha yenisi olmalı. Terminali açıp:
+Python 3.11 veya üzeriyle depo kökünde çalıştır:
 
 ```bash
-pip install "pqc-readiness-scanner[report]"
+python -m pip install ".[report]"
 ```
 
-Paketin PyPI'deki adı `pqc-readiness-scanner`, terminalde yazılan komut ise
-`pqc-scan`. PyPI'deki ilk yayından önce GitHub'dan kurmak için:
-`pip install "pqc-readiness-scanner[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"`. Kurulduğunu kontrol et:
+İlk PyPI yayını beklemede. Terminal komutu `pqc-scan`, dağıtım adı `pqc-readiness-scanner`.
+Türkçe yardım için `pqc-scan --lang tr scan --help` kullan. Sürümü kontrol et:
 
 ```bash
 pqc-scan --version

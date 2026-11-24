@@ -44,7 +44,7 @@ from pqc_scan.models import (
     Primitive,
     ScanConfig,
 )
-from pqc_scan.scanners.base import Scanner, ScanTargetError
+from pqc_scan.scanners.base import FileAudit, FileTreeScanner, ScanTargetError
 from pqc_scan.scanners.certs import (
     PARSE_ERRORS,
     Triple,
@@ -344,11 +344,12 @@ def parse_file(path: Path, data: bytes) -> list[_Item]:
 # --- directory walk ---------------------------------------------------------
 
 
-def _excluded(name: str, patterns: tuple[str, ...]) -> bool:
-    return any(fnmatch(name, pattern) for pattern in patterns)
+def _excluded(path: Path, root: Path, patterns: tuple[str, ...]) -> bool:
+    relative = path.relative_to(root).as_posix()
+    return any(fnmatch(relative if "/" in pattern else path.name, pattern) for pattern in patterns)
 
 
-def iter_files(root: Path, config: ScanConfig) -> Iterator[Path]:
+def iter_files(root: Path, config: ScanConfig, audit: FileAudit | None = None) -> Iterator[Path]:
     """Regular files under ``root`` honouring excludes and the symlink policy.
 
     Children whose name matches an exclude pattern are pruned; ``root`` itself
@@ -359,39 +360,58 @@ def iter_files(root: Path, config: ScanConfig) -> Iterator[Path]:
         return
     follow = config.follow_symlinks
     visited: set[str] = set()
-    for dirpath, dirnames, filenames in os.walk(root, followlinks=follow):
+
+    def record_error(exc: OSError) -> None:
+        if audit and exc.filename:
+            audit.unreadable.append(Path(exc.filename).relative_to(root).as_posix())
+
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=follow, onerror=record_error):
         real = os.path.realpath(dirpath)
         if real in visited:
             dirnames[:] = []
             continue
         visited.add(real)
-        dirnames[:] = sorted(d for d in dirnames if not _excluded(d, config.exclude))
+        dirnames[:] = sorted(
+            d for d in dirnames if not _excluded(Path(dirpath, d), root, config.exclude)
+        )
         for name in sorted(filenames):
             path = Path(dirpath, name)
-            if _excluded(name, config.exclude) or (not follow and path.is_symlink()):
+            if _excluded(path, root, config.exclude) or (not follow and path.is_symlink()):
                 continue
             yield path
 
 
-def read_candidate(path: Path, max_size: int) -> bytes | None:
+def read_candidate(
+    path: Path, max_size: int, audit: FileAudit | None = None, location: str = ""
+) -> bytes | None:
     """File content, or None for non-regular, oversized or unreadable files."""
     try:
         info = path.stat()
-        if not stat.S_ISREG(info.st_mode) or info.st_size > max_size:
+        if not stat.S_ISREG(info.st_mode):
+            return None
+        if info.st_size > max_size:
+            if audit:
+                audit.oversized.append(location)
             return None
         with path.open("rb") as handle:
             data = handle.read(max_size + 1)
     except OSError:
+        if audit:
+            audit.unreadable.append(location)
         return None
-    return data if len(data) <= max_size else None
+    if len(data) > max_size:
+        if audit:
+            audit.oversized.append(location)
+        return None
+    return data
 
 
-class FilesScanner(Scanner):
+class FilesScanner(FileTreeScanner):
     """Report certificates and keys stored in files."""
 
     name = "files"
 
-    def scan(self, target: str, config: ScanConfig) -> list[Observation]:
+    def scan_tree(self, target: str, config: ScanConfig, audit: FileAudit) -> list[Observation]:
         root = Path(target).expanduser()
         if not root.exists():
             raise ScanTargetError(ErrorKind.INVALID_TARGET, "path does not exist")
@@ -402,11 +422,22 @@ class FilesScanner(Scanner):
         base = root if root.is_dir() else root.parent
 
         observations: list[Observation] = []
-        for path in iter_files(root, config):
-            data = read_candidate(path, config.max_file_size)
+        for path in iter_files(root, config, audit):
+            data = read_candidate(
+                path, config.max_file_size, audit, path.relative_to(base).as_posix()
+            )
             if data is None:
                 continue
-            observations += self._observations(path, base, parse_file(path, data))
+            items = parse_file(path, data)
+            # A recognized certificate/key container with no readable item is incomplete.
+            if not items and (
+                data.lstrip().startswith(_PEM_MARKER)
+                or path.suffix.lower() in _DER_SUFFIXES | {".pem", ".pub"}
+            ):
+                audit.unparsed.append(path.relative_to(base).as_posix())
+            else:
+                audit.inspected += 1
+            observations += self._observations(path, base, items)
         return observations
 
     def _observations(self, path: Path, base: Path, items: list[_Item]) -> list[Observation]:

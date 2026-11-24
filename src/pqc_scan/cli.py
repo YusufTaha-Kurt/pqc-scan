@@ -10,21 +10,24 @@ Exit codes (decision D-8):
 
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Sequence
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from pathlib import Path
-from typing import Annotated, TypedDict
+from typing import Annotated, Any, TypedDict
 
 import typer
 from pydantic import ValidationError
 from rich.console import Console
+from typer.core import TyperGroup
 
 from pqc_scan import __version__, mosca
 from pqc_scan.diff import build as build_diff
 from pqc_scan.diff import diff
 from pqc_scan.diff import render_console as render_diff_console
 from pqc_scan.engine import ScanJob, run_scan
+from pqc_scan.i18n import language, tr
 from pqc_scan.models import (
     DEFAULT_EXCLUDES,
     MoscaInputs,
@@ -54,7 +57,41 @@ class ExitCode(IntEnum):
     ALL_TARGETS_FAILED = 3
 
 
+def _translate_help(command: Any) -> None:
+    # Typer constructs a fresh command tree for each invocation.
+    for field in ("help", "epilog"):
+        value = getattr(command, field, None)
+        if value:
+            setattr(command, field, tr(value))
+    for parameter in command.params:
+        if getattr(parameter, "help", None):
+            parameter.help = tr(parameter.help)
+    for child in getattr(command, "commands", {}).values():
+        _translate_help(child)
+
+
+class LocalizedGroup(TyperGroup):
+    def parse_args(self, ctx: Any, args: list[str]) -> list[str]:
+        # Help is eager and runs before the root callback.
+        lang = os.environ.get("PQC_SCAN_LANG", "en")
+        for index, arg in enumerate(args):
+            if arg == "--lang" and index + 1 < len(args):
+                lang = args[index + 1]
+            elif arg.startswith("--lang="):
+                lang = arg.partition("=")[2]
+            elif arg in self.commands:
+                break
+        if lang == "tr":
+            token = language.set(lang)
+            try:
+                _translate_help(self)
+            finally:
+                language.reset(token)
+        return super().parse_args(ctx, args)
+
+
 app = typer.Typer(
+    cls=LocalizedGroup,
     name="pqc-scan",
     help=(
         "Find quantum-vulnerable cryptography in endpoints and code, "
@@ -76,8 +113,20 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
+class Language(StrEnum):
+    EN = "en"
+    TR = "tr"
+
+
 @app.callback()
 def main(
+    ctx: typer.Context,
+    lang: Annotated[
+        Language,
+        typer.Option(
+            "--lang", envvar="PQC_SCAN_LANG", help="Report language / Rapor dili (en, tr)."
+        ),
+    ] = Language.EN,
     version: Annotated[
         bool,
         typer.Option(
@@ -89,6 +138,8 @@ def main(
     ] = False,
 ) -> None:
     """pqc-scan root command."""
+    token = language.set(lang.value)
+    ctx.call_on_close(lambda: language.reset(token))
 
 
 # --- shared options -----------------------------------------------------------
@@ -179,7 +230,9 @@ def _read_targets_file(path: Path) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
-        raise typer.BadParameter(f"cannot read {path}: {exc}", param_hint="--targets") from exc
+        raise typer.BadParameter(
+            tr("cannot read {path}: {exc}").format(path=path, exc=exc), param_hint="--targets"
+        ) from exc
     targets = []
     for line in text.splitlines():
         target = line.split("#", 1)[0].strip()
@@ -194,7 +247,7 @@ def collect_targets(arguments: Sequence[str] | None, targets_file: Path | None) 
     if targets_file is not None:
         targets += _read_targets_file(targets_file)
     if not targets:
-        raise typer.BadParameter("no targets given (pass them as arguments or with --targets)")
+        raise typer.BadParameter(tr("no targets given (pass them as arguments or with --targets)"))
     return list(dict.fromkeys(targets))
 
 
@@ -213,7 +266,7 @@ def mosca_settings(
     given = [value is not None for value in (x, y, z)]
     if mapping is None and any(given) and not all(given):
         raise typer.BadParameter(
-            "--mosca-x, --mosca-y and --mosca-z must be given together", param_hint="--mosca-*"
+            tr("--mosca-x, --mosca-y and --mosca-z must be given together"), param_hint="--mosca-*"
         )
     try:
         default, rules = mosca.resolve((x, y, z), mapping)
@@ -241,8 +294,10 @@ def emit(result: ScanResult, fmt: ReportFormat, out: Path | None) -> None:
     try:
         out.write_text(text, encoding="utf-8")
     except OSError as exc:
-        raise typer.BadParameter(f"cannot write {out}: {exc}", param_hint="--out") from exc
-    typer.echo(f"Report written to {out}", err=True)
+        raise typer.BadParameter(
+            tr("cannot write {out}: {exc}").format(out=out, exc=exc), param_hint="--out"
+        ) from exc
+    typer.echo(tr("Report written to {out}").format(out=out), err=True)
 
 
 def exit_code(result: ScanResult, job_count: int, fail_on: RiskClass | None) -> ExitCode:
@@ -480,7 +535,7 @@ def scan_all(
         more_tls, more_ssh, more_paths = split_all_targets(_read_targets_file(targets_file))
         tls, ssh, local = tls + more_tls, ssh + more_ssh, local + more_paths
     if not (tls or ssh or local):
-        raise typer.BadParameter("no targets given (use --tls, --ssh, --path or --targets)")
+        raise typer.BadParameter(tr("no targets given (use --tls, --ssh, --path or --targets)"))
     config = ScanConfig(
         timeout=timeout,
         concurrency=concurrency,
@@ -500,7 +555,9 @@ def _load_result(path: Path) -> ScanResult:
     try:
         return ScanResult.model_validate_json(path.read_bytes())
     except OSError as exc:
-        raise typer.BadParameter(f"cannot read {path}: {exc}") from exc
+        raise typer.BadParameter(
+            tr("cannot read {path}: {exc}").format(path=path, exc=exc)
+        ) from exc
     except ValidationError as exc:
         message = f"{path} is not a pqc-scan JSON report ({exc.error_count()} errors)"
         raise typer.BadParameter(message) from exc
@@ -526,7 +583,7 @@ def diff_command(
 ) -> None:
     """Show findings that are new in HEAD compared with BASE (for pull requests)."""
     if fmt not in ("console", "json"):
-        raise typer.BadParameter("diff supports 'console' and 'json'", param_hint="--format")
+        raise typer.BadParameter(tr("diff supports 'console' and 'json'"), param_hint="--format")
     result = diff(_load_result(base), _load_result(head))
     if fmt == "json":
         text = result.model_dump_json(indent=2) + "\n"
@@ -542,7 +599,9 @@ def diff_command(
             try:
                 out.write_text(text, encoding="utf-8")
             except OSError as exc:
-                raise typer.BadParameter(f"cannot write {out}: {exc}", param_hint="--out") from exc
+                raise typer.BadParameter(
+                    tr("cannot write {out}: {exc}").format(out=out, exc=exc), param_hint="--out"
+                ) from exc
     worst = result.worst_new_risk()
     failed = fail_on is not None and worst is not None and worst.at_least(fail_on)
     raise typer.Exit(ExitCode.FAIL_ON if failed else ExitCode.OK)
@@ -562,4 +621,4 @@ def report(
     _check_format(fmt)
     result = _load_result(result_file)
     emit(result, fmt, out)
-    raise typer.Exit(exit_code(result, 0, fail_on))
+    raise typer.Exit(exit_code(result, result.job_count or 0, fail_on))

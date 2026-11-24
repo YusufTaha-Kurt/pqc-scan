@@ -253,6 +253,15 @@ class ScanConfig(_Model):
     mosca_rules: tuple[MoscaRule, ...] = ()
 
 
+class FileCoverage(_Model):
+    scanner: str
+    target: str
+    inspected: int = Field(default=0, ge=0)
+    oversized: list[str] = []
+    unreadable: list[str] = []
+    unparsed: list[str] = []
+
+
 class ScanResult(_Model):
     """Everything a run produced. The only input reporters receive."""
 
@@ -265,6 +274,8 @@ class ScanResult(_Model):
     assets: list[Asset] = []
     findings: list[Finding] = []
     errors: list[ScanError] = []
+    job_count: int | None = Field(default=None, ge=0)
+    file_coverage: list[FileCoverage] = []
 
     def summary(self) -> dict[RiskClass, int]:
         """Number of findings per risk class, including zero counts."""

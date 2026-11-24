@@ -354,3 +354,30 @@ def test_missing_report_extra_is_a_usage_error(monkeypatch: pytest.MonkeyPatch) 
     result = invoke("scan", "files", ".", "--format", "html")
     assert result.exit_code == ExitCode.USAGE
     assert "needs extra packages" in flat(result.output)
+
+
+def test_turkish_report_and_english_default(tmp_path: Path) -> None:
+    target = tmp_path / "source.py"
+    target.write_text("import hashlib; hashlib.md5()")
+    args = ("scan", "code", str(target))
+    result = invoke("--lang", "tr", *args)
+    assert result.exit_code == 0
+    assert "Dosya tarama kapsamı" in result.stdout and "En yüksek risk" in result.stdout
+    assert "Worst risk" in invoke(*args).stdout
+    html = invoke("--lang", "tr", *args, "--format", "html").stdout
+    assert 'lang="tr"' in html and "MD5 için pratikte çakışma üretilebilir" in html
+
+
+def test_turkish_help_and_missing_target() -> None:
+    assert "Taranacak dosya" in invoke("--lang", "tr", "scan", "code", "--help").stdout
+    result = invoke("--lang", "tr", "scan", "all")
+    assert result.exit_code == ExitCode.USAGE and "Hedef belirtilmedi" in result.output
+
+
+def test_saved_failed_scan_keeps_exit_code(tmp_path: Path) -> None:
+    report = tmp_path / "failed.json"
+    result = invoke(
+        "scan", "code", str(tmp_path / "missing"), "--format", "json", "-o", str(report)
+    )
+    assert result.exit_code == ExitCode.ALL_TARGETS_FAILED
+    assert invoke("report", str(report)).exit_code == ExitCode.ALL_TARGETS_FAILED
