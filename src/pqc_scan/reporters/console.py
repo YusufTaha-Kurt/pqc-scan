@@ -14,6 +14,7 @@ from rich.console import Console, Group, RenderableType
 from rich.table import Table
 from rich.text import Text
 
+from pqc_scan.i18n import language, tr
 from pqc_scan.models import Finding, RiskClass, ScanError, ScanResult
 from pqc_scan.reporters.common import Recommendation, describe_algorithm, recommendations
 
@@ -51,6 +52,12 @@ def _header(result: ScanResult) -> Text:
     assets = len(result.assets)
     text = Text()
     text.append(f"pqc-scan {result.tool_version}", style="bold")
+    if language.get() == "tr":
+        text.append(
+            f" · tarayıcılar: {', '.join(result.scanners) or '-'}"
+            f" · {assets} varlıkta {findings} bulgu · {seconds:.1f} sn"
+        )
+        return text
     text.append(f" · scanners: {', '.join(result.scanners) or '-'}")
     text.append(f" · {findings} finding{'s' if findings != 1 else ''}")
     text.append(f" on {assets} asset{'s' if assets != 1 else ''}")
@@ -59,25 +66,25 @@ def _header(result: ScanResult) -> Text:
 
 
 def _summary(result: ScanResult) -> Table:
-    table = Table(title="Summary", title_justify="left", show_edge=False)
-    table.add_column("Risk")
-    table.add_column("Findings", justify="right")
-    table.add_column("Meaning")
+    table = Table(title=tr("Summary"), title_justify="left", show_edge=False)
+    table.add_column(tr("Risk"))
+    table.add_column(tr("Findings"), justify="right")
+    table.add_column(tr("Meaning"))
     for risk, count in result.summary().items():
-        table.add_row(risk_text(risk), str(count), RISK_MEANINGS[risk])
+        table.add_row(risk_text(risk), str(count), tr(RISK_MEANINGS[risk]))
     return table
 
 
 def findings_table(findings: list[Finding]) -> Table:
     with_mosca = any(f.mosca is not None for f in findings)
-    table = Table(title="Findings", title_justify="left", show_edge=False)
-    table.add_column("Risk", no_wrap=True)
-    table.add_column("Location", overflow="fold", ratio=2)
-    table.add_column("Usage", no_wrap=True)
-    table.add_column("Algorithm", overflow="fold", ratio=1)
+    table = Table(title=tr("Findings"), title_justify="left", show_edge=False)
+    table.add_column(tr("Risk"), no_wrap=True)
+    table.add_column(tr("Location"), overflow="fold", ratio=2)
+    table.add_column(tr("Usage"), no_wrap=True)
+    table.add_column(tr("Algorithm"), overflow="fold", ratio=1)
     if with_mosca:
-        table.add_column("Mosca", no_wrap=True)
-    table.add_column("Reason", ratio=3)
+        table.add_column(tr("Mosca"), no_wrap=True)
+    table.add_column(tr("Reason"), ratio=3)
     for finding in findings:
         row: list[RenderableType] = [
             risk_text(finding.risk),
@@ -91,34 +98,36 @@ def findings_table(findings: list[Finding]) -> Table:
                 row.append(Text("-"))
             else:
                 label = "at risk" if mosca.at_risk else "ok"
-                row.append(Text(f"{label} ({mosca.margin:+.1f}y)"))
-        row.append(Text(finding.reason))
+                row.append(Text(f"{tr(label)} ({mosca.margin:+.1f}y)"))
+        row.append(Text(tr(finding.reason)))
         table.add_row(*row)
     return table
 
 
 def _recommendations(items: list[Recommendation]) -> Table:
-    table = Table(title="Recommendations", title_justify="left", show_edge=False)
-    table.add_column("Risk", no_wrap=True)
-    table.add_column("What to do", ratio=3)
-    table.add_column("Applies to", ratio=2, overflow="fold")
+    table = Table(title=tr("Recommendations"), title_justify="left", show_edge=False)
+    table.add_column(tr("Risk"), no_wrap=True)
+    table.add_column(tr("What to do"), ratio=3)
+    table.add_column(tr("Applies to"), ratio=2, overflow="fold")
     for item in items:
         applies = (
             f"{', '.join(item.algorithms)} ({item.count} finding{'s' if item.count != 1 else ''})"
         )
-        table.add_row(risk_text(item.risk), Text(item.text), Text(applies))
+        if language.get() == "tr":
+            applies = f"{', '.join(item.algorithms)} ({item.count} bulgu)"
+        table.add_row(risk_text(item.risk), Text(tr(item.text)), Text(applies))
     return table
 
 
 def _errors(errors: list[ScanError]) -> Table:
-    table = Table(title="Errors", title_justify="left", show_edge=False, title_style="bold red")
-    table.add_column("Scanner")
-    table.add_column("Target", overflow="fold")
-    table.add_column("Kind")
-    table.add_column("Message")
+    table = Table(title=tr("Errors"), title_justify="left", show_edge=False, title_style="bold red")
+    table.add_column(tr("Scanner"))
+    table.add_column(tr("Target"), overflow="fold")
+    table.add_column(tr("Kind"))
+    table.add_column(tr("Message"))
     for error in errors:
         table.add_row(
-            Text(error.scanner), Text(error.target), Text(error.kind.value), Text(error.message)
+            Text(error.scanner), Text(error.target), Text(error.kind.value), Text(tr(error.message))
         )
     return table
 
@@ -128,10 +137,10 @@ def _verdict(result: ScanResult) -> Text:
     if worst is None:
         if result.errors:
             return Text(
-                "No cryptography found; some targets failed. See errors above.", style="bold"
+                tr("No cryptography found; some targets failed. See errors above."), style="bold"
             )
-        return Text("No cryptography found.", style="bold")
-    text = Text("Worst risk: ", style="bold")
+        return Text(tr("No cryptography found."), style="bold")
+    text = Text(tr("Worst risk: "), style="bold")
     text.append_text(risk_text(worst))
     return text
 
@@ -139,6 +148,20 @@ def _verdict(result: ScanResult) -> Text:
 def build(result: ScanResult) -> RenderableType:
     """The full report as a single renderable."""
     parts: list[RenderableType] = [_header(result), Text(), _summary(result), Text()]
+    if result.file_coverage:
+        coverage = Table(title=tr("File coverage"), title_justify="left")
+        for column in ("Scanner", "Target", "Inspected", "Oversized", "Unreadable", "Unparsed"):
+            coverage.add_column(tr(column))
+        for job in result.file_coverage:
+            coverage.add_row(
+                Text(job.scanner),
+                Text(job.target),
+                str(job.inspected),
+                str(len(job.oversized)),
+                str(len(job.unreadable)),
+                str(len(job.unparsed)),
+            )
+        parts += [coverage, Text()]
     if result.findings:
         parts += [findings_table(result.findings), Text()]
     advice = recommendations(result)

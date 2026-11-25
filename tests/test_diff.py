@@ -98,3 +98,18 @@ def test_kind_does_not_matter_for_matching() -> None:
         update={"asset": Asset(id="x", kind=AssetKind.SOURCE_FILE, location=f.asset.location)}
     )
     assert diff(base, base.model_copy(update={"findings": [other, *base.findings[1:]]})).new == []
+
+
+def test_failed_tls_endpoint_is_unverified() -> None:
+    from pqc_scan.models import ErrorKind, ScanError
+
+    base = sample_result()
+    item = base.findings[0]
+    a = item.asset.model_copy(update={"location": "example.test:443"})
+    finding = item.model_copy(update={"asset": a, "scanner": "tls"})
+    base = base.model_copy(update={"findings": [finding]})
+    error = ScanError(
+        scanner="tls", target="https://example.test", kind=ErrorKind.TIMEOUT, message="timed out"
+    )
+    result = diff(base, base.model_copy(update={"findings": [], "errors": [error]}))
+    assert result.unverified == [finding] and not result.resolved

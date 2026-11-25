@@ -1,5 +1,7 @@
 # pqc-scan
 
+[🇹🇷 Türkçe](README.tr.md) · [English](README.md)
+
 **Find quantum-vulnerable cryptography in your endpoints, key files and source
 code, and plan your post-quantum migration.**
 
@@ -50,13 +52,13 @@ All classification lives in one data file,
 
 ## Installation
 
+From the repository root, using Python 3.11 or later:
+
 ```bash
-pip install "pqc-readiness-scanner[report]"
+python -m pip install ".[report]"
 ```
 
-Before the first PyPI release, install from GitHub instead:
-`pip install "pqc-readiness-scanner[report] @ git+https://github.com/YusufTaha-Kurt/pqc-scan"`.
-The package is called `pqc-readiness-scanner` on PyPI; the command is `pqc-scan`. Python 3.11+.
+The first PyPI release of `pqc-readiness-scanner` is pending. The command is `pqc-scan`.
 The `[report]` extra adds the HTML and CBOM formats.
 
 Or with Docker:

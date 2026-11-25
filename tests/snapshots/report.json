@@ -199,5 +199,7 @@
       "kind": "invalid_target",
       "message": "path does not exist"
     }
-  ]
+  ],
+  "job_count": 2,
+  "file_coverage": []
 }

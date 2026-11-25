@@ -322,3 +322,29 @@ def test_non_source_files_are_ignored(tmp_path: Path) -> None:
     (tmp_path / "notes.txt").write_text('MessageDigest.getInstance("MD5")')
     (tmp_path / "big.py").write_text("import hashlib\nhashlib.md5()\n" + "#" * 2000)
     assert CodeScanner().scan(str(tmp_path), ScanConfig(max_file_size=100)) == []
+
+
+def test_import_aliases_are_local_to_their_function() -> None:
+    source = (
+        "def a():\n    from hashlib import md5 as digest\n    return digest()\n"
+        "def b():\n    from hashlib import sha1 as digest\n    return digest()"
+    )
+    assert [hit[2].raw_name for hit in python_hits(source, RULES)] == ["MD5", "SHA1"]
+
+
+def test_relative_exclude_and_coverage(tmp_path: Path) -> None:
+    fixtures = tmp_path / "tests" / "fixtures"
+    fixtures.mkdir(parents=True)
+    (fixtures / "bad.py").write_text("import hashlib; hashlib.md5()")
+    (tmp_path / "broken.py").write_text("def :")
+    (tmp_path / "big.py").write_text(" " * 64)
+    (tmp_path / "good.py").write_text("pass")
+    config = ScanConfig(exclude=("tests/fixtures",), max_file_size=32)
+    result = run_scan([ScanJob(CodeScanner(), str(tmp_path))], config)
+    assert not result.findings and not result.errors
+    (coverage,) = result.file_coverage
+    assert (coverage.inspected, coverage.oversized, coverage.unparsed) == (
+        1,
+        ["big.py"],
+        ["broken.py"],
+    )

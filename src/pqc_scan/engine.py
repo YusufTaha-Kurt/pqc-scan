@@ -13,6 +13,7 @@ from pqc_scan.classify import Classifier, default_classifier
 from pqc_scan.models import (
     Asset,
     ErrorKind,
+    FileCoverage,
     Finding,
     Observation,
     ScanConfig,
@@ -58,9 +59,11 @@ def _error_for(job: ScanJob, exc: Exception) -> ScanError:
     return ScanError(target=job.target, scanner=job.scanner.name, kind=kind, message=message)
 
 
-def _run_job(job: ScanJob, config: ScanConfig) -> list[Observation] | ScanError:
+def _run_job(
+    job: ScanJob, config: ScanConfig
+) -> tuple[list[Observation], FileCoverage | None] | ScanError:
     try:
-        return job.scanner.scan(job.target, config)
+        return job.scanner.scan_with_coverage(job.target, config)
     except Exception as exc:  # one target must never abort the run
         return _error_for(job, exc)
 
@@ -102,11 +105,15 @@ def run_scan(
     findings: dict[str, Finding] = {}
     assets: dict[str, Asset] = {}
     errors: list[ScanError] = []
+    coverage = []
     for outcome in outcomes:
         if isinstance(outcome, ScanError):
             errors.append(outcome)
             continue
-        for observation in outcome:
+        observations, audit = outcome
+        if audit is not None:
+            coverage.append(audit)
+        for observation in observations:
             finding = _classify(observation, classifier, config)
             findings.setdefault(finding.id, finding)
             assets.setdefault(observation.asset.id, observation.asset)
@@ -119,5 +126,7 @@ def run_scan(
         config=config,
         assets=sorted(assets.values(), key=lambda a: a.id),
         findings=sorted(findings.values(), key=_sort_key),
+        job_count=len(jobs),
+        file_coverage=coverage,
         errors=sorted(errors, key=lambda e: (e.scanner, e.target)),
     )

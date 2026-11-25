@@ -142,6 +142,55 @@
       "title": "Evidence",
       "type": "object"
     },
+    "FileCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "inspected": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Inspected",
+          "type": "integer"
+        },
+        "oversized": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Oversized",
+          "type": "array"
+        },
+        "scanner": {
+          "title": "Scanner",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "unparsed": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Unparsed",
+          "type": "array"
+        },
+        "unreadable": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Unreadable",
+          "type": "array"
+        }
+      },
+      "required": [
+        "scanner",
+        "target"
+      ],
+      "title": "FileCoverage",
+      "type": "object"
+    },
     "Finding": {
       "additionalProperties": false,
       "description": "A classified observation.",
@@ -499,6 +548,14 @@
       "title": "Errors",
       "type": "array"
     },
+    "file_coverage": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FileCoverage"
+      },
+      "title": "File Coverage",
+      "type": "array"
+    },
     "findings": {
       "default": [],
       "items": {
@@ -511,6 +568,19 @@
       "format": "date-time",
       "title": "Finished At",
       "type": "string"
+    },
+    "job_count": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Job Count"
     },
     "scanners": {
       "items": {

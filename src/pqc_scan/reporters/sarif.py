@@ -16,6 +16,7 @@ from typing import Any, Final
 from urllib.parse import unquote, urlparse
 
 from pqc_scan import __version__
+from pqc_scan.i18n import tr
 from pqc_scan.models import Finding, RiskClass, ScanResult
 from pqc_scan.reporters.common import describe_algorithm
 
@@ -78,12 +79,12 @@ def build(result: ScanResult, base: Path | None = None) -> dict[str, Any]:
     for finding in findings:
         rule_id = _rule_id(finding)
         if rule_id not in rules:
-            text = finding.recommendation or "Review this algorithm."
+            text = tr(finding.recommendation or "Review this algorithm.")
             rules[rule_id] = {
                 "id": rule_id,
                 "name": finding.algorithm_id or finding.algorithm.raw_name,
                 "shortDescription": {"text": f"{finding.risk.value}: {finding.algorithm.raw_name}"},
-                "fullDescription": {"text": finding.reason},
+                "fullDescription": {"text": tr(finding.reason)},
                 "help": {"text": text, "markdown": text},
                 "defaultConfiguration": {"level": _LEVELS[finding.risk]},
                 "properties": {
@@ -93,7 +94,7 @@ def build(result: ScanResult, base: Path | None = None) -> dict[str, Any]:
             }
         message = (
             f"{describe_algorithm(finding.algorithm)} ({finding.usage}) is {finding.risk.value}: "
-            f"{finding.reason}"
+            f"{tr(finding.reason)}"
         )
         uri = _artifact_uri(finding, base)
         if uri is not None:

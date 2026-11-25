@@ -6,6 +6,9 @@ branding:
   color: purple
 
 inputs:
+  language:
+    description: Report language / Rapor dili (en, tr).
+    default: en
   path:
     description: Directory (relative to the repository) scanned for key files and source code. Empty to skip.
     default: "."
@@ -70,6 +73,7 @@ runs:
       run: '"$ACTION_PATH/scripts/github-action.sh"'
       env:
         ACTION_PATH: ${{ github.action_path }}
+        PQC_SCAN_LANG: ${{ inputs.language }}
         PQC_PATH: ${{ inputs.path }}
         PQC_TLS: ${{ inputs.tls }}
         PQC_SSH: ${{ inputs.ssh }}

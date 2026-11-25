@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="pqc-scan {{ result.tool_version }}">
-<title>pqc-scan report</title>
+<title>{{ tr('pqc-scan report') }}</title>
 <style>
   :root {
     --bg: #ffffff; --fg: #1d2129; --muted: #5b6270; --line: #e3e6ea; --card: #f6f7f9;
@@ -51,36 +51,43 @@
 </head>
 <body>
 <main>
-  <h1>pqc-scan report</h1>
+  <h1>{{ tr('pqc-scan report') }}</h1>
   <div class="meta">
-    pqc-scan {{ result.tool_version }} · scanners: {{ result.scanners | join(", ") or "-" }} ·
-    {{ result.findings | length }} findings on {{ result.assets | length }} assets ·
+    pqc-scan {{ result.tool_version }} · {{ 'tarayıcılar' if lang == 'tr' else 'scanners' }}: {{ result.scanners | join(", ") or "-" }} ·
+    {% if lang == 'tr' %}{{ result.assets | length }} varlıkta {{ result.findings | length }} bulgu{% else %}{{ result.findings | length }} findings on {{ result.assets | length }} assets{% endif %} ·
     {{ result.started_at.strftime("%Y-%m-%d %H:%M:%S UTC") }} ({{ "%.1f" | format(duration) }}s)
   </div>
   <div class="verdict">
-    {% if worst %}Worst risk: <span class="risk r-{{ worst.value | lower }}">{{ worst.value }}</span>
-    {% else %}No cryptography found.{% endif %}
+    {% if worst %}{{ tr('Worst risk: ') }}<span class="risk r-{{ worst.value | lower }}">{{ worst.value }}</span>
+    {% else %}{{ tr('No cryptography found; some targets failed. See errors above.' if result.errors else 'No cryptography found.') }}{% endif %}
   </div>
 
+  {% if result.file_coverage %}
+  <h2>{{ tr("File coverage") }}</h2>
+  <div class="table-wrap"><table><thead><tr>
+  {% for label in ["Scanner", "Target", "Inspected", "Oversized", "Unreadable", "Unparsed"] %}<th>{{ tr(label) }}</th>{% endfor %}
+  </tr></thead><tbody>
+  {% for c in result.file_coverage %}<tr><td>{{ c.scanner }}</td><td>{{ c.target }}</td><td>{{ c.inspected }}</td><td>{{ c.oversized|length }}</td><td>{{ c.unreadable|length }}</td><td>{{ c.unparsed|length }}</td></tr>{% endfor %}
+  </tbody></table></div>{% endif %}
   <div class="cards">
     {% for risk, count in summary.items() %}
     <div class="card">
       <div class="label r-{{ risk.value | lower }}">{{ risk.value }}</div>
       <div class="count">{{ count }}</div>
-      <div class="hint">{{ meanings[risk] }}</div>
+      <div class="hint">{{ tr(meanings[risk]) }}</div>
     </div>
     {% endfor %}
   </div>
 
   {% if advice %}
-  <h2>Recommendations</h2>
+  <h2>{{ tr('Recommendations') }}</h2>
   <div class="table-wrap"><table>
-    <thead><tr><th>Risk</th><th>What to do</th><th>Applies to</th></tr></thead>
+    <thead><tr><th>Risk</th><th>{{ tr('What to do') }}</th><th>{{ tr('Applies to') }}</th></tr></thead>
     <tbody>
     {% for item in advice %}
       <tr>
         <td><span class="risk r-{{ item.risk.value | lower }}">{{ item.risk.value }}</span></td>
-        <td>{{ item.text }}</td>
+        <td>{{ tr(item.text) }}</td>
         <td>{{ item.algorithms | join(", ") }} ({{ item.count }})</td>
       </tr>
     {% endfor %}
@@ -89,17 +96,17 @@
   {% endif %}
 
   {% if result.findings %}
-  <h2>Findings</h2>
-  <div class="filters" role="group" aria-label="Filter findings">
+  <h2>{{ tr('Findings') }}</h2>
+  <div class="filters" role="group" aria-label="{{ tr('Filter findings') }}">
     {% for risk, count in summary.items() if count %}
     <button type="button" data-risk="{{ risk.value }}" aria-pressed="true">
       <span class="r-{{ risk.value | lower }}">{{ risk.value }}</span> {{ count }}</button>
     {% endfor %}
-    <input type="search" id="q" placeholder="Search location, algorithm, usage…" aria-label="Search findings">
+    <input type="search" id="q" placeholder="{{ tr('Search location, algorithm, usage…') }}" aria-label="{{ tr('Search findings') }}">
   </div>
   <div class="table-wrap"><table id="findings">
-    <thead><tr><th>Risk</th><th>Location</th><th>Usage</th><th>Algorithm</th>
-      {% if with_mosca %}<th>Mosca</th>{% endif %}<th>Reason</th></tr></thead>
+    <thead><tr><th>Risk</th><th>{{ tr('Location') }}</th><th>{{ tr('Usage') }}</th><th>{{ tr('Algorithm') }}</th>
+      {% if with_mosca %}<th>Mosca</th>{% endif %}<th>{{ tr('Reason') }}</th></tr></thead>
     <tbody>
     {% for f in result.findings %}
       <tr data-risk="{{ f.risk.value }}">
@@ -108,8 +115,8 @@
           {% if f.evidence.detail %}<div class="note">{{ f.evidence.detail }}</div>{% endif %}</td>
         <td class="usage">{{ f.usage }}</td>
         <td>{{ describe(f.algorithm) }}</td>
-        {% if with_mosca %}<td>{% if f.mosca %}{{ "at risk" if f.mosca.at_risk else "ok" }} ({{ "%+.1f" | format(f.mosca.margin) }}y){% else %}-{% endif %}</td>{% endif %}
-        <td>{{ f.reason }}</td>
+        {% if with_mosca %}<td>{% if f.mosca %}{{ tr("at risk" if f.mosca.at_risk else "ok") }} ({{ "%+.1f" | format(f.mosca.margin) }}y){% else %}-{% endif %}</td>{% endif %}
+        <td>{{ tr(f.reason) }}</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -117,20 +124,21 @@
   {% endif %}
 
   {% if result.errors %}
-  <h2>Errors</h2>
+  <h2>{{ tr('Errors') }}</h2>
   <div class="table-wrap"><table>
-    <thead><tr><th>Scanner</th><th>Target</th><th>Kind</th><th>Message</th></tr></thead>
+    <thead><tr><th>{{ tr('Scanner') }}</th><th>{{ tr('Target') }}</th><th>{{ tr('Kind') }}</th><th>{{ tr('Message') }}</th></tr></thead>
     <tbody>
     {% for e in result.errors %}
-      <tr><td>{{ e.scanner }}</td><td class="loc">{{ e.target }}</td><td>{{ e.kind.value }}</td><td>{{ e.message }}</td></tr>
+      <tr><td>{{ e.scanner }}</td><td class="loc">{{ e.target }}</td><td>{{ e.kind.value }}</td><td>{{ tr(e.message) }}</td></tr>
     {% endfor %}
     </tbody>
   </table></div>
   {% endif %}
 
   <footer>
+    {% if lang == 'tr' %}pqc-scan ile oluşturuldu. Yalnızca size ait veya test etmek için yazılı izin aldığınız sistemleri tarayın. Bu raporda özel anahtar içerikleri ve kaynak kod satırları yer almaz.{% else %}
     Generated by pqc-scan. Only scan systems you own or have written permission to test.
-    Private key contents and source lines are never included in this report.
+    Private key contents and source lines are never included in this report.{% endif %}
   </footer>
 </main>
 <script>

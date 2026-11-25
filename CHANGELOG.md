@@ -4,10 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+- Preserve failed scan status in CI while retaining the report artifacts.
+- Distinguish findings that could not be verified from resolved findings.
+- Record local file coverage, honor relative exclude paths and isolate Python import aliases by scope.
+- Support endpoint-only Action runs and Turkish CLI, report and Action output.
+
 ## [0.3.0] — 2026-11-06
 
-First public release, published on PyPI as `pqc-readiness-scanner` (the
-command is `pqc-scan`). It covers the whole v0.1–v0.3 roadmap.
+Initial version prepared for publication as `pqc-readiness-scanner`. The first PyPI release is pending.
 
 ### Scanners
 - `files`: PEM (multi-block), DER, CSRs, public/private keys, OpenSSH public

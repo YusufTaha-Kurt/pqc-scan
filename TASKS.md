@@ -15,7 +15,9 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-13
+**Son güncelleme:** 2026-11-24
+
+**PyPI doğrulaması (2026-11-24):** `pqc-readiness-scanner` için PyPI JSON uç noktası 404 döndürdü. GitHub API, bu depoda ortam veya `release.yml` çalıştırması listelemedi. İlk yayın tamamlanmamış. PyPI hesabındaki bekleyen Trusted Publisher kaydı ayrıca hesap sahibi tarafından kontrol edilmeli.
 
 **Güvenilirlik doğrulaması:** Windows/Python 3.12'de 345 test geçti (8'i
 platform veya sunucu gereksinimi nedeniyle atlandı); Linux/Python 3.12'de

@@ -10,6 +10,7 @@ from importlib import resources
 
 import jinja2
 
+from pqc_scan.i18n import language, tr
 from pqc_scan.models import RiskClass, ScanResult
 from pqc_scan.reporters.common import describe_algorithm, recommendations
 from pqc_scan.reporters.console import RISK_MEANINGS
@@ -23,6 +24,8 @@ def render(result: ScanResult) -> str:
     template = environment.from_string(template_text)
     return template.render(
         result=result,
+        lang=language.get(),
+        tr=tr,
         risks=list(RiskClass),
         summary=result.summary(),
         meanings=RISK_MEANINGS,
