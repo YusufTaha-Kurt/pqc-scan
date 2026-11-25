@@ -52,13 +52,13 @@ All classification lives in one data file,
 
 ## Installation
 
-From the repository root, using Python 3.11 or later:
+Install from PyPI with Python 3.11 or later.
 
 ```bash
-python -m pip install ".[report]"
+python -m pip install "pqc-readiness-scanner[report]"
 ```
 
-The first PyPI release of `pqc-readiness-scanner` is pending. The command is `pqc-scan`.
+The command is `pqc-scan`. [PyPI project](https://pypi.org/project/pqc-readiness-scanner/)
 The `[report]` extra adds the HTML and CBOM formats.
 
 Or with Docker:

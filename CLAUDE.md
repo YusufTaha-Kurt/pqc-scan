@@ -179,7 +179,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] HTML rapor ve CycloneDX CBOM çıktısı
 - [x] Mosca öncelik skoru
 - [x] JavaScript/TypeScript ve Go kod kuralları
-- [~] PyPI yayını (iş akışı hazır; ilk yayın için PyPI/GitHub kurulumu kullanıcıda)
+- [x] PyPI yayını tamamlandı. İlk sürüm `pqc-readiness-scanner==0.3.0`.
 
 **v0.3 ve sonrası**
 - [x] GitHub Action olarak kullanım (PR'larda kripto değişikliği uyarısı)

@@ -16,13 +16,13 @@ algoritma, ne kadar riskli ve ne yapmalı.
 
 ## 2. Kurulum (bir kere)
 
-Python 3.11 veya üzeriyle depo kökünde çalıştır:
+Python 3.11 veya üzeriyle PyPI’dan kur.
 
 ```bash
-python -m pip install ".[report]"
+python -m pip install "pqc-readiness-scanner[report]"
 ```
 
-İlk PyPI yayını beklemede. Terminal komutu `pqc-scan`, dağıtım adı `pqc-readiness-scanner`.
+Terminal komutu `pqc-scan`, dağıtım adı `pqc-readiness-scanner`.
 Türkçe yardım için `pqc-scan --lang tr scan --help` kullan. Sürümü kontrol et:
 
 ```bash

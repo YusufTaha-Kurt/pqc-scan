@@ -6,10 +6,10 @@ Kaynak kodda, anahtar ve sertifika dosyalarında, TLS ve SSH uç noktalarında k
 
 ## Kurulum ve ilk tarama
 
-Python 3.11 veya üzeriyle depo kökünde çalıştırın.
+Python 3.11 veya üzeriyle PyPI’dan kurup taramak istediğiniz dizinde çalıştırın.
 
 ```sh
-python -m pip install ".[report]"
+python -m pip install "pqc-readiness-scanner[report]"
 pqc-scan --lang tr scan code . --exclude tests/fixtures
 pqc-scan --lang tr scan all --path . --format html --out rapor.html
 ```

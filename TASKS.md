@@ -15,22 +15,13 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-24
+**Son güncelleme:** 2026-11-25
 
-**PyPI doğrulaması (2026-11-24):** `pqc-readiness-scanner` için PyPI JSON uç noktası 404 döndürdü. GitHub API, bu depoda ortam veya `release.yml` çalıştırması listelemedi. İlk yayın tamamlanmamış. PyPI hesabındaki bekleyen Trusted Publisher kaydı ayrıca hesap sahibi tarafından kontrol edilmeli.
+**Yayın tamamlandı.** `pqc-readiness-scanner==0.3.0` PyPI’a yüklendi. Temiz bir Windows sanal ortamında kurulum, bağımlılıklar ve örnek bir MD5 bulgusu içeren Türkçe HTML raporu doğrulandı. [PyPI sürümü](https://pypi.org/project/pqc-readiness-scanner/0.3.0/) · [Yayın iş akışı](https://github.com/YusufTaha-Kurt/pqc-scan/actions/runs/45557545471)
 
-**Güvenilirlik doğrulaması:** Windows/Python 3.12'de 345 test geçti (8'i
-platform veya sunucu gereksinimi nedeniyle atlandı); Linux/Python 3.12'de
-gerçek yerel OpenSSL 3.5 ve OpenSSH sunucuları dahil 353 test geçti.
-Linux/Python 3.11 ve 3.13'te 351 test geçti; iki gerçek sunucu testi bu
-iki sürümde çalıştırılmadı (3.12'de doğrulandı).
-Docker imajı oluşturuldu ve örnek kod taramasıyla doğrulandı. Windows test
-matrisi CI'a eklendi; GitHub Actions üzerinde bu değişikliğin sonucu henüz
-doğrulanmadı. Hatalı hedeflerde boş raporun yanıltıcı özeti düzeltildi;
-Bash betiklerinin Windows checkout'unda LF satır sonu kullanması sağlandı.
+**Güvenilirlik doğrulaması.** Linux’ta 362 test geçti. Windows’ta 351 test geçti, ortama bağlı 11 test atlandı. GitHub’daki 10 kontrolün tamamı başarılı oldu. [CI sonuçları](https://github.com/YusufTaha-Kurt/pqc-scan/actions/runs/45505372164)
 
-**Yol haritasının tamamı (v0.1–v0.3) ve ek fikirlerin hepsi bitti.** Sürüm
-0.3.0. 349 test (+2 gerçek sunucu testi CI'da), kapsama %97. Komutlar:
+**v0.1–v0.3 yol haritası tamamlandı.** Komutlar:
 `scan files|code|tls|ssh|all`, `report`, `diff`; biçimler
 `console|json|html|cbom|sarif`. Kod tarayıcısı Python, Java/Kotlin, JS/TS,
 Go, C# ve Rust'ı destekliyor. Tüm yoruma açık sınıflandırmalar onaylandı
@@ -42,16 +33,10 @@ OpenSSH 10 sunucularıyla CI testi (TLS tarafı yerelde de doğrulandı:
 X25519MLKEM768 ilk tercih olarak bulundu); C# ve Rust kuralları; CBOM'da
 sertifika sahibi/düzenleyeni/geçerlilik tarihleri.
 
-**Yalnızca proje sahibinin yapabileceği tek adım:** PyPI'de ilk yayın —
-PyPI hesabında `pqc-readiness-scanner` için trusted publisher ve GitHub'da
-`pypi` ortamı kurulumu, sonra
-`git tag v0.3.0 && git push origin v0.3.0` (`docs/kullanim-kilavuzu.md` §11).
-
 ### Bilinen notlar
 
 - Geliştirme Python 3.11 venv ile yapıldı; testler 3.13'te de geçiyor.
-- CI (`.github/workflows/ci.yml`) yalnızca `master`'a push ve PR'larda çalışır;
-  GitHub'da henüz hiç çalıştırılmadı.
+- CI (`.github/workflows/ci.yml`) yalnızca `master`'a push ve PR'larda çalışır.
 - `cryptography` 50: DH/DSA sınıflarına erişim kullanımdan kaldırma uyarısı
   veriyor; `files.py` anahtar tiplerini içe aktarma anında uyarıyı bastırarak
   ve `getattr` ile yüklüyor (ileride kaldırılırlarsa da çalışır). OpenSSL artık
@@ -70,17 +55,9 @@ PyPI hesabında `pqc-readiness-scanner` için trusted publisher ve GitHub'da
   ortamdaki OpenSSL 3.0 ML-KEM bilmediği için hibrit grup yolu sahte
   sunucuyla test edilir; OpenSSL ≥ 3.5 olan bir makinede gerçek sunucuyla
   da denenebilir.
-- `algorithms.yaml`'a TLS için eklenen ve doğrulanması gerekenler:
-  IDEA → BROKEN, SEED → WEAKENED, Camellia-128 / ARIA-128 → WEAKENED,
-  Camellia-256 / ARIA-256 → PQ_SAFE (hepsi `# TODO: doğrula`). Kesin
-  olanlar: export şifreleri ve `anon` kimlik doğrulama → BROKEN.
 - Düzeltilen hata: Mosca skorlu JSON raporu geri okunamıyordu
   (`margin`/`at_risk` hesaplanan alanları reddediliyordu).
-- `algorithms.yaml` içindeki `# TODO: doğrula` notları kullanıcıya bildirildi,
-  cevap bekleniyor: TLS 1.2 → VULNERABLE, TLS 1.3 → PQ_SAFE, SHA-256 → PQ_SAFE,
-  AES-192 / SHA3-224 / HMAC-SHA1 → WEAKENED, Blowfish → BROKEN,
-  diffie-hellman-group14-sha1 → VULNERABLE, FN-DSA → PQ_SAFE,
-  X25519Kyber768Draft00 → HYBRID.
+- Sınıflandırma kararları D-13 kapsamında 2026-11-06 tarihinde onaylandı.
 
 ### Oturum günlüğü
 
@@ -307,9 +284,7 @@ D-12 ile Semgrep yerine yerleşik motorlar kullanıldı.
   `node-forge`, JWT)
 - [x] **T-206** Go kuralları (`crypto/rsa`, `crypto/ecdsa`, `crypto/ecdh`,
   `crypto/mlkem`, `crypto/tls` yapılandırması)
-- [~] **T-207** PyPI yayını: `release.yml` hazır (trusted publishing); ilk
-  yayın için PyPI ve GitHub ortam kurulumu kullanıcıda (bkz.
-  `docs/kullanim-kilavuzu.md` §11)
+- [x] **T-207** PyPI yayını ve yayımlanan paketin kurulum doğrulaması tamamlandı.
 
 ## Faz 3 — v0.3 ve sonrası
 
