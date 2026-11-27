@@ -23,4 +23,5 @@ htmlcov/
 
 # Scan outputs
 /report.*
+/rapor.*
 /cbom.json
