@@ -167,6 +167,23 @@ pqc-scan diff eski.json yeni.json
 | 2 | Komut yanlış yazıldı |
 | 3 | Hiçbir hedef taranamadı (ör. sunucuya ulaşılamadı) |
 
+### Başka bir Python programının içinden kullanmak
+
+pqc-scan yalnızca komut satırı değil, bir kütüphane olarak da kullanılabilir
+(ör. ytk-scan bunu yapıyor). Kısa örnek:
+
+```python
+import pqc_scan
+
+sonuc = pqc_scan.scan(paths=["./proje"], tls=["ornek.com:443"])
+html = pqc_scan.render_report(sonuc, "html", lang="tr")
+if pqc_scan.exceeds(sonuc, "VULNERABLE"):
+    print("Kuantuma karşı savunmasız kriptografi var")
+```
+
+Taranamayan hedefler hata fırlatmaz, `sonuc.errors` listesine yazılır.
+Ayrıntılar README'deki "Python API" bölümünde.
+
 ## 10. Sık karşılaşılan durumlar
 
 - **"connection_refused" / "timeout":** Sunucuya ulaşılamadı. Adresi ve

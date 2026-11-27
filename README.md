@@ -150,6 +150,35 @@ The action writes a job summary, uploads the report as an artifact
 repository's *Security → Code scanning* tab; the workflow needs
 `permissions: security-events: write`).
 
+## Python API
+
+pqc-scan can be embedded in other tools. The names exported from `pqc_scan`
+are the stable API; everything else is internal.
+
+```python
+import pqc_scan
+
+result = pqc_scan.scan(
+    paths=["./my-repo"],  # key/certificate files + source code
+    tls=["example.com:443"],  # TLS endpoints you are allowed to scan
+    ssh=["git.example.com:22"],
+    config=pqc_scan.ScanConfig(timeout=5, concurrency=10),
+    on_progress=lambda done, total, job, error: print(f"{done}/{total}"),
+)
+for finding in result.findings:  # worst first
+    print(finding.risk, finding.algorithm.raw_name, finding.asset.location)
+
+html = pqc_scan.render_report(result, "html", lang="tr")  # needs [report]
+pqc_scan.write_report(result, "report.sarif", "sarif")
+if pqc_scan.exceeds(result, "VULNERABLE"):  # like --fail-on
+    ...
+```
+
+A target that cannot be scanned ends up in `result.errors` instead of raising.
+`render_report(..., lang=...)` and `localize(text, lang)` take the language per
+call, so they are safe to use from worker threads. The progress callback runs
+on a worker thread.
+
 ## Documentation
 
 - [Migration guide](docs/migration-guide.md) — what to change, with nginx, Apache, OpenSSH and Go examples

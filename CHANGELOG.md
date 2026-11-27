@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — unreleased
+
+### Added
+- Stable Python API for embedding pqc-scan in other tools: `pqc_scan.scan()`,
+  `parse_targets()`, `build_jobs()`, `render_report(..., lang=)`,
+  `write_report()`, `localize()`, `exceeds()` and `all_failed()`, with the
+  result models re-exported from `pqc_scan` (`pqc_scan.api`).
+- Progress callback for scans (`on_progress` / `run_scan(on_job_done=...)`).
+
+### Fixed
+- The report language can now be chosen per call; it no longer depends on a
+  context variable that is lost on worker threads.
+
+### Changed
+- The CLI uses the same target parsing and job building as the API.
+
 ## [0.3.0] — 2026-11-25
 
 First PyPI release. [Version 0.3.0](https://pypi.org/project/pqc-readiness-scanner/0.3.0/)

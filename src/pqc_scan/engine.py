@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import socket
+import threading
 from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -31,6 +33,11 @@ class ScanJob:
 
     scanner: Scanner
     target: str
+
+
+#: Called after each job as ``(done, total, job, error)``; ``error`` is None on success.
+#: It runs on a worker thread, and an exception raised by it is ignored.
+ProgressCallback = Callable[[int, int, ScanJob, ScanError | None], None]
 
 
 def _now() -> datetime:
@@ -90,17 +97,35 @@ def run_scan(
     config: ScanConfig,
     classifier: Classifier | None = None,
     clock: Callable[[], datetime] = _now,
+    on_job_done: ProgressCallback | None = None,
 ) -> ScanResult:
     """Run every job with bounded concurrency and return the combined result.
 
     A failing job is recorded in ``ScanResult.errors`` and never stops the
     others. Findings are de-duplicated by id and sorted worst first.
+    ``on_job_done`` reports progress (see :data:`ProgressCallback`).
     """
     classifier = classifier or default_classifier()
     started_at = clock()
+    total = len(jobs)
+    done = 0
+    lock = threading.Lock()
+
+    def work(job: ScanJob) -> tuple[list[Observation], FileCoverage | None] | ScanError:
+        nonlocal done
+        outcome = _run_job(job, config)
+        if on_job_done is not None:
+            with lock:
+                done += 1
+                count = done
+            error = outcome if isinstance(outcome, ScanError) else None
+            # A progress hook must never break the scan.
+            with contextlib.suppress(Exception):
+                on_job_done(count, total, job, error)
+        return outcome
 
     with ThreadPoolExecutor(max_workers=config.concurrency) as pool:
-        outcomes = list(pool.map(lambda job: _run_job(job, config), jobs))
+        outcomes = list(pool.map(work, jobs))
 
     findings: dict[str, Finding] = {}
     assets: dict[str, Asset] = {}

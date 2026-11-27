@@ -4,11 +4,24 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
 from typer.testing import CliRunner
 
 from pqc_scan.cli import ExitCode, app
 from pqc_scan.diff import diff, render_console
-from pqc_scan.models import Asset, AssetKind, ScanResult
+from pqc_scan.i18n import language
+from pqc_scan.models import (
+    Algorithm,
+    Asset,
+    AssetKind,
+    ErrorKind,
+    FileCoverage,
+    Finding,
+    Primitive,
+    RiskClass,
+    ScanError,
+    ScanResult,
+)
 from test_reporters import sample_result
 
 runner = CliRunner(env={"COLUMNS": "200"})
@@ -113,3 +126,86 @@ def test_failed_tls_endpoint_is_unverified() -> None:
     )
     result = diff(base, base.model_copy(update={"findings": [], "errors": [error]}))
     assert result.unverified == [finding] and not result.resolved
+
+
+# --- unverified resolutions (pqc_scan.diff._not_verified) -------------------
+
+
+def _finding(scanner: str, location: str, asset_id: str | None = None) -> Finding:
+    asset = Asset(
+        id=asset_id or f"{scanner}://{location}", kind=AssetKind.SOURCE_FILE, location=location
+    )
+    return Finding(
+        asset=asset,
+        algorithm=Algorithm(raw_name="RSA", primitive=Primitive.SIGNATURE),
+        usage=f"{scanner}.test",
+        scanner=scanner,
+        id=f"{scanner}-{location}",
+        risk=RiskClass.VULNERABLE,
+        reason="r",
+    )
+
+
+def _head(errors: list[ScanError], coverage: list[FileCoverage] | None = None) -> ScanResult:
+    base = sample_result()
+    return base.model_copy(
+        update={"findings": [], "errors": errors, "file_coverage": coverage or []}
+    )
+
+
+def _base(*findings: Finding) -> ScanResult:
+    return sample_result().model_copy(update={"findings": list(findings)})
+
+
+def test_failed_ssh_endpoint_is_unverified() -> None:
+    finding = _finding("ssh", "srv.test:22")
+    head = _head([ScanError(target="srv.test", scanner="ssh", kind=ErrorKind.TIMEOUT, message="t")])
+    assert [f.id for f in diff(_base(finding), head).unverified] == [finding.id]
+
+
+def test_unparsable_error_target_is_ignored() -> None:
+    finding = _finding("tls", "srv.test:443")
+    error = ScanError(target="srv.test:notaport", scanner="tls", kind=ErrorKind.DNS, message="x")
+    result = diff(_base(finding), _head([error]))
+    assert [f.id for f in result.resolved] == [finding.id]
+
+
+def test_failed_code_job_without_coverage_is_unverified() -> None:
+    finding = _finding("code", "app.py", "file:///repo/app.py")
+    error = ScanError(target="/repo", scanner="code", kind=ErrorKind.PERMISSION, message="p")
+    assert diff(_base(finding), _head([error])).unverified
+
+
+def test_failed_code_job_with_covering_job_is_resolved() -> None:
+    root = Path("/repo").absolute()
+    finding = _finding("code", "app.py", (root / "app.py").as_uri())
+    error = ScanError(target="/other", scanner="code", kind=ErrorKind.PERMISSION, message="p")
+    coverage = FileCoverage(scanner="code", target=str(root), inspected=1)
+    result = diff(_base(finding), _head([error], [coverage]))
+    assert [f.id for f in result.resolved] == [finding.id] and not result.unverified
+
+
+def test_other_scanner_error_matches_by_location() -> None:
+    finding = _finding("custom", "thing")
+    error = ScanError(target="thing", scanner="custom", kind=ErrorKind.INTERNAL, message="x")
+    assert diff(_base(finding), _head([error])).unverified
+    other = ScanError(target="thing", scanner="tls", kind=ErrorKind.INTERNAL, message="x")
+    assert not diff(_base(finding), _head([other])).unverified
+
+
+@pytest.mark.parametrize("skipped", ["app.py", "src", "."])
+def test_skipped_files_are_unverified(skipped: str) -> None:
+    finding = _finding("code", "src/app.py" if skipped == "src" else "app.py")
+    coverage = FileCoverage(scanner="code", target="/repo", oversized=[skipped])
+    assert diff(_base(finding), _head([], [coverage])).unverified
+
+
+def test_console_in_turkish_with_unverified() -> None:
+    finding = _finding("ssh", "srv.test:22")
+    head = _head([ScanError(target="srv.test", scanner="ssh", kind=ErrorKind.TIMEOUT, message="t")])
+    token = language.set("tr")
+    try:
+        text = render_console(diff(_base(finding), head))
+    finally:
+        language.reset(token)
+    assert "0 yeni · 0 giderilen" in text

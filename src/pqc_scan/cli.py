@@ -23,6 +23,7 @@ from rich.console import Console
 from typer.core import TyperGroup
 
 from pqc_scan import __version__, mosca
+from pqc_scan.api import build_jobs, exceeds, parse_targets
 from pqc_scan.diff import build as build_diff
 from pqc_scan.diff import diff
 from pqc_scan.diff import render_console as render_diff_console
@@ -304,8 +305,7 @@ def exit_code(result: ScanResult, job_count: int, fail_on: RiskClass | None) -> 
     """Map a finished scan to an exit code (D-8)."""
     if job_count and len(result.errors) >= job_count:
         return ExitCode.ALL_TARGETS_FAILED
-    worst = result.worst_risk()
-    if fail_on is not None and worst is not None and worst.at_least(fail_on):
+    if fail_on is not None and exceeds(result, fail_on):
         return ExitCode.FAIL_ON
     return ExitCode.OK
 
@@ -339,18 +339,8 @@ def split_all_targets(lines: list[str]) -> tuple[list[str], list[str], list[str]
     ``tls://host:port`` and ``ssh://host:port`` name endpoints, ``path:DIR``
     or ``file:DIR`` a local directory; a bare ``host[:port]`` is a TLS endpoint.
     """
-    tls, ssh, paths = [], [], []
-    for line in lines:
-        scheme, sep, rest = line.partition("://")
-        if sep and scheme.lower() == "ssh":
-            ssh.append(rest)
-        elif sep and scheme.lower() in ("tls", "https"):
-            tls.append(rest)
-        elif line.startswith(("path:", "file:")):
-            paths.append(line.split(":", 1)[1])
-        else:
-            tls.append(line)
-    return tls, ssh, paths
+    targets = parse_targets(lines)
+    return list(targets.tls), list(targets.ssh), list(targets.paths)
 
 
 # --- commands -----------------------------------------------------------------
@@ -544,11 +534,7 @@ def scan_all(
         exclude=(*DEFAULT_EXCLUDES, *(exclude or [])),
         **mosca_settings(mosca_x, mosca_y, mosca_z, mosca_file),
     )
-    jobs = [ScanJob(TLSScanner(), t) for t in dict.fromkeys(tls)]
-    jobs += [ScanJob(SSHScanner(), t) for t in dict.fromkeys(ssh)]
-    for path in dict.fromkeys(local):
-        jobs += [ScanJob(FilesScanner(), path), ScanJob(CodeScanner(), path)]
-    _run_jobs(jobs, config, fmt, out, fail_on)
+    _run_jobs(build_jobs(tls=tls, ssh=ssh, paths=local), config, fmt, out, fail_on)
 
 
 def _load_result(path: Path) -> ScanResult:

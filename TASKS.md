@@ -15,7 +15,14 @@ Yeni oturumda devam etme kuralları: `CLAUDE.md` §12.
 
 > Her oturumun sonunda bu bölümü güncelle.
 
-**Son güncelleme:** 2026-11-25
+**Son güncelleme:** 2026-11-27
+
+**0.4.0 hazır, yayın bekliyor (T-305).** Gömülebilir Python API eklendi
+(`pqc_scan.scan`, `render_report(lang=)`, `exceeds`, ilerleme geri çağrısı);
+ytk-scan bu API ile `pqc-readiness` eklentisi olarak entegre edildi. 382 test
+geçti, kapsama %96. Branch: `feat/python-api`. Sıradaki adım: PR'ı birleştirip
+`v0.4.0` etiketiyle PyPI'ye yayınlamak; ardından ytk-scan'de
+`pip install -e ".[pqc]"`.
 
 **Yayın tamamlandı.** `pqc-readiness-scanner==0.3.0` PyPI’a yüklendi. Temiz bir Windows sanal ortamında kurulum, bağımlılıklar ve örnek bir MD5 bulgusu içeren Türkçe HTML raporu doğrulandı. [PyPI sürümü](https://pypi.org/project/pqc-readiness-scanner/0.3.0/) · [Yayın iş akışı](https://github.com/YusufTaha-Kurt/pqc-scan/actions/runs/45557545471)
 
@@ -89,6 +96,12 @@ sertifika sahibi/düzenleyeni/geçerlilik tarihleri.
   SARIF çıktısı + Action'da code scanning yüklemesi; gerçek OpenSSL 3.5 /
   OpenSSH 10 interop testleri (CI işi `interop`); C# ve Rust kuralları;
   sertifika ayrıntıları (Asset.details → CBOM); örnek raporlar yenilendi.
+
+- **2026-11-27** — Entegrasyon analizi: dış API yoktu, rapor dili iş
+  parçacıklarına geçmiyordu, ilerleme bildirimi yoktu. T-305: `pqc_scan.api`
+  (+ `__init__` dışa aktarımları), `run_scan(on_job_done=...)`, CLI hedef
+  ayrıştırma/iş kurma API'ye taşındı, `diff.py` testleri (%71 → %94),
+  `/rapor.*` gitignore. Sürüm 0.4.0 (yayınlanmadı). Branch: `feat/python-api`.
 
 ---
 
@@ -295,3 +308,6 @@ D-12 ile Semgrep yerine yerleşik motorlar kullanıldı.
   defterleri (saf Python, testlerde çalıştırılıyor)
 - [x] **T-304** Bulgu bazlı öneriler (konsol + HTML) ve
   `docs/migration-guide.md` (nginx, Apache, OpenSSH, Go örnekleri)
+- [~] **T-305** Gömülebilir Python API (`pqc_scan.api`), dile göre rapor,
+  ilerleme geri çağrısı; ytk-scan entegrasyonu. Kod ve testler tamam,
+  0.4.0 PyPI yayını bekliyor (`feat/python-api`)
