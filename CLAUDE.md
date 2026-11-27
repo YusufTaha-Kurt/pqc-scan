@@ -122,6 +122,7 @@ pqc-scan/
 - Her tarayıcı `scanners/base.py` içindeki `Scanner` arayüzünü uygular ve yalnızca `list[Observation]` döndürür (risk sınıfı içermeyen ham gözlem). Tarayıcılar risk sınıflarını ve rapor formatını bilmez. (karar: D-1)
 - Sınıflandırma (`classify.py`) tarayıcılardan bağımsızdır; `engine.py` her `Observation`'ı `classify`'a verir ve sonucu `Finding` olarak `ScanResult`'a ekler.
 - Raporlayıcılar yalnızca `ScanResult` modelini tüketir.
+- Başka araçlara açık Python API yalnızca `pqc_scan.api` ve `pqc_scan/__init__.py`'deki `__all__` isimleridir; bunlar semver'e tabidir, diğer modüller iç ayrıntıdır. Dil, raporlama çağrısında parametre olarak verilir (`render_report(..., lang=)`).
 - Ağ taramaları için zaman aşımı ve eşzamanlılık sınırı her zaman yapılandırılabilir olsun; varsayılanlar ihtiyatlı olsun (ör. 5 sn zaman aşımı, en fazla 10 eşzamanlı bağlantı).
 - Hata olan bir hedef taramanın tamamını durdurmaz; hata `ScanResult.errors` içine yazılır.
 - CLI çıktısı her komutta aynı iki seçenekle belirlenir: `--format {console,json,html,cbom,sarif}` ve `--out PATH`. Çıkış kodları: `0` başarılı · `1` `--fail-on` eşiği aşıldı · `2` kullanım hatası · `3` tüm hedefler hata verdi. (karar: D-8)
@@ -187,6 +188,7 @@ pqc-scan scan files ./my-repo --fail-on VULNERABLE   # CI için: eşik aşılır
 - [x] "Öğren" bölümü: BB84 ve Shor/Grover açıklamalı not defterleri
 - [x] Bulunan zayıflıklar için geçiş önerileri (hibrit TLS yapılandırma örnekleri)
 - [x] SARIF çıktısı (GitHub code scanning), C#/Rust kuralları, gerçek OpenSSL 3.5 / OpenSSH 10 interop testleri, CBOM sertifika ayrıntıları
+- [~] Gömülebilir Python API (`pqc_scan.api`) ve ytk-scan entegrasyonu — kod hazır, 0.4.0 yayını bekliyor
 
 ## 11. Claude Code için çalışma şekli
 
